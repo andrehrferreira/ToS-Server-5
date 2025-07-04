@@ -3,3 +3,5 @@
 .env
 obj
 bin
+Unreal/Binaries
+Unreal/Intermediate
