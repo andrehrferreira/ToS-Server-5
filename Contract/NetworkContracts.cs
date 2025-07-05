@@ -3,13 +3,13 @@
 [Contract("Ping")]
 public struct PingContract 
 {
-    [ContractField("int")]
-    public Int64 SentTimestamp;
+    [ContractField("long")]
+    public long SentTimestamp;
 }
 
 [Contract("Pong", PacketLayerType.Client)]
 public struct PongContract
 {
-    [ContractField("int")]
-    public Int64 SentTimestamp;
+    [ContractField("long")]
+    public long SentTimestamp;
 }

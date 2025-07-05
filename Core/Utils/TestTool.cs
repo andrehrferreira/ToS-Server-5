@@ -64,6 +64,12 @@ public class TestTool
                 Console.WriteLine($"[FAIL] {testClass.Name}: {ex.Message}");
                 Console.ResetColor();
             }
+            catch {
+                totalError++; 
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"[FAIL] {testClass.Name}: Unknown error");
+                Console.ResetColor();
+            }
         }
 
         stopwatch.Stop();

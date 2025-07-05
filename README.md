@@ -43,6 +43,35 @@ Open PowerShell as Administrator and run:
 3. When opening, a message will appear asking to build the plugin. Accept to compile.
 4. If any error occurs, build manually in Visual Studio by opening the `.sln` file and compiling the project.
 
+## Development Commands
+
+The project uses **pnpm** as the package manager. Here are the available commands:
+
+### 🚀 **Development**
+```bash
+pnpm dev
+```
+- Starts the server in development mode with hot-reload
+- Automatically restarts on file changes
+- Warnings are not treated as errors
+
+### 🔨 **Build Commands**
+```bash
+# Development build
+pnpm build
+
+# Production build (optimized)
+pnpm build:release
+```
+
+### 📦 **Publishing**
+```bash
+pnpm publish
+```
+- Builds the project in Release mode
+- Generates a distributable executable in `./dist` folder
+- Includes all dependencies required for deployment
+
 ## Code Generation
 
 When running the server in debug mode, the system automatically generates the necessary package files and support components for server operation and Unreal integration.
@@ -147,3 +176,14 @@ The UDP server is designed with high performance and reliability in mind:
 | JWT Authentication                 | ⏳ Not Implemented | JWT authentication not implemented yet.                     |
 | Reactive System                    | ⏳ Not Implemented | Reactive system not implemented yet.                        |
 | Reactive Request Handlers          | ⏳ Not Implemented | Reactive request handlers not implemented yet.              |
+
+## Scripts Reference
+
+| Command | Description | Use Case |
+|---------|-------------|----------|
+| `pnpm run dev` | Development server with hot-reload | Daily development |
+| `pnpm run build` | Development build | Testing builds |
+| `pnpm run build:release` | Production build (optimized) | Pre-deployment testing |
+| `pnpm run publish` | Generate distributable executable | Production deployment |
+
+> **Note:** All commands use the .NET CLI under the hood and are configured for optimal performance and development experience.

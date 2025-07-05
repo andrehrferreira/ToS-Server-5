@@ -1,0 +1,21 @@
+{
+    "name": "ToS-MMO-Server",
+    "version": "5.0.0",
+    "description": "Tales Of Shadowland server version 5",
+    "scripts": {
+        "dev": "dotnet watch run -warnaserror:false",
+        "build": "dotnet build",
+        "build:release": "dotnet build --configuration Release",
+        "publish": "dotnet publish --configuration Release --output ./dist"
+    },
+    "keywords": [
+        "server",
+        "game",
+        "mmo",
+        "tos",
+        "shadowland"
+    ],
+    "author": "Andre Ferreira",
+    "license": "MIT",
+    "packageManager": "pnpm@10.12.1"
+}

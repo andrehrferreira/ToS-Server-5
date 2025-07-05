@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-[System.Runtime.InteropServices.StructLayout(LayoutKind.Sequential, Size = 32)]
+[StructLayout(LayoutKind.Sequential, Size = 32)]
 public unsafe struct FixedString32
 {
     public fixed byte Buffer[32];

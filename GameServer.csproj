@@ -6,6 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<WarningsAsErrors>false</WarningsAsErrors>
+        <NoWarn>CS8618;CS8600;CS8603;CS8625;CS8765;CS0168;CS1058;CS8601;CS8604</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
