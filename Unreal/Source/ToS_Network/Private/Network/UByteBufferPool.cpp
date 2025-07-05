@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "UByteBufferPool.h"
-#include "UByteBuffer.h"
+#include "Network/UByteBufferPool.h"
+#include "Network/UByteBuffer.h"
 #include <mutex>
 
 ByteBufferLinked::ByteBufferLinked() { Head = nullptr; Tail = nullptr; }

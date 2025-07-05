@@ -10,7 +10,10 @@ public class ToS_Network : ModuleRules
         PublicDependencyModuleNames.AddRange(new string[] {
 			"Core",
             "Sockets",
-            "Networking"
+            "Networking",
+			"Engine",
+            "InputCore",
+            "EnhancedInput"
         });
 					
 		PrivateDependencyModuleNames.AddRange(new string[] {

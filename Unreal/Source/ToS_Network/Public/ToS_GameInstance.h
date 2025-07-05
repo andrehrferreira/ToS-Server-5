@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
-#include "ENetSubsystem.h"
+#include "Network/ENetSubsystem.h"
 #include "Tos_GameInstance.generated.h"
 
 UCLASS()

@@ -1,98 +1,99 @@
-﻿using System.Net;
+﻿using Networking;
+using System.Net;
 using System.Net.Sockets;
 
-namespace Networking
+public enum ConnectionState
 {
-    public enum ConnectionState
+    Disconnected,
+    Connecting,
+    Connected,
+    Disconnecting
+}
+
+public enum DisconnectReason
+{
+    Timeout,
+    NegativeSequence,
+    RemoteBufferTooBig,
+    Other
+}
+
+public class UDPSocket
+{
+    public int Id;
+
+    public int EntityId;
+
+    public EndPoint RemoteEndPoint;
+
+    public Socket ServerSocket;
+
+    public int Ping = 0;
+
+    public DateTime PingSentAt;
+
+    public DisconnectReason Reason;
+
+    public ConnectionState State;
+
+    public float TimeoutLeft = 30f;
+
+    public bool IsConnected
     {
-        Disconnected,
-        Connecting,
-        Connected,
-        Disconnecting
+        get
+        {
+            return State == ConnectionState.Connected;
+        }
     }
 
-    public enum DisconnectReason
+    public void Send(ByteBuffer buffer)
     {
-        Timeout,
-        NegativeSequence,
-        RemoteBufferTooBig,
-        Other
+        if (ServerSocket == null || RemoteEndPoint == null)
+            throw new InvalidOperationException("Socket is not initialized or remote endpoint is not set.");
+
+        buffer.Connection = this;
+
+        UDPServer.Send(buffer);
     }
 
-    public class UDPSocket
+    public bool Update(float delta)
     {
-        public int Id;
+        if (State == ConnectionState.Disconnected)
+            return true;
 
-        public EndPoint RemoteEndPoint;
+        TimeoutLeft -= delta;
 
-        public Socket ServerSocket;
-
-        public int Ping = 0;
-
-        public DateTime PingSentAt;
-
-        public DisconnectReason Reason;
-
-        public ConnectionState State;
-
-        public float TimeoutLeft = 30f;
-
-        public bool IsConnected
+        if (TimeoutLeft <= 0)
         {
-            get
-            {
-                return State == ConnectionState.Connected;
-            }
+            Disconnect(DisconnectReason.Timeout);
+
+            return true;
         }
 
-        public void Send(ByteBuffer buffer)
-        {
-            if (ServerSocket == null || RemoteEndPoint == null)
-                throw new InvalidOperationException("Socket is not initialized or remote endpoint is not set.");
+        return false;
+    }
 
-            buffer.Connection = this;
-            UDPServer.Send(buffer);
+    public void Disconnect(DisconnectReason reason = DisconnectReason.Other)
+    {
+        if (State != ConnectionState.Disconnected)
+        {
+            Reason = reason;
+
+            ByteBuffer response = ByteBufferPool.Acquire();
+
+            response.Connection = this;
+
+            response.Write(PacketType.Disconnect);
+
+            Send(response);
         }
+    }
 
-        public bool Update(float delta)
+    internal void OnDisconnect()
+    {
+        if (State != ConnectionState.Disconnected)
         {
-            if (State == ConnectionState.Disconnected)
-                return true;
-
-            TimeoutLeft -= delta;
-
-            if (TimeoutLeft <= 0)
-            {
-                Disconnect(DisconnectReason.Timeout);
-
-                return true;
-            }
-
-            return false;
-        }
-
-        public void Disconnect(DisconnectReason reason = DisconnectReason.Other)
-        {
-            if (State != ConnectionState.Disconnected)
-            {
-                Reason = reason;
-
-                ByteBuffer response = ByteBufferPool.Acquire();
-
-                response.Connection = this;
-
-                response.Write(PacketType.Disconnect);
-
-                Send(response);
-            }
-        }
-
-        internal void OnDisconnect()
-        {
-            if (State != ConnectionState.Disconnected)
-            {
-                State = ConnectionState.Disconnected;
-            }
+            State = ConnectionState.Disconnected;
         }
     }
 }

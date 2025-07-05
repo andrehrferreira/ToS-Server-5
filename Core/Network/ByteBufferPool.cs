@@ -22,165 +22,68 @@
 * SOFTWARE.
 */
 
-namespace Networking
+public static class ByteBufferPool
 {
-    public static class ByteBufferPool
+    static ByteBufferLinked Global = new ByteBufferLinked();
+
+    [ThreadStatic]
+    static ByteBufferLinked Local;
+
+    public static ByteBuffer Acquire()
     {
-        static ByteBufferLinked Global = new ByteBufferLinked();
+        ByteBuffer buffer;
 
-        [ThreadStatic]
-        static ByteBufferLinked Local;
-
-        public static ByteBuffer Acquire()
+        if (Local == null)
         {
-            ByteBuffer buffer;
+            lock (Global)
+            {
+                buffer = Global.Take();
+            }
+        }
+        else
+        {
+            buffer = Local.Take();
 
-            if (Local == null)
+            if (buffer == null)
             {
                 lock (Global)
                 {
                     buffer = Global.Take();
                 }
             }
-            else
-            {
-                buffer = Local.Take();
-
-                if (buffer == null)
-                {
-                    lock (Global)
-                    {
-                        buffer = Global.Take();
-                    }
-                }
-            }
-
-            if (buffer == null)
-                buffer = new ByteBuffer();
-
-            return buffer;
         }
 
-        public static void Release(ByteBuffer buffer)
-        {
-            if (Local == null)
-                Local = new ByteBufferLinked();
+        if (buffer == null)
+            buffer = new ByteBuffer();
 
-            buffer.Reset();
-            Local.Add(buffer);
-        }
+        return buffer;
+    }
 
-        public static void Merge()
-        {
-            if (Local != null && Local.Head != null)
-            {
-                lock (Global)
-                {
-                    Global.Merge(Local);
-                }
-            }
-        }
+    public static void Release(ByteBuffer buffer)
+    {
+        if (Local == null)
+            Local = new ByteBufferLinked();
 
-        public static ByteBuffer Clear()
+        buffer.Reset();
+        Local.Add(buffer);
+    }
+
+    public static void Merge()
+    {
+        if (Local != null && Local.Head != null)
         {
             lock (Global)
             {
-                return Global.Clear();
+                Global.Merge(Local);
             }
         }
     }
 
-    public class ByteBufferLinked
+    public static ByteBuffer Clear()
     {
-        public ByteBuffer Head;
-        public ByteBuffer Tail;
-
-        public static readonly ByteBufferLinked Global = new ByteBufferLinked();
-
-        [ThreadStatic]
-        public static ByteBufferLinked Local;
-
-        public void Add(ByteBuffer buffer)
+        lock (Global)
         {
-            buffer.Next = Head;
-
-            if (Tail == null)
-            {
-                Tail = buffer;
-            }
-
-            Head = buffer;
-        }
-
-        public ByteBuffer Clear()
-        {
-            ByteBuffer result = Head;
-
-            Head = null;
-            Tail = null;
-
-            return result;
-        }
-
-        public ByteBuffer Take()
-        {
-            if (Head == null)
-            {
-                return null;
-            }
-            else
-            {
-                ByteBuffer result = Head;
-
-                if (Head == Tail)
-                {
-                    Head = null;
-                    Tail = null;
-                }
-                else
-                {
-                    Head = Head.Next;
-                }
-
-                return result;
-            }
-        }
-
-        public int Length
-        {
-            get
-            {
-                int val = 0;
-
-                ByteBuffer current = Head;
-
-                while (current != null)
-                {
-                    current = current.Next;
-
-                    ++val;
-                }
-
-                return val;
-            }
-        }
-
-        public void Merge(ByteBufferLinked other)
-        {
-            if (Head == null)
-            {
-                Head = other.Head;
-                Tail = other.Tail;
-            }
-            else if (other.Head != null)
-            {
-                Tail.Next = other.Head;
-
-                Tail = other.Tail;
-            }
-
-            other.Head = null;
-            other.Tail = null;
+            return Global.Clear();
         }
     }
 }

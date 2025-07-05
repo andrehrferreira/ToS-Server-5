@@ -3,6 +3,12 @@ using System.Runtime.CompilerServices;
 
 namespace Networking
 {
+    public enum PacketLayerType
+    {
+        Server,
+        Client
+    }
+
     public enum PacketType
     {
         Connect,

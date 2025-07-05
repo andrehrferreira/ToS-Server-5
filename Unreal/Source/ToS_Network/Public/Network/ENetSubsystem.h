@@ -24,7 +24,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "NetTypes.h"
+#include "Network/UDPClient.h"
 #include "UObject/Object.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Containers/Ticker.h"

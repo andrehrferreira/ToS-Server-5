@@ -1,12 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "UByteBuffer.h"
 #include <mutex>
 
-// Forward declaration
 class UByteBuffer;
 
 class ByteBufferLinked
