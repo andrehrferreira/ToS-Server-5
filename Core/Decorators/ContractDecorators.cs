@@ -1,6 +1,4 @@
-﻿using Networking;
-
-[AttributeUsage(AttributeTargets.Struct, Inherited = false)]
+﻿[AttributeUsage(AttributeTargets.Struct, Inherited = false)]
 public class ContractAttribute : Attribute
 {
     public string Name { get; }

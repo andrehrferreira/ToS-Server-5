@@ -1,9 +1,7 @@
-﻿using Networking;
-
-[Contract("CreateEntity", PacketLayerType.Server, true)]
-public struct CreateEntityContract 
+﻿[Contract("CreateEntity", PacketLayerType.Server, true)]
+public struct CreateEntityContract
 {
-    
+
 }
 
 [Contract("SyncEntity", PacketLayerType.Client, false)]

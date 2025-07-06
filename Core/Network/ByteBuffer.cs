@@ -162,6 +162,9 @@ public unsafe class ByteBuffer : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(byte value)
     {
+        if (Offset + 1 > Data.Length)
+            throw new InvalidOperationException("Buffer overflow");
+
         Data[Offset++] = value;
         Length++;
         return this;
@@ -170,6 +173,9 @@ public unsafe class ByteBuffer : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(PacketType value)
     {
+        if (Offset + 1 > Data.Length)
+            throw new InvalidOperationException("Buffer overflow");
+
         Data[Offset++] = (byte)value;
         Length++;
         return this;
