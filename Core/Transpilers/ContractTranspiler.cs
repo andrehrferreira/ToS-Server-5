@@ -21,7 +21,6 @@
 * SOFTWARE.
 */
 
-using System;
 using System.Reflection;
 
 public class ContractTraspiler : AbstractTranspiler

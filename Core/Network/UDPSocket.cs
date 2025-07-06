@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Sockets;
 
 public enum ConnectionState
@@ -14,6 +14,7 @@ public enum DisconnectReason
     Timeout,
     NegativeSequence,
     RemoteBufferTooBig,
+    InvalidIntegrity,
     Other
 }
 
@@ -38,6 +39,12 @@ public class UDPSocket
     public PacketFlags Flags;
 
     public float TimeoutLeft = 30f;
+
+    public ushort IntegrityCheck;
+
+    public DateTime IntegrityCheckSentAt;
+
+    public float TimeoutIntegrityCheck = 120f;
 
     public bool IsConnected
     {
@@ -72,14 +79,23 @@ public class UDPSocket
 
         TimeoutLeft -= delta;
 
+        TimeoutIntegrityCheck -= delta;
+
         if (TimeoutLeft <= 0)
         {
             Disconnect(DisconnectReason.Timeout);
 
-            return true;
+            return false;
         }
 
-        return false;
+        if(TimeoutIntegrityCheck <= 0)
+        {
+            Disconnect(DisconnectReason.InvalidIntegrity);
+
+            return false;
+        }
+
+        return true;
     }
 
     public void Disconnect(DisconnectReason reason = DisconnectReason.Other)
@@ -91,6 +107,8 @@ public class UDPSocket
             ByteBuffer response = ByteBufferPool.Acquire();
 
             response.Connection = this;
+
+            response.Reliable = true;
 
             response.Write(PacketType.Disconnect);
 

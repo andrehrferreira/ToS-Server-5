@@ -57,7 +57,8 @@ enum class EPacketType : uint8
     Disconnect          UMETA(DisplayName = "Disconnect"),
     Error               UMETA(DisplayName = "Error"),
     ConnectionDenied    UMETA(DisplayName = "ConnectionDenied"),
-    ConnectionAccepted  UMETA(DisplayName = "ConnectionAccepted")
+    ConnectionAccepted  UMETA(DisplayName = "ConnectionAccepted"),
+    CheckIntegrity      UMETA(DisplayName = "CheckIntegrity")
 };
 
 class FPacketPollRunnable : public FRunnable
@@ -86,6 +87,7 @@ public:
     bool Connect(const FString& Host, int32 Port);
     void Disconnect();
     void SendPong(int64 PingTime);
+    void SendIntegrity(uint16 Code);
     void PollIncomingPackets();
     void SetConnectTimeout(float Seconds) { ConnectTimeout = Seconds; }
     void SetRetryInterval(float Seconds) { RetryInterval = Seconds; }

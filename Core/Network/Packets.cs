@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 public enum PacketLayerType
@@ -18,7 +18,8 @@ public enum PacketType
     Disconnect,
     Error,
     ConnectionDenied,
-    ConnectionAccepted
+    ConnectionAccepted,
+    CheckIntegrity,
 }
 
 [Flags]
@@ -51,11 +52,12 @@ public static class PacketFlagsUtils
 public static class PacketPing
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ByteBuffer Serialize()
+    public static ByteBuffer Serialize(long timestamp)
     {
         ByteBuffer bufferPing = ByteBufferPool.Acquire();
         bufferPing.Reliable = false;
         bufferPing.Write(PacketType.Ping);
+        bufferPing.Write(timestamp);
         return bufferPing;
     }
 }
@@ -83,8 +85,8 @@ public static class PacketPong
         conn.Ping = (int)rttMs;
         conn.TimeoutLeft = 30f;
 
-        if (conn.State == ConnectionState.Connected)
-            Console.WriteLine($"Client: {conn.RemoteEndPoint} Ping: {conn.Ping} ms");
+        //if (conn.State == ConnectionState.Connected)
+        //    Console.WriteLine($"Client: {conn.RemoteEndPoint} Ping: {conn.Ping} ms");
     }
 }
 
@@ -110,5 +112,30 @@ public static class PacketConnectionDenied
         bufferPing.Reliable = true;
         bufferPing.Write(PacketType.ConnectionDenied);
         return bufferPing;
+    }
+}
+
+public static class PacketDisconnect
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ByteBuffer Serialize()
+    {
+        ByteBuffer buffer = ByteBufferPool.Acquire();
+        buffer.Reliable = true;
+        buffer.Write(PacketType.Disconnect);
+        return buffer;
+    }
+}
+
+public static class PacketCheckIntegrity
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ByteBuffer Serialize(ushort index)
+    {
+        ByteBuffer buffer = ByteBufferPool.Acquire();
+        buffer.Reliable = true;
+        buffer.Write(PacketType.CheckIntegrity);
+        buffer.Write(index);
+        return buffer;
     }
 }

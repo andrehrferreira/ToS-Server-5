@@ -27,15 +27,12 @@ void UTOSGameInstance::OnStart()
 
     if (UENetSubsystem* Socket = GetSubsystem<UENetSubsystem>())
     {
-        if (bENetInitialized)
-        {
+        if (bENetInitialized)        
             return;
-        }
-
+        
         bENetInitialized = true;
 
-        if (!Socket->IsConnected() && Socket->GetConnectionStatus() != EConnectionStatus::Connecting && ServerAutoConnect) {
+        if (!Socket->IsConnected() && Socket->GetConnectionStatus() != EConnectionStatus::Connecting && ServerAutoConnect) 
             Socket->Connect(ServerIP, ServerPort);
-        }
     }    
 }

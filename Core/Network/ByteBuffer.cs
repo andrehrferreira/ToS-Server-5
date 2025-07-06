@@ -81,6 +81,26 @@ public unsafe class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Assign(byte[] source, int length)
+    {
+        if (source == null)
+            throw new ArgumentNullException(nameof(source));
+
+        if (length <= 0 || length > source.Length)
+            throw new ArgumentOutOfRangeException(nameof(length), "Invalid length for Assign.");
+
+        if (length > Data.Length)
+            throw new InvalidOperationException($"Assigned data length ({length}) exceeds buffer capacity ({Data.Length}).");
+
+        Buffer.BlockCopy(source, 0, Data, 0, length);
+
+        Offset = 0;
+        Length = length;
+
+        ArrayPool<byte>.Shared.Return(source);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public byte[] GetBuffer()
     {
         if (Disposed)
@@ -264,6 +284,18 @@ public unsafe class ByteBuffer : IDisposable
         return this;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ByteBuffer Write(ushort value)
+    {
+        if (Offset + 2 > Data.Length)
+            throw new InvalidOperationException("Buffer overflow");
+
+        Data[Offset++] = (byte)(value & 0xFF);
+        Data[Offset++] = (byte)((value >> 8) & 0xFF);
+        Length += 2;
+
+        return this;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(FVector value)
@@ -396,6 +428,21 @@ public unsafe class ByteBuffer : IDisposable
 
         string value = System.Text.Encoding.UTF8.GetString(Data, Offset, len);
         Offset += len;
+        return value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ushort ReadUShort()
+    {
+        if (Offset + 2 > Data.Length)
+            throw new InvalidOperationException("Buffer underflow");
+
+        ushort value = (ushort)(
+            Data[Offset] |
+            (Data[Offset + 1] << 8)
+        );
+
+        Offset += 2;
         return value;
     }
 

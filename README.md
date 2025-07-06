@@ -7,16 +7,18 @@ This is a multiplayer server based on .NET 8, which automatically generates RPC 
 - **Windows 10 or higher**
 - **Unreal Engine 5.0 or higher**
 - **.NET SDK 8.0 or higher**
-- **Visual Studio 2022**
+- **Visual Studio 2022** 
 
 Before setting up the project, make sure to install the following NuGet packages:
 
 1. **DotNetEnv**  
-   [Download DotNetEnv](https://www.nuget.org/packages/DotNetEnv)
+    [Download DotNetEnv](https://www.nuget.org/packages/DotNetEnv)
 2. **Microsoft.VisualStudio.Interop**  
-   [Download Microsoft.VisualStudio.Interop](https://www.nuget.org/packages/Microsoft.VisualStudio.Interop)
+    [Download Microsoft.VisualStudio.Interop](https://www.nuget.org/packages/Microsoft.VisualStudio.Interop)
 3. **System.Reactive**  
-   [Download System.Reactive](https://www.nuget.org/packages/System.Reactive)
+    [Download System.Reactive](https://www.nuget.org/packages/System.Reactive)
+4. **Newtonsoft.Json**
+    [Download Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json)
 
 ### Enable unsafe code in Visual Studio
 
@@ -63,15 +65,7 @@ pnpm build
 # Production build (optimized)
 pnpm build:release
 ```
-
-### 📦 **Publishing**
-```bash
-pnpm publish
-```
-- Builds the project in Release mode
-- Generates a distributable executable in `./dist` folder
-- Includes all dependencies required for deployment
-
+  
 ## Code Generation
 
 When running the server in debug mode, the system automatically generates the necessary package files and support components for server operation and Unreal integration.
@@ -99,6 +93,7 @@ The project is actively under development with multiple core systems being imple
 - **CRC32C Implementation** - Hardware-accelerated checksum computation
 - **ByteBuffer System** - High-performance binary serialization
 - **Buffer Pooling** - Efficient memory management system
+- **Integrity System** - Key table store with simplified client-side access
 
 ## UDP Server Architecture
 
@@ -110,11 +105,13 @@ The UDP server is designed with high performance and reliability in mind:
 - **ByteBuffer**: High-performance binary serialization with read/write operations
 - **ByteBufferPool**: Object pooling system for efficient memory management
 - **ByteBufferLinked**: Linked buffer system for large data streaming
+- **IntegrityKeyTableStore**: Version-based key table management with simplified client access
 
 ### Network Features
 - **Connection Management**: Basic UDP client connection handling ✅
 - **Buffer Management**: Efficient memory pooling and reuse ✅
 - **Packet Serialization**: Binary packet reading/writing ✅
+- **Integrity System**: Version-based key table management ✅
 - **Queue System**: Packet grouping and batching 🛠️
 - **Reliable Messaging**: Guaranteed delivery system ⏳
 - **Packet Validation**: Integrity checking and validation ⏳
@@ -136,6 +133,7 @@ The UDP server is designed with high performance and reliability in mind:
 - **XOR encoding and ECC/AES encryption** (planned)
 - **Base36 encoding/decoding utilities**
 - **CRC32C checksum computation**
+- **Integrity key table system** with simplified client-side access
 
 ## Checklist
 
@@ -145,6 +143,7 @@ The UDP server is designed with high performance and reliability in mind:
 | Base36 Encoding/Decoding           | ✅ Implemented     | Base36 utility for encoding/decoding integers with tests.  |
 | CRC32C Checksum                    | ✅ Implemented     | High-performance CRC32C computation with hardware acceleration. |
 | Testing Framework                  | ✅ Implemented     | Custom testing framework with descriptive test structure.   |
+| Integrity Key Table Store          | ✅ Implemented     | Version-based key table management with simple client access. |
 
 ### Network & Communication
 | Feature                             | Status            | Notes                                                       |
@@ -162,6 +161,7 @@ The UDP server is designed with high performance and reliability in mind:
 | Basic Connection                   | ✅ Implemented     | Basic UDP connection implemented and tested.               |
 | ByteBuffer (Read/Write)            | ✅ Implemented     | Binary buffer for packet reading/writing operations.       |
 | ByteBuffer Pool                    | ✅ Implemented     | Object pooling for efficient buffer management.            |
+| Integrity Key Table Store          | ✅ Implemented     | Version-based key management with simple client-side access. |
 | QueueBuffer                        | 🛠 In Progress     | Packet grouping class exists and tested, full implementation pending. |
 | Reliable Messaging                 | ⏳ Planned         | Reliable UDP messaging system to be implemented.           |
 | Packet Validation                  | ⏳ Planned         | Packet integrity and validation system to be implemented.  |
@@ -181,9 +181,9 @@ The UDP server is designed with high performance and reliability in mind:
 
 | Command | Description | Use Case |
 |---------|-------------|----------|
-| `pnpm run dev` | Development server with hot-reload | Daily development |
-| `pnpm run build` | Development build | Testing builds |
-| `pnpm run build:release` | Production build (optimized) | Pre-deployment testing |
-| `pnpm run publish` | Generate distributable executable | Production deployment |
+| `pnpm dev` | Development server with hot-reload | Daily development |
+| `pnpm build` | Development build | Testing builds |
+| `pnpm build:release` | Production build (optimized) | Pre-deployment testing |
+| `pnpm publish` | Generate distributable executable | Production deployment |
 
 > **Note:** All commands use the .NET CLI under the hood and are configured for optimal performance and development experience.

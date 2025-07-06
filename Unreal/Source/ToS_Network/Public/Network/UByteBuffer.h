@@ -39,8 +39,15 @@ public:
 	UFUNCTION(BlueprintPure, Category = "ByteBuffer")
 	static UByteBuffer* CreateByteBuffer(const TArray<uint8>& Data);
 
+	UFUNCTION(BlueprintPure, Category = "ByteBuffer")
+	void Assign(const TArray<uint8>& Source);
+
+	// Write
+
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	UByteBuffer* WriteByte(uint8 Value);
+
+	UByteBuffer* WriteUInt16(uint16 Value);
 
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	UByteBuffer* WriteInt32(int32 Value);
@@ -49,7 +56,26 @@ public:
 	UByteBuffer* WriteInt64(int64 Value);
 
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+	UByteBuffer* WriteFloat(float Value);
+
+	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+	UByteBuffer* WriteBool(bool Value);
+
+	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+	UByteBuffer* WriteString(const FString& Value);
+
+	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+	UByteBuffer* WriteFVector(const FVector& Value);
+
+	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+	UByteBuffer* WriteFRotator(const FRotator& Value);
+
+	// Read
+
+	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	uint8 ReadByte();	
+
+	uint16 ReadUInt16();
 
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	int32 ReadInt32();
@@ -57,11 +83,37 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	int64 ReadInt64();
 
+	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+	float ReadFloat();
+
+	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+	bool ReadBool();
+
+	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+	FString ReadString();
+
+	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+	FVector ReadFVector();
+
+	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+	FRotator ReadFRotator();
+
+	// Utility
+
+	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	void Reset();
 
-	uint8* GetRawBuffer() { return Buffer.GetData(); }
-	int32 GetLength() const { return Length; }
-	int32 GetOffset() const { return Offset; }
+	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+	FString ToHex() const;
+
+	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+	int32 GetHashFast() const;
+
+	FORCEINLINE uint8* GetRawBuffer() { return Buffer.GetData(); }
+	FORCEINLINE int32 GetLength() const { return Length; }
+	FORCEINLINE int32 GetOffset() const { return Offset; }
+	FORCEINLINE void SetOffset(int32 NewOffset) { Offset = NewOffset; }
+	FORCEINLINE void SetLength(int32 NewLength) { Length = NewLength; }
 
 	void SetDataFromRaw(const uint8* Data, int32 DataSize)
 	{
@@ -73,9 +125,6 @@ public:
 		Length = DataSize;
 		Offset = 0;
 	}
-
-	void SetLength(int32 InLength) { Length = InLength; }
-	void SetOffset(int32 InOffset) { Offset = InOffset; }
 
 	UByteBuffer* Next = nullptr; 
 

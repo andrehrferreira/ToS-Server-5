@@ -4,5 +4,9 @@
 .env
 obj
 bin
+*.bin
+Benchmark/target
+Core/Tables
 Unreal/Binaries
 Unreal/Intermediate
+Unreal/Source/ToS_Network/Public/IntegrityTable.h

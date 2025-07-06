@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Reflection;
 
 class Program
@@ -6,10 +6,14 @@ class Program
     public static void Main(string[] args)
     {
         string projectDirectory = GetProjectDirectory();
+        string packageJsonPath = Path.Combine(projectDirectory, "package.json");
         string unrealPath = Path.Combine(projectDirectory, "Unreal");
+        string currentVersion = VersionReader.GetProjectVersion(packageJsonPath);
 
         if (!Directory.Exists(unrealPath))
             throw new FileNotFoundException($"Please create the virtual link with the client first.");
+
+        IntegritySystem.InitializeIntegrityTable(packageJsonPath, unrealPath);
 
         int portArg = int.Parse(args.Length > 1 ? args[1] : "3565");
         int port = portArg;
@@ -39,7 +43,7 @@ class Program
             Console.WriteLine("As the application did not pass the tests, the contract files and files for Unreal were not generated..");
         }
 #else
-            Console.WriteLine("Running in release mode. Tests and transpilers are skipped.");
+        Console.WriteLine("Running in release mode. Tests and transpilers are skipped.");
 #endif
 
         World world = new World(100000);
