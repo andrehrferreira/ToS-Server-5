@@ -148,8 +148,8 @@ public class QueueBuffer
             return false;
 
         var recentPackets = Queues[socketId];
-        var indexBuffer = recentPackets.Select(b => b.Data.ToHex());
-        var bufferHex = buffer.ToHex();
+        var indexBuffer = recentPackets.Select(b => b.Data.GetHashFast());
+        var bufferHex = buffer.GetHashFast();
 
         return indexBuffer.Contains(bufferHex);
     }

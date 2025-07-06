@@ -80,16 +80,6 @@ public unsafe class ByteBuffer : IDisposable
         ByteBufferPool.Release(other);
     }
 
-    ~ByteBuffer()
-    {
-        if (Data != null)
-        {
-            ArrayPool<byte>.Shared.Return(Data);
-            Data = null;
-            IsDestroyed = true;
-        }
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public byte[] GetBuffer()
     {
@@ -126,9 +116,6 @@ public unsafe class ByteBuffer : IDisposable
         Reliable = false;
         Connection = null;
         Next = null;
-
-        if (Data != null)
-            Array.Clear(Data, 0, Data.Length);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -143,6 +130,20 @@ public unsafe class ByteBuffer : IDisposable
             hash = (hash << 5) + hash + Data[i];
 
         return hash.ToString("X8");
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public uint GetHashFast()
+    {
+        if (Disposed)
+            throw new ObjectDisposedException("ByteBuffer");
+
+        uint hash = 0;
+
+        for (int i = 0; i < Offset; i++)
+            hash = (hash << 5) + hash + Data[i];
+
+        return hash;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -227,12 +228,14 @@ public unsafe class ByteBuffer : IDisposable
         if (Offset + 4 > Data.Length)
             throw new InvalidOperationException("Buffer overflow");
 
-        byte[] bytes = BitConverter.GetBytes(value);
-        Array.Copy(bytes, 0, Data, Offset, bytes.Length);
+        int intValue = BitConverter.SingleToInt32Bits(value);
 
-        Offset += 4;
+        Data[Offset++] = (byte)(intValue & 0xFF);
+        Data[Offset++] = (byte)((intValue >> 8) & 0xFF);
+        Data[Offset++] = (byte)((intValue >> 16) & 0xFF);
+        Data[Offset++] = (byte)((intValue >> 24) & 0xFF);
+
         Length += 4;
-
         return this;
     }
 
@@ -242,19 +245,25 @@ public unsafe class ByteBuffer : IDisposable
         if (value == null)
             value = string.Empty;
 
-        byte[] utf8Bytes = System.Text.Encoding.UTF8.GetBytes(value);
+        var encoding = System.Text.Encoding.UTF8;
+        int maxByteCount = encoding.GetMaxByteCount(value.Length);
 
-        if (Offset + utf8Bytes.Length > Data.Length)
+        if (Offset + maxByteCount + 4 > Data.Length)
             throw new InvalidOperationException("Buffer overflow");
 
-        Write(utf8Bytes.Length);
+        int bytesWritten = encoding.GetBytes(
+            value.AsSpan(),
+            Data.AsSpan(Offset + 4)
+        );
 
-        Array.Copy(utf8Bytes, 0, Data, Offset, utf8Bytes.Length);
-        Offset += utf8Bytes.Length;
-        Length += utf8Bytes.Length;
+        Write(bytesWritten);
+
+        Offset += bytesWritten;
+        Length += bytesWritten;
 
         return this;
     }
+
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(FVector value)
@@ -373,12 +382,8 @@ public unsafe class ByteBuffer : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float ReadFloat()
     {
-        if (Offset + 4 > Data.Length)
-            throw new InvalidOperationException("Buffer underflow");
-
-        float value = BitConverter.ToSingle(Data, Offset);
-        Offset += 4;
-        return value;
+        int intValue = ReadInt();
+        return BitConverter.Int32BitsToSingle(intValue);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
