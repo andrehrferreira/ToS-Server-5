@@ -1,7 +1,5 @@
-﻿using Networking;
-
-[Contract("Ping")]
-public struct PingContract 
+﻿[Contract("Ping")]
+public struct PingContract
 {
     [ContractField("long")]
     public long SentTimestamp;

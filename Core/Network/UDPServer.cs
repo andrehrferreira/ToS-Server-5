@@ -1,13 +1,25 @@
 ﻿using System.Buffers;
 using System.Collections.Concurrent;
-using System.Data;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using Networking;
+
+public class UDPServerOptions
+{
+    public bool UseXOREncode { get; set; } = false;
+    public byte[] XORKey { get; set; } = null;
+    public bool UseEncryption { get; set; } = false;
+    public byte[] EncryptionKey { get; set; } = null;
+    public byte[] EncryptionIV { get; set; } = null;
+}
+
 
 public sealed class UDPServer
 {
+    private static UDPServerOptions _options;
+
+    private static PacketFlags _baseFlags = PacketFlags.None;
+
     private static Socket ServerSocket;
 
     private static bool Running = true;
@@ -49,9 +61,20 @@ public sealed class UDPServer
         return BitConverter.ToInt32(Guid.NewGuid().ToByteArray(), 0) & 0x7FFFFFFF;
     }
 
-    public static bool Init(int port, ConnectionHandler connectionHandler)
+    public static bool Init(
+        int port,
+        ConnectionHandler connectionHandler,
+        UDPServerOptions options = null
+    )
     {
+        _options = options ?? new UDPServerOptions();
         _connectionHandler = connectionHandler;
+
+        if (_options.UseXOREncode)
+            _baseFlags = PacketFlagsUtils.AddFlag(_baseFlags, PacketFlags.XOR);
+
+        if (_options.UseEncryption)
+            _baseFlags = PacketFlagsUtils.AddFlag(_baseFlags, PacketFlags.Encrypted);
 
         try
         {
@@ -101,7 +124,7 @@ public sealed class UDPServer
                 {
                     while (true)
                     {
-                        UDPServer.Pool(100);
+                        Pool(100);
 
                         if (pingTimer.Elapsed >= TimeSpan.FromSeconds(5))
                         {
@@ -268,7 +291,7 @@ public sealed class UDPServer
                 case PacketType.Connect:
                     {
                         string token = null;
-                        // Try to read token from buffer if present (after PacketType)
+
                         if (buffer.Length - buffer.Offset > 0)
                         {
                             int tokenLen = buffer.ReadByte();
@@ -290,11 +313,13 @@ public sealed class UDPServer
                                     RemoteEndPoint = address,
                                     ServerSocket = ServerSocket,
                                     TimeoutLeft = 30f,
-                                    State = ConnectionState.Connecting
+                                    State = ConnectionState.Connecting,
+                                    Flags = _baseFlags
                                 };
 
-                                // Call the connection handler callback
+                                QueueBuffer.AddSocket(newSocket.Id.ToString(), newSocket);
                                 bool valid = _connectionHandler?.Invoke(newSocket, token) ?? true;
+
                                 if (valid)
                                 {
                                     Clients.TryAdd(address, newSocket);
@@ -359,12 +384,28 @@ public sealed class UDPServer
         return true;
     }
 
+    public static void Send(byte[] data, UDPSocket socket)
+    {
+        if (LocalSendQueue == null)
+            LocalSendQueue = new ByteBufferLinked();
+
+        if(data.Length > 0){
+            ByteBuffer buffer = ByteBufferPool.Acquire();
+            buffer.Data = data;
+            buffer.Length = data.Length;
+            buffer.Connection = socket;
+            LocalSendQueue.Add(buffer);
+        }
+    }
+
     public static void Send(ByteBuffer buffer)
     {
         if (LocalSendQueue == null)
             LocalSendQueue = new ByteBufferLinked();
 
-        LocalSendQueue.Add(buffer);
+        if(buffer.Length > 0){
+            LocalSendQueue.Add(buffer);
+        }
     }
 
     private static void MergeSendQueue()

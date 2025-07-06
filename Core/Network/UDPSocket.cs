@@ -1,5 +1,4 @@
-﻿using Networking;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 
 public enum ConnectionState
@@ -36,6 +35,8 @@ public class UDPSocket
 
     public ConnectionState State;
 
+    public PacketFlags Flags;
+
     public float TimeoutLeft = 30f;
 
     public bool IsConnected
@@ -44,6 +45,14 @@ public class UDPSocket
         {
             return State == ConnectionState.Connected;
         }
+    }
+
+    public void Send(byte[] buffer)
+    {
+        if (ServerSocket == null || RemoteEndPoint == null)
+            throw new InvalidOperationException("Socket is not initialized or remote endpoint is not set.");
+
+        UDPServer.Send(buffer, this);
     }
 
     public void Send(ByteBuffer buffer)
@@ -84,6 +93,8 @@ public class UDPSocket
             response.Connection = this;
 
             response.Write(PacketType.Disconnect);
+
+            QueueBuffer.RemoveSocket(Id.ToString());
 
             Send(response);
         }

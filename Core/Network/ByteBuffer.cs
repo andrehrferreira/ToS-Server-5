@@ -1,18 +1,18 @@
 ﻿/*
 * ByteBuffer
-* 
+*
 * Author: Diego Guedes
 * Modified by: Andre Ferreira
-* 
+*
 * Copyright (c) Uzmi Games. Licensed under the MIT License.
-*    
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,7 +24,6 @@
 
 using System.Buffers;
 using System.Runtime.CompilerServices;
-using Networking;
 
 public unsafe class ByteBuffer : IDisposable
 {
@@ -69,7 +68,7 @@ public unsafe class ByteBuffer : IDisposable
 
     public ByteBuffer(ByteBuffer other)
     {
-        if (other == null) 
+        if (other == null)
             throw new ArgumentNullException(nameof(other));
 
         Data = ArrayPool<byte>.Shared.Rent(3600);
@@ -77,7 +76,7 @@ public unsafe class ByteBuffer : IDisposable
 
         Offset = 0;
         Length = other.Length;
-        
+
         ByteBufferPool.Release(other);
     }
 
@@ -234,11 +233,11 @@ public unsafe class ByteBuffer : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(string value)
     {
-        if (value == null) 
+        if (value == null)
             value = string.Empty;
 
         byte[] utf8Bytes = System.Text.Encoding.UTF8.GetBytes(value);
-                 
+
         if (Offset + utf8Bytes.Length > Data.Length)
             throw new InvalidOperationException("Buffer overflow");
 
