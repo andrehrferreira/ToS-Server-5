@@ -1,13 +1,15 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
+public static partial class PacketRegistration { }
+
 public enum PacketLayerType
 {
     Server,
     Client
 }
 
-public enum PacketType
+public enum PacketType : byte
 {
     Connect,
     Ping,
@@ -20,6 +22,7 @@ public enum PacketType
     ConnectionDenied,
     ConnectionAccepted,
     CheckIntegrity,
+    None = 255
 }
 
 [Flags]
@@ -57,18 +60,6 @@ public static class PacketFlagsUtils
     }
 }
 
-public static class PacketPing
-{
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ByteBuffer Serialize(long timestamp)
-    {
-        ByteBuffer bufferPing = ByteBufferPool.Acquire();
-        bufferPing.Reliable = false;
-        bufferPing.Write(PacketType.Ping);
-        bufferPing.Write(timestamp);
-        return bufferPing;
-    }
-}
 
 public static class PacketPong
 {
@@ -90,7 +81,7 @@ public static class PacketPong
 
         double rttMs = (elapsedTicks * 1000.0) / Stopwatch.Frequency;
 
-        conn.Ping = (int)rttMs;
+        conn.Ping = (uint)rttMs;
         conn.TimeoutLeft = 30f;
 
         //if (conn.State == ConnectionState.Connected)
@@ -101,49 +92,12 @@ public static class PacketPong
 public static class PacketConnectionAccepted
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ByteBuffer Serialize(int Id)
+    public static ByteBuffer Serialize(uint Id)
     {
         ByteBuffer bufferPing = ByteBufferPool.Acquire();
         bufferPing.Reliable = true;
         bufferPing.Write(PacketType.ConnectionAccepted);
         bufferPing.Write(Id);
         return bufferPing;
-    }
-}
-
-public static class PacketConnectionDenied
-{
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ByteBuffer Serialize()
-    {
-        ByteBuffer bufferPing = ByteBufferPool.Acquire();
-        bufferPing.Reliable = true;
-        bufferPing.Write(PacketType.ConnectionDenied);
-        return bufferPing;
-    }
-}
-
-public static class PacketDisconnect
-{
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ByteBuffer Serialize()
-    {
-        ByteBuffer buffer = ByteBufferPool.Acquire();
-        buffer.Reliable = true;
-        buffer.Write(PacketType.Disconnect);
-        return buffer;
-    }
-}
-
-public static class PacketCheckIntegrity
-{
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ByteBuffer Serialize(ushort index)
-    {
-        ByteBuffer buffer = ByteBufferPool.Acquire();
-        buffer.Reliable = true;
-        buffer.Write(PacketType.CheckIntegrity);
-        buffer.Write(index);
-        return buffer;
     }
 }

@@ -2,4 +2,6 @@
 
 public enum ClientPacket: ushort
 {
+    SyncEntity = 0,
+    Pong = 1,
 }

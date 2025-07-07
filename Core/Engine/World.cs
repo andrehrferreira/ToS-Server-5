@@ -22,7 +22,7 @@ public class World : IDisposable
     private float _tickDelta = 1f / 20f;
 
     private AOIGridConfig _aoiConfig = new AOIGridConfig();
-    private Dictionary<(int, int, int), List<int>> _aoiGrid = new();
+    private Dictionary<(int, int, int), List<uint>> _aoiGrid = new();
 
     public static ConcurrentDictionary<uint, World> Worlds = new ConcurrentDictionary<uint, World>();
 
@@ -39,7 +39,7 @@ public class World : IDisposable
         for (int x = 0; x < _aoiConfig.GridWidth; x++)
         for (int y = 0; y < _aoiConfig.GridHeight; y++)
         for (int z = 0; z < _aoiConfig.GridDepth; z++)
-            _aoiGrid[(x, y, z)] = new List<int>();
+            _aoiGrid[(x, y, z)] = new List<uint>();
 
         _worldThread = new Thread(WorldLoop) { IsBackground = true };
         _worldThread.Start();
@@ -71,9 +71,9 @@ public class World : IDisposable
         return (x, y, z);
     }
 
-    public int SpawnEntity(string name, FVector position, FRotator rotation, int animationState = 0)
+    public uint SpawnEntity(string name, FVector position, FRotator rotation, uint animationState = 0)
     {
-        int id = _entityPool.Create();
+        uint id = _entityPool.Create();
         ref Entity entity = ref _entityPool.Get(id);
         entity.Id = id;
         entity.Name.Set(name);
@@ -93,7 +93,7 @@ public class World : IDisposable
         return id;
     }
 
-    public void RemoveEntity(int id)
+    public void RemoveEntity(uint id)
     {
         if (!_entityPool.IsActive(id)) return;
         ref Entity entity = ref _entityPool.Get(id);
@@ -104,14 +104,14 @@ public class World : IDisposable
             _aoiGrid[cell].Remove(id);
         }
 
-        _entityPool.Destroy(id);
+        _entityPool.Destroy((int)id);
     }
 
     public void Tick(float deltaTime)
     {
         lock (_aoiGrid)
         {
-            for (int i = 0; i < _entityPool.Capacity; i++)
+            for (uint i = 0; i < _entityPool.Capacity; i++)
             {
                 if (!_entityPool.IsActive(i))
                     continue;
@@ -164,19 +164,22 @@ public class World : IDisposable
         }
     }
 
-    public List<int> GetEntitiesInAOI(int entityId)
+    public List<uint> GetEntitiesInAOI(uint entityId)
     {
         if (!_entityPool.IsActive(entityId))
-            return new List<int>();
+            return new List<uint>();
 
         ref Entity entity = ref _entityPool.Get(entityId);
         return GetEntitiesInAOI(entityId, entity.CurrentCell);
     }
 
-    public List<int> GetEntitiesInAOI(int entityId, (int, int, int) centerCell)
+    public List<uint> GetEntitiesInAOI(uint entityId, (int, int, int) centerCell)
     {
-        if (!_entityPool.IsActive(entityId)) return new List<int>();
-        var result = new List<int>();
+        if (!_entityPool.IsActive(entityId))
+            return new List<uint>();
+
+        var result = new List<uint>();
+
         lock (_aoiGrid)
         {
             for (int dx = -_aoiConfig.InterestRadius; dx <= _aoiConfig.InterestRadius; dx++)
@@ -194,10 +197,11 @@ public class World : IDisposable
                 }
             }
         }
+
         return result;
     }
 
-    public ref Entity GetEntity(int id)
+    public ref Entity GetEntity(uint id)
     {
         return ref _entityPool.Get(id);
     }

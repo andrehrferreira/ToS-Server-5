@@ -25,9 +25,9 @@ namespace Tests
                 {
                     using var pool = new StructPool<TestStruct>(5);
                     
-                    int id1 = pool.Create();
-                    int id2 = pool.Create();
-                    int id3 = pool.Create();
+                    uint id1 = pool.Create();
+                    uint id2 = pool.Create();
+                    uint id3 = pool.Create();
                     
                     Expect(id1).ToBe(0);
                     Expect(id2).ToBe(1);
@@ -57,12 +57,12 @@ namespace Tests
                 {
                     using var pool = new StructPool<TestStruct>(5);
                     
-                    int id1 = pool.Create();
-                    int id2 = pool.Create();
+                    uint id1 = pool.Create();
+                    uint id2 = pool.Create();
                     
                     Expect(pool.Count).ToBe(2);
                     
-                    pool.Destroy(id1);
+                    pool.Destroy((int)id1);
                     
                     Expect(pool.Count).ToBe(1);
                     Expect(pool.IsActive(id1)).ToBe(false);
@@ -73,12 +73,12 @@ namespace Tests
                 {
                     using var pool = new StructPool<TestStruct>(3);
                     
-                    int id1 = pool.Create(); // ID 0
-                    int id2 = pool.Create(); // ID 1
+                    uint id1 = pool.Create(); // ID 0
+                    uint id2 = pool.Create(); // ID 1
                     
                     pool.Destroy(id1);
                     
-                    int id3 = pool.Create(); // Should reuse ID 0
+                    uint id3 = pool.Create(); // Should reuse ID 0
                     
                     Expect(id3).ToBe(0);
                     Expect(pool.Count).ToBe(2);
@@ -100,7 +100,7 @@ namespace Tests
                 {
                     using var pool = new StructPool<TestStruct>(5);
                     
-                    int id = pool.Create();
+                    uint id = pool.Create();
                     ref var item = ref pool.Get(id);
                     
                     item.Id = 42;
@@ -118,13 +118,13 @@ namespace Tests
                 {
                     using var pool = new StructPool<TestStruct>(5);
                     
-                    int id = pool.Create();
+                    uint id = pool.Create();
                     pool.Destroy(id);
                     
                     try
                     {
                         ref var item = ref pool.Get(id);
-                        Expect(false).ToBeTrue(); // Should not reach here
+                        Expect(false).ToBeTrue();
                     }
                     catch (InvalidOperationException ex)
                     {
@@ -139,11 +139,11 @@ namespace Tests
                     try
                     {
                         ref var item = ref pool.Get(10);
-                        Expect(false).ToBeTrue(); // Should not reach here
+                        Expect(false).ToBeTrue();
                     }
                     catch (IndexOutOfRangeException)
                     {
-                        Expect(true).ToBeTrue(); // Expected exception
+                        Expect(true).ToBeTrue(); 
                     }
                 });
 
@@ -151,8 +151,8 @@ namespace Tests
                 {
                     using var pool = new StructPool<TestStruct>(5);
                     
-                    int id1 = pool.Create();
-                    int id2 = pool.Create();
+                    uint id1 = pool.Create();
+                    uint id2 = pool.Create();
                     
                     Expect(pool.IsActive(id1)).ToBe(true);
                     Expect(pool.IsActive(id2)).ToBe(true);
@@ -167,8 +167,6 @@ namespace Tests
                 It("should return false for IsActive with invalid IDs", () =>
                 {
                     using var pool = new StructPool<TestStruct>(5);
-                    
-                    Expect(pool.IsActive(-1)).ToBe(false);
                     Expect(pool.IsActive(10)).ToBe(false);
                 });
 
@@ -176,15 +174,15 @@ namespace Tests
                 {
                     using var pool = new StructPool<TestStruct>(5);
                     
-                    int id1 = pool.Create();
-                    int id2 = pool.Create();
-                    int id3 = pool.Create();
+                    uint id1 = pool.Create();
+                    uint id2 = pool.Create();
+                    uint id3 = pool.Create();
                     
                     pool.Get(id1).Id = 10;
                     pool.Get(id2).Id = 20;
                     pool.Get(id3).Id = 30;
                     
-                    pool.Destroy(id2); // Remove middle item
+                    pool.Destroy(id2);
                     
                     var visitedIds = new List<int>();
                     var visitedValues = new List<int>();
@@ -196,9 +194,9 @@ namespace Tests
                     });
                     
                     Expect(visitedIds.Count).ToBe(2);
-                    Expect(visitedIds.Contains(id1)).ToBe(true);
-                    Expect(visitedIds.Contains(id3)).ToBe(true);
-                    Expect(visitedIds.Contains(id2)).ToBe(false);
+                    Expect(visitedIds.Contains((int)id1)).ToBe(true);
+                    Expect(visitedIds.Contains((int)id3)).ToBe(true);
+                    Expect(visitedIds.Contains((int)id2)).ToBe(false);
                     
                     Expect(visitedValues.Contains(10)).ToBe(true);
                     Expect(visitedValues.Contains(30)).ToBe(true);
@@ -222,7 +220,7 @@ namespace Tests
                 {
                     using var pool = new StructPool<TestStruct>(5);
                     
-                    int id = pool.Create();
+                    uint id = pool.Create();
                     ref var item = ref pool.Get(id);
                     
                     item.Id = 42;
@@ -231,9 +229,8 @@ namespace Tests
                     
                     pool.Destroy(id);
                     
-                    // Create new item in same slot
-                    int newId = pool.Create();
-                    Expect(newId).ToBe(id); // Should reuse same slot
+                    uint newId = pool.Create();
+                    Expect(newId).ToBe(id);
                     
                     ref var newItem = ref pool.Get(newId);
                     
@@ -248,9 +245,9 @@ namespace Tests
                     
                     for (int cycle = 0; cycle < 10; cycle++)
                     {
-                        int id1 = pool.Create();
-                        int id2 = pool.Create();
-                        int id3 = pool.Create();
+                        uint id1 = pool.Create();
+                        uint id2 = pool.Create();
+                        uint id3 = pool.Create();
                         
                         Expect(pool.Count).ToBe(3);
                         
@@ -267,8 +264,8 @@ namespace Tests
                     using var intPool = new StructPool<int>(5);
                     using var floatPool = new StructPool<float>(5);
                     
-                    int intId = intPool.Create();
-                    int floatId = floatPool.Create();
+                    uint intId = intPool.Create();
+                    uint floatId = floatPool.Create();
                     
                     intPool.Get(intId) = 42;
                     floatPool.Get(floatId) = 3.14f;
@@ -281,13 +278,11 @@ namespace Tests
                 {
                     var pool = new StructPool<TestStruct>(5);
                     
-                    int id = pool.Create();
+                    uint id = pool.Create();
                     pool.Get(id).Id = 42;
-                    
-                    // Should not throw
                     pool.Dispose();
                     
-                    Expect(true).ToBeTrue(); // Test passed if no exception
+                    Expect(true).ToBeTrue();
                 });
             });
         }

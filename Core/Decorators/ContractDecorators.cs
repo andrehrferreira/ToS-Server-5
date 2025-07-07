@@ -54,16 +54,19 @@ public class ContractAttribute : Attribute
     public string Name { get; }
     public PacketLayerType LayerType { get; set; } = PacketLayerType.Server;
     public ContractPacketFlags Flags { get; set; } = ContractPacketFlags.None;
+    public PacketType PacketType { get; set; } = PacketType.None;
 
     public ContractAttribute(
         string name,
         PacketLayerType packetLayerType = PacketLayerType.Server,
-        ContractPacketFlags flags = ContractPacketFlags.None
+        ContractPacketFlags flags = ContractPacketFlags.None,
+        PacketType packetType = PacketType.None
     )
     {
         Name = name;
         LayerType = packetLayerType;
         Flags = flags;
+        PacketType = packetType;
     }
 }
 

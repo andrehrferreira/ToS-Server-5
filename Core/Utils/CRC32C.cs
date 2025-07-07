@@ -38,7 +38,7 @@ public static class CRC32C
     {
         int offset = 0;
 
-        if(length == 0)
+        if (length == 0)
             length = input.Length;
 
         uint crcLocal = uint.MaxValue;
@@ -46,7 +46,7 @@ public static class CRC32C
 #if NETCOREAPP3_0_OR_GREATER || NETCOREAPP3_1 || NET5_0
         if (Sse42.IsSupported)
         {
-            var data = input.AsSpan();
+            var data = input.AsSpan(0, length);
             int processed = 0;
 
             if (Sse42.X64.IsSupported && data.Length > sizeof(ulong))
@@ -56,9 +56,7 @@ public static class CRC32C
                 ulong crclong = crcLocal;
 
                 for (int i = 0; i < ulongs.Length; i++)
-                {
                     crclong = Sse42.X64.Crc32(crclong, ulongs[i]);
-                }
 
                 crcLocal = (uint)crclong;
             }
@@ -68,15 +66,11 @@ public static class CRC32C
                 var uints = MemoryMarshal.Cast<byte, uint>(data.Slice(0, processed));
 
                 for (int i = 0; i < uints.Length; i++)
-                {
                     crcLocal = Sse42.Crc32(crcLocal, uints[i]);
-                }
             }
 
             for (int i = processed; i < data.Length; i++)
-            {
                 crcLocal = Sse42.Crc32(crcLocal, data[i]);
-            }
 
             return crcLocal ^ uint.MaxValue;
         }
@@ -85,37 +79,34 @@ public static class CRC32C
 #if NET5_0_OR_GREATER || NET5_0
         if (Crc32.IsSupported)
         {
-            var data = input.AsSpan();
+            var data = input.AsSpan(0, length);
             int processed = 0;
+
             if (Crc32.Arm64.IsSupported && data.Length > sizeof(ulong))
             {
                 processed = data.Length / sizeof(ulong) * sizeof(ulong);
                 var ulongs = MemoryMarshal.Cast<byte, ulong>(data.Slice(0, processed));
                 for (int i = 0; i < ulongs.Length; i++)
-                {
                     crcLocal = Crc32.Arm64.ComputeCrc32C(crcLocal, ulongs[i]);
-                }
             }
             else if (data.Length > sizeof(uint))
             {
                 processed = data.Length / sizeof(uint) * sizeof(uint);
                 var uints = MemoryMarshal.Cast<byte, uint>(data.Slice(0, processed));
                 for (int i = 0; i < uints.Length; i++)
-                {
                     crcLocal = Crc32.ComputeCrc32C(crcLocal, uints[i]);
-                }
             }
 
             for (int i = processed; i < data.Length; i++)
-            {
                 crcLocal = Crc32.ComputeCrc32C(crcLocal, data[i]);
-            }
 
             return crcLocal ^ uint.MaxValue;
         }
 #endif
 
-        while (length >= 16)
+        int remaining = length;
+
+        while (remaining >= 16)
         {
             var a = Table[(3 * 256) + input[offset + 12]]
                     ^ Table[(2 * 256) + input[offset + 13]]
@@ -139,13 +130,11 @@ public static class CRC32C
 
             crcLocal = d ^ c ^ b ^ a;
             offset += 16;
-            length -= 16;
+            remaining -= 16;
         }
 
-        while (--length >= 0)
-        {
-            crcLocal = Table[(byte)(crcLocal ^ input[offset++])] ^ crcLocal >> 8;
-        }
+        while (remaining-- > 0)
+            crcLocal = Table[(byte)(crcLocal ^ input[offset++])] ^ (crcLocal >> 8);
 
         return crcLocal ^ uint.MaxValue;
     }

@@ -6,7 +6,7 @@ public partial class PlayerController
     public uint AccountId { get; set; }
     public uint EntityId { get; set; }
 
-    public Entity Entity
+    public Entity? Entity
     {
         get
         {

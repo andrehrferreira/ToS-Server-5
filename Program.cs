@@ -63,12 +63,18 @@ class Program
                     return true;
                 }*/
 
-
-
                 return false;
             }
 
             return false;
+        }, new UDPServerOptions()
+        {
+            Version = VersionReader.ToUInt(currentVersion),
+            EnableWAF = false,
+            EnableIntegrityCheck = true, 
+            MaxConnections = 25000,
+            ReceiveBufferSize = 512 * 1024, 
+            SendBufferSize = 512 * 1024,
         });
 
         while (true)

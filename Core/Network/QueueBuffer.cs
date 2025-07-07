@@ -21,67 +21,54 @@
  * SOFTWARE.
  */
 
- using System.Collections.Concurrent;
-
-public struct BufferDataRef
-{
-    public PacketFlags Flags;
-    public ServerPacket PacketType;
-    public ByteBuffer Data;
-}
+using System.Collections.Concurrent;
 
 public class QueueBuffer
 {
-    public static ConcurrentDictionary<int, List<BufferDataRef>> Queues =
-        new ConcurrentDictionary<int, List<BufferDataRef>>();
+    public static ConcurrentDictionary<uint, List<ByteBuffer>> Queues =
+        new ConcurrentDictionary<uint, List<ByteBuffer>>();
 
-    public static ConcurrentDictionary<int, UDPSocket> Sockets =
-        new ConcurrentDictionary<int, UDPSocket>();
+    public static ConcurrentDictionary<uint, UDPSocket> Sockets =
+        new ConcurrentDictionary<uint, UDPSocket>();
 
     public static int MaxBufferSize = 4096;
     public static byte EndOfPacketByte = 0xFE;
     public static int EndRepeatByte = 4;
 
-    public static void AddSocket(int id, UDPSocket socket)
+    public static void AddSocket(uint id, UDPSocket socket)
     {
         Sockets[id] = socket;
     }
 
-    public static void RemoveSocket(int id)
+    public static void RemoveSocket(uint id)
     {
         if (Sockets.ContainsKey(id))
             Sockets.TryRemove(id, out _);
     }
 
-    public static UDPSocket? GetSocket(int id)
+    public static UDPSocket? GetSocket(uint id)
     {
         return Sockets.ContainsKey(id) ? Sockets[id] : null;
     }
 
-    public static void AddBuffer(ServerPacket packetType, int socketId, ByteBuffer buffer, PacketFlags flags = PacketFlags.None)
+    public static void AddBuffer(uint socketId, ByteBuffer buffer)
     {
         if (!Queues.ContainsKey(socketId))
-            Queues[socketId] = new List<BufferDataRef>();
+            Queues[socketId] = new List<ByteBuffer>();
 
         if (!IsDuplicatePacket(socketId, buffer))
         {
-            Queues[socketId].Add(new BufferDataRef
-            {
-                Flags = flags,
-                PacketType = packetType,
-                Data = buffer
-            });
-
+            Queues[socketId].Add(buffer);
             CheckAndSend(socketId);
         }
     }
 
-    public static void CheckAndSend(int socketId)
+    public static void CheckAndSend(uint socketId)
     {
         if (Queues.ContainsKey(socketId))
         {
             var buffers = Queues[socketId];
-            int totalSize = buffers.Sum(buffer => buffer.Data.GetBuffer().Length);
+            int totalSize = buffers.Sum(buffer => buffer.Data.Length);
 
             if (totalSize >= MaxBufferSize)
             {
@@ -90,7 +77,7 @@ public class QueueBuffer
         }
     }
 
-    public static void SendBuffers(int socketId)
+    public static void SendBuffers(uint socketId)
     {
         if (Queues.ContainsKey(socketId))
         {
@@ -106,15 +93,15 @@ public class QueueBuffer
             }
             else
             {
-                GetSocket(socketId)?.Send(buffers[0].Data.GetBuffer());
+                GetSocket(socketId)?.Send(buffers[0].Data);
                 Queues[socketId].Clear();
             }
         }
     }
 
-    public static ByteBuffer CombineBuffers(List<BufferDataRef> buffers, UDPSocket socket)
+    public static ByteBuffer CombineBuffers(List<ByteBuffer> buffers, UDPSocket socket)
     {
-        int totalLength = buffers.Sum(buffer => buffer.Data.GetBuffer().Length)
+        int totalLength = buffers.Sum(buffer => buffer.Data.Length)
                           + (buffers.Count * (EndRepeatByte + 1))
                           + 1;
 
@@ -127,9 +114,7 @@ public class QueueBuffer
 
         foreach (var buffer in buffers)
         {
-            combinedArray[position++] = (byte)buffer.PacketType;
-
-            var buf = buffer.Data.GetBuffer();
+            var buf = buffer.Data;
             Array.Copy(buf, 0, combinedArray, position, buf.Length);
             position += buf.Length;
 
@@ -143,13 +128,13 @@ public class QueueBuffer
         return new ByteBuffer(combinedArray);
     }
 
-    public static bool IsDuplicatePacket(int socketId, ByteBuffer buffer)
+    public static bool IsDuplicatePacket(uint socketId, ByteBuffer buffer)
     {
         if (!Queues.ContainsKey(socketId))
             return false;
 
         var recentPackets = Queues[socketId];
-        var indexBuffer = recentPackets.Select(b => b.Data.GetHashFast());
+        var indexBuffer = recentPackets.Select(b => b.GetHashFast());
         var bufferHex = buffer.GetHashFast();
 
         return indexBuffer.Contains(bufferHex);

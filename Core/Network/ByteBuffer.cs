@@ -178,6 +178,36 @@ public unsafe class ByteBuffer : IDisposable
         return ByteBufferPool.Acquire();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ByteBuffer Pack(ByteBuffer buffer, ServerPacket packetType, PacketFlags flags = PacketFlags.None)
+    {
+        if (buffer == null)
+            throw new ArgumentNullException(nameof(buffer));
+
+        int payloadLength = buffer.Length;
+
+        ByteBuffer packedBuffer = ByteBuffer.CreateEmptyBuffer();
+
+        var type = buffer.Reliable ? PacketType.Reliable : PacketType.Unreliable;
+        packedBuffer.Write((byte)type);
+
+        packedBuffer.Write((byte)packetType);
+
+        packedBuffer.Write((ushort)flags);
+
+        if (payloadLength > 0)
+        {
+            if (packedBuffer.Offset + payloadLength > packedBuffer.Data.Length)
+                throw new InvalidOperationException("Payload too large for packed buffer.");
+
+            Buffer.BlockCopy(buffer.Data, 0, packedBuffer.Data, packedBuffer.Offset, payloadLength);
+            packedBuffer.Offset += payloadLength;
+            packedBuffer.Length += payloadLength;
+        }
+
+        return packedBuffer;
+    }
+
     //Write
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

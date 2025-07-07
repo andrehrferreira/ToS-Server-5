@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 
 public unsafe class StructPool<T> : IDisposable where T : unmanaged
 {
@@ -18,9 +18,9 @@ public unsafe class StructPool<T> : IDisposable where T : unmanaged
         _active = new bool[capacity];
     }
 
-    public int Create()
+    public uint Create()
     {
-        for (int i = 0; i < _capacity; i++)
+        for (uint i = 0; i < _capacity; i++)
         {
             if (!_active[i])
             {
@@ -33,9 +33,16 @@ public unsafe class StructPool<T> : IDisposable where T : unmanaged
         throw new Exception("StructPool capacity reached");
     }
 
+    public void Destroy(uint id)
+    {
+        Destroy((int)id);
+    }
+
     public void Destroy(int id)
     {
-        if (id < 0 || id >= _capacity) return;
+        if (id < 0 || id >= _capacity)
+            return;
+
         if (_active[id])
         {
             _active[id] = false;
@@ -44,16 +51,22 @@ public unsafe class StructPool<T> : IDisposable where T : unmanaged
         }
     }
 
-    public ref T Get(int id)
+    public ref T Get(uint id)
     {
-        if (id < 0 || id >= _capacity) throw new IndexOutOfRangeException();
-        if (!_active[id]) throw new InvalidOperationException($"Entity {id} is not active.");
+        if (id < 0 || id >= _capacity)
+            throw new IndexOutOfRangeException();
+
+        if (!_active[id])
+            throw new InvalidOperationException($"Entity {id} is not active.");
+
         return ref _items[id];
     }
 
-    public bool IsActive(int id)
+    public bool IsActive(uint id)
     {
-        if (id < 0 || id >= _capacity) return false;
+        if (id < 0 || id >= _capacity)
+            return false;
+
         return _active[id];
     }
 

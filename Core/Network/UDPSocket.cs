@@ -21,15 +21,15 @@ public enum DisconnectReason
 
 public class UDPSocket
 {
-    public int Id;
+    public uint Id;
 
-    public int EntityId;
+    public uint EntityId;
 
     public EndPoint RemoteEndPoint;
 
-    public Socket ServerSocket;
+    private Socket ServerSocket;
 
-    public int Ping = 0;
+    public uint Ping = 0;
 
     public DateTime PingSentAt;
 
@@ -51,6 +51,13 @@ public class UDPSocket
 
     internal ConcurrentDictionary<uint, ByteBuffer> ReliablePackets =
         new ConcurrentDictionary<uint, ByteBuffer>();
+
+    public UDPSocket(Socket serverSocket)
+    {
+        State = ConnectionState.Disconnected;
+        RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        ServerSocket = serverSocket;
+    }
 
     public bool IsConnected
     {
@@ -76,6 +83,16 @@ public class UDPSocket
         buffer.Connection = this;      
 
         UDPServer.Send(buffer);
+    }
+
+    public void Send(ServerPacket packetType, ByteBuffer buffer)
+    {
+        if (ServerSocket == null || RemoteEndPoint == null)
+            throw new InvalidOperationException("Socket is not initialized or remote endpoint is not set.");
+
+        buffer.Connection = this;
+
+        UDPServer.Send(packetType, buffer);
     }
 
     public bool Update(float delta)
@@ -113,17 +130,14 @@ public class UDPSocket
         {
             Reason = reason;
 
-            ByteBuffer response = ByteBufferPool.Acquire();
-
-            response.Connection = this;
-
-            response.Reliable = true;
-
-            response.Write(PacketType.Disconnect);
-
             QueueBuffer.RemoveSocket(Id);
 
-            Send(response);
+            if (PacketManager.TryGet(PacketType.Disconnect, out var disconnectPacket))
+            {
+                var buffer = disconnectPacket.Serialize();
+                buffer.Connection = this;
+                Send(buffer);
+            }            
         }
     }
 

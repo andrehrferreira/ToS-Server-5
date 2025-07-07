@@ -6,6 +6,7 @@ using System.Net.Sockets;
 
 public class UDPServerOptions
 {
+    public uint Version { get; set; } = 1;
     public bool EnableWAF { get; set; } = true;
     public bool EnableIntegrityCheck { get; set; } = true;
     public int ReceiveTimeout { get; set; } = 10;
@@ -14,6 +15,9 @@ public class UDPServerOptions
     public bool UseEncryption { get; set; } = false;
     public byte[] EncryptionKey { get; set; } = null;
     public byte[] EncryptionIV { get; set; } = null;
+    public uint MaxConnections { get; set; } = 25000;
+    public int ReceiveBufferSize { get; set; } = 512 * 1024;
+    public int SendBufferSize { get; set; } = 512 * 1024;
 }
 
 public sealed class UDPServer
@@ -53,8 +57,8 @@ public sealed class UDPServer
     public static void SetWorld(World worldRef) => _worldRef = worldRef;
     public static World GetWorld() => _worldRef;
 
-    public static int GetRandomId() =>
-        BitConverter.ToInt32(Guid.NewGuid().ToByteArray(), 0) & 0x7FFFFFFF;
+    public static uint GetRandomId() =>
+        (uint)BitConverter.ToInt32(Guid.NewGuid().ToByteArray(), 0) & 0x7FFFFFFF;
 
     public static bool Init(
         int port,
@@ -83,7 +87,13 @@ public sealed class UDPServer
 
                 ServerSocket.ReceiveTimeout = _options.ReceiveTimeout;
 
+                ServerSocket.ReceiveBufferSize = _options.ReceiveBufferSize;
+
+                ServerSocket.SendBufferSize = _options.SendBufferSize;
+
                 Running = true;
+
+                PacketRegistration.RegisterPackets();
 
 #if DEBUG
                 Console.WriteLine($"UDP server started on port {port}");
@@ -147,10 +157,15 @@ public sealed class UDPServer
 
                     if (pingTimer.Elapsed >= TimeSpan.FromSeconds(5))
                     {
-                        foreach (var kv in Clients)
+                        if (PacketManager.TryGet(PacketType.Ping, out var packet))
                         {
-                            kv.Value.PingSentAt = DateTime.UtcNow;
-                            kv.Value.Send(PacketPing.Serialize(Stopwatch.GetTimestamp()));
+                            foreach (var kv in Clients)
+                            {
+                                kv.Value.PingSentAt = DateTime.UtcNow;
+                                kv.Value.Send(packet.Serialize(new Ping {
+                                    SentTimestamp = Stopwatch.GetTimestamp()
+                                }));
+                            }
                         }
 
                         pingTimer.Restart();
@@ -160,11 +175,17 @@ public sealed class UDPServer
                     {
                         if (checkIntegrityTimer.Elapsed >= TimeSpan.FromSeconds(30))
                         {
-                            foreach (var kv in Clients)
+                            if (PacketManager.TryGet(PacketType.CheckIntegrity, out var packet))
                             {
-                                kv.Value.IntegrityCheckSentAt = DateTime.UtcNow;
-                                kv.Value.IntegrityCheck = IntegrityKeyTableGenerator.GenerateIndex();
-                                kv.Value.Send(PacketCheckIntegrity.Serialize(kv.Value.IntegrityCheck));
+                                foreach (var kv in Clients)
+                                {
+                                    kv.Value.IntegrityCheckSentAt = DateTime.UtcNow;
+                                    kv.Value.IntegrityCheck = IntegrityKeyTableGenerator.GenerateIndex();
+                                    kv.Value.Send(packet.Serialize(new CheckIntegrity {
+                                        Index = kv.Value.IntegrityCheck,
+                                        Version = _options.Version,
+                                    }));
+                                }
                             }
 
                             checkIntegrityTimer.Restart();
@@ -329,8 +350,6 @@ public sealed class UDPServer
         {
             case PacketType.Connect:
             {
-                AuthType authType = (AuthType)buffer.ReadByte();
-
                 string token = null;
 
                 if (buffer.Length - buffer.Offset > 0)
@@ -345,13 +364,18 @@ public sealed class UDPServer
                     }
                 }
 
+                if(token == null || token.Length < 90)
+                {
+                    ByteBufferPool.Release(buffer);
+                    return;
+                }
+
                 if (!Clients.TryGetValue(address, out conn))
                 {
-                    var newSocket = new UDPSocket
+                    var newSocket = new UDPSocket(ServerSocket)
                     {
                         Id = GetRandomId(),
                         RemoteEndPoint = address,
-                        ServerSocket = ServerSocket,
                         TimeoutLeft = 30f,
                         State = ConnectionState.Connecting,
                         Flags = _baseFlags,
@@ -364,8 +388,15 @@ public sealed class UDPServer
                     {
                         QueueBuffer.AddSocket(newSocket.Id, newSocket);
 
-                        int ID = GetRandomId();
-                        newSocket.Send(PacketConnectionAccepted.Serialize(ID));
+                        uint ID = GetRandomId();
+
+                        if(PacketManager.TryGet(PacketType.ConnectionAccepted, out var packet))
+                        {
+                            newSocket.Send(packet.Serialize(new ConnectionAccepted {
+                                Id = ID
+                            }));
+                        }
+
                         newSocket.State = ConnectionState.Connected;
 
             #if DEBUG
@@ -373,23 +404,13 @@ public sealed class UDPServer
             #endif
                     }
                 }
-                else if (conn.ServerSocket != null)
-                {
-                    int ID = GetRandomId();
-                    conn.Send(PacketConnectionAccepted.Serialize(ID));
-                    conn.State = ConnectionState.Connected;
-
-            #if DEBUG
-                    Console.WriteLine($"Client reconnected: {address} ID:{ID}");
-            #endif
-                }
 
                 ByteBufferPool.Release(buffer);
             }
             break;
             case PacketType.Pong:
             {
-                if (Clients.TryGetValue(address, out conn) && conn.ServerSocket != null)
+                if (Clients.TryGetValue(address, out conn))
                     PacketPong.Deserialize(buffer, conn);
 
                 ByteBufferPool.Release(buffer);
@@ -412,7 +433,7 @@ public sealed class UDPServer
             case PacketType.Unreliable:
             case PacketType.Ack:
             {
-                if (Clients.TryGetValue(address, out conn) && conn.ServerSocket != null)
+                if (Clients.TryGetValue(address, out conn))
                 {
                     var crc32c = CRC32C.Compute(buffer.Data, buffer.Length - 4);
                     uint receivedCrc32c = buffer.ReadSign();
@@ -441,10 +462,9 @@ public sealed class UDPServer
             break;
             case PacketType.CheckIntegrity:
             {
-                ushort integrityKey = buffer.ReadUShort();
-
-                if (Clients.TryGetValue(address, out conn) && conn.ServerSocket != null)
+                if (Clients.TryGetValue(address, out conn))
                 {
+                    ushort integrityKey = buffer.ReadUShort();
                     short key = _integrityKeyTable.Keys[conn.IntegrityCheck];
 
                     if (integrityKey != key)
@@ -497,6 +517,11 @@ public sealed class UDPServer
         }
     }
 
+    public static void Send(ServerPacket packetType, ByteBuffer buffer)
+    {
+        Send(ByteBuffer.Pack(buffer, packetType, _baseFlags)); 
+    }
+
     private static void MergeSendQueue()
     {
         if (LocalSendQueue != null && LocalSendQueue.Head != null)
@@ -512,6 +537,8 @@ public sealed class UDPServer
 
     public static void Update(float delta)
     {
+        QueueBuffer.Tick();
+
         MergeSendQueue();
 
         foreach (var kv in Clients.Values)
