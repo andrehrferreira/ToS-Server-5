@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -13,6 +14,7 @@ public class AOIGridConfig
 
 public class World : IDisposable
 {
+    private uint Id;
     private StructPool<Entity> _entityPool;
     private int _maxEntities;
     private Thread _worldThread;
@@ -21,6 +23,8 @@ public class World : IDisposable
 
     private AOIGridConfig _aoiConfig = new AOIGridConfig();
     private Dictionary<(int, int, int), List<int>> _aoiGrid = new();
+
+    public static ConcurrentDictionary<uint, World> Worlds = new ConcurrentDictionary<uint, World>();
 
     public World(int maxEntities = 100000, AOIGridConfig aoiConfig = null)
     {
@@ -39,6 +43,11 @@ public class World : IDisposable
 
         _worldThread = new Thread(WorldLoop) { IsBackground = true };
         _worldThread.Start();
+    }
+
+    public static bool Get(uint Id, out World world)
+    {
+        return Worlds.TryGetValue(Id, out world);
     }
 
     private void WorldLoop()

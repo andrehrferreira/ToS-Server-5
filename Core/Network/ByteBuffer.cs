@@ -1,4 +1,4 @@
-﻿/*
+/*
 * ByteBuffer
 *
 * Author: Diego Guedes
@@ -31,7 +31,7 @@ public unsafe class ByteBuffer : IDisposable
 
     public volatile bool IsDestroyed = false;
 
-    public UDPSocket? Connection;
+    public UDPSocket Connection;
 
     public ByteBuffer? Next;
 
@@ -224,6 +224,21 @@ public unsafe class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ByteBuffer Write(uint value)
+    {
+        if (Offset + 4 > Data.Length)
+            throw new InvalidOperationException("Buffer overflow");
+
+        Data[Offset++] = (byte)(value & 0xFF);
+        Data[Offset++] = (byte)((value >> 8) & 0xFF);
+        Data[Offset++] = (byte)((value >> 16) & 0xFF);
+        Data[Offset++] = (byte)((value >> 24) & 0xFF);
+        Length += 4;
+
+        return this;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(long value)
     {
         if (Offset + 8 > Data.Length)
@@ -392,6 +407,22 @@ public unsafe class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public uint ReadUInt()
+    {
+        if (Offset + 4 > Data.Length)
+            throw new InvalidOperationException("Buffer underflow");
+
+        uint value =
+            (uint)Data[Offset] |
+            ((uint)Data[Offset + 1] << 8) |
+            ((uint)Data[Offset + 2] << 16) |
+            ((uint)Data[Offset + 3] << 24);
+
+        Offset += 4;
+        return value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public long ReadLong()
     {
         if (Offset + 8 > Data.Length)
@@ -462,5 +493,22 @@ public unsafe class ByteBuffer : IDisposable
         float yaw = (float)ReadInt();
         float roll = (float)ReadInt();
         return new FRotator(pitch, yaw, roll);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public uint ReadSign()
+    {
+        if (Length < 4)
+            throw new InvalidOperationException("Buffer too small to contain CRC32C signature.");
+
+        int index = Length - 4;
+
+        uint value =
+            (uint)Data[index] |
+            ((uint)Data[index + 1] << 8) |
+            ((uint)Data[index + 2] << 16) |
+            ((uint)Data[index + 3] << 24);
+
+        return value;
     }
 }

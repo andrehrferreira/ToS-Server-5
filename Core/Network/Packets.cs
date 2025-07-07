@@ -31,6 +31,14 @@ public enum PacketFlags : byte
     XOR = 1 << 2
 }
 
+public enum AuthType
+{
+    Test,
+    Default,
+    Steam,
+    EpicGames,
+}
+
 public static class PacketFlagsUtils
 {
     public static bool HasFlag(PacketFlags flags, PacketFlags flagToCheck)

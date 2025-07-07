@@ -1,0 +1,12 @@
+{
+    "extends": "@cmmv/tsconfig/tsconfig.node.json",
+    "compilerOptions": {
+        "declaration": true,
+        "outDir": "dist",
+        "baseUrl": ".",
+        "strictNullChecks": false,
+        "noImplicitAny": false
+    },
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules", "dist", "src/protos", "**/*.spec.ts"]
+}

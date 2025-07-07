@@ -26,39 +26,39 @@
 public struct BufferDataRef
 {
     public PacketFlags Flags;
-    public ushort PacketType;
+    public ServerPacket PacketType;
     public ByteBuffer Data;
 }
 
 public class QueueBuffer
 {
-    public static ConcurrentDictionary<string, List<BufferDataRef>> Queues =
-        new ConcurrentDictionary<string, List<BufferDataRef>>();
+    public static ConcurrentDictionary<int, List<BufferDataRef>> Queues =
+        new ConcurrentDictionary<int, List<BufferDataRef>>();
 
-    public static ConcurrentDictionary<string, UDPSocket> Sockets =
-        new ConcurrentDictionary<string, UDPSocket>();
+    public static ConcurrentDictionary<int, UDPSocket> Sockets =
+        new ConcurrentDictionary<int, UDPSocket>();
 
-    public static int MaxBufferSize = 512 * 1024;
+    public static int MaxBufferSize = 4096;
     public static byte EndOfPacketByte = 0xFE;
     public static int EndRepeatByte = 4;
 
-    public static void AddSocket(string id, UDPSocket socket)
+    public static void AddSocket(int id, UDPSocket socket)
     {
         Sockets[id] = socket;
     }
 
-    public static void RemoveSocket(string id)
+    public static void RemoveSocket(int id)
     {
         if (Sockets.ContainsKey(id))
             Sockets.TryRemove(id, out _);
     }
 
-    public static UDPSocket? GetSocket(string id)
+    public static UDPSocket? GetSocket(int id)
     {
         return Sockets.ContainsKey(id) ? Sockets[id] : null;
     }
 
-    public static void AddBuffer(ushort packetType, PacketFlags flags, string socketId, ByteBuffer buffer)
+    public static void AddBuffer(ServerPacket packetType, int socketId, ByteBuffer buffer, PacketFlags flags = PacketFlags.None)
     {
         if (!Queues.ContainsKey(socketId))
             Queues[socketId] = new List<BufferDataRef>();
@@ -76,7 +76,7 @@ public class QueueBuffer
         }
     }
 
-    public static void CheckAndSend(string socketId)
+    public static void CheckAndSend(int socketId)
     {
         if (Queues.ContainsKey(socketId))
         {
@@ -90,7 +90,7 @@ public class QueueBuffer
         }
     }
 
-    public static void SendBuffers(string socketId)
+    public static void SendBuffers(int socketId)
     {
         if (Queues.ContainsKey(socketId))
         {
@@ -121,6 +121,7 @@ public class QueueBuffer
         byte[] combinedArray = new byte[totalLength];
         int position = 0;
 
+        combinedArray[position++] = (byte)PacketType.Reliable;
         PacketFlags flags = PacketFlagsUtils.AddFlag(socket.Flags, PacketFlags.Queue);
         combinedArray[position++] = (byte)flags;
 
@@ -142,7 +143,7 @@ public class QueueBuffer
         return new ByteBuffer(combinedArray);
     }
 
-    public static bool IsDuplicatePacket(string socketId, ByteBuffer buffer)
+    public static bool IsDuplicatePacket(int socketId, ByteBuffer buffer)
     {
         if (!Queues.ContainsKey(socketId))
             return false;

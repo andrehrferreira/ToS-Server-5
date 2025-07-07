@@ -54,14 +54,16 @@ class Program
         {
             if (!string.IsNullOrEmpty(token))
             {
-                if (token == "valid-token")
+                /*if (token == "valid-token")
                 {
                     int entityId = UDPServer.GetWorld().SpawnEntity($"Player_{socket.Id}", new FVector(), new FRotator());
 
                     socket.EntityId = entityId;
 
                     return true;
-                }
+                }*/
+
+
 
                 return false;
             }

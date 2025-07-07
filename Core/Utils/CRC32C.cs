@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 #if NETCOREAPP3_0_OR_GREATER || NETCOREAPP3_1 || NET5_0
 using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
@@ -34,20 +34,19 @@ public static class CRC32C
         }
     }
 
-    /// <summary>
-    /// Compute CRC32C for data
-    /// </summary>
-    /// <param name="input">input data</param>
-    /// <param name="length">length</param>
-    /// <returns>CRC32C checksum</returns>
-    public static unsafe uint Compute(byte* input, int length)
+    public static uint Compute(byte[] input, int length = 0)
     {
         int offset = 0;
+
+        if(length == 0)
+            length = input.Length;
+
         uint crcLocal = uint.MaxValue;
+
 #if NETCOREAPP3_0_OR_GREATER || NETCOREAPP3_1 || NET5_0
         if (Sse42.IsSupported)
         {
-            var data = new ReadOnlySpan<byte>(input, length);
+            var data = input.AsSpan();
             int processed = 0;
 
             if (Sse42.X64.IsSupported && data.Length > sizeof(ulong))
@@ -82,10 +81,11 @@ public static class CRC32C
             return crcLocal ^ uint.MaxValue;
         }
 #endif
+
 #if NET5_0_OR_GREATER || NET5_0
         if (Crc32.IsSupported)
         {
-            var data = new ReadOnlySpan<byte>(input, length);
+            var data = input.AsSpan();
             int processed = 0;
             if (Crc32.Arm64.IsSupported && data.Length > sizeof(ulong))
             {
@@ -114,6 +114,7 @@ public static class CRC32C
             return crcLocal ^ uint.MaxValue;
         }
 #endif
+
         while (length >= 16)
         {
             var a = Table[(3 * 256) + input[offset + 12]]
@@ -142,7 +143,9 @@ public static class CRC32C
         }
 
         while (--length >= 0)
+        {
             crcLocal = Table[(byte)(crcLocal ^ input[offset++])] ^ crcLocal >> 8;
+        }
 
         return crcLocal ^ uint.MaxValue;
     }

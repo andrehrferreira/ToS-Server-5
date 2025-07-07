@@ -1,23 +1,23 @@
-﻿[Contract("CreateEntity", PacketLayerType.Server, true)]
-public struct CreateEntityContract
+[Contract("CreateEntity", PacketLayerType.Server, ContractPacketFlags.Reliable_ToEntity)]
+public struct CreateEntity
 {
 
 }
 
-[Contract("SyncEntity", PacketLayerType.Client, false)]
-public struct SyncEntityContract
+[Contract("SyncEntity", PacketLayerType.Client)]
+public struct SyncEntity
 {
 
 }
 
-[Contract("UpdateEntity", PacketLayerType.Server, false)]
-public struct UpdateEntityContract
+[Contract("UpdateEntity", PacketLayerType.Server, ContractPacketFlags.ToEntity)]
+public struct UpdateEntity
 {
 
 }
 
-[Contract("RemoveEntity", PacketLayerType.Server, true)]
-public struct RemoveEntityContract
+[Contract("RemoveEntity", PacketLayerType.Server, ContractPacketFlags.Reliable_ToEntity)]
+public struct RemoveEntity
 {
 
 }

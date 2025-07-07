@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 
@@ -40,11 +41,16 @@ public class UDPSocket
 
     public float TimeoutLeft = 30f;
 
+    public bool EnableIntegrityCheck = true;
+
     public ushort IntegrityCheck;
 
     public DateTime IntegrityCheckSentAt;
 
     public float TimeoutIntegrityCheck = 120f;
+
+    internal ConcurrentDictionary<uint, ByteBuffer> ReliablePackets =
+        new ConcurrentDictionary<uint, ByteBuffer>();
 
     public bool IsConnected
     {
@@ -67,7 +73,7 @@ public class UDPSocket
         if (ServerSocket == null || RemoteEndPoint == null)
             throw new InvalidOperationException("Socket is not initialized or remote endpoint is not set.");
 
-        buffer.Connection = this;
+        buffer.Connection = this;      
 
         UDPServer.Send(buffer);
     }
@@ -79,8 +85,6 @@ public class UDPSocket
 
         TimeoutLeft -= delta;
 
-        TimeoutIntegrityCheck -= delta;
-
         if (TimeoutLeft <= 0)
         {
             Disconnect(DisconnectReason.Timeout);
@@ -88,13 +92,18 @@ public class UDPSocket
             return false;
         }
 
-        if(TimeoutIntegrityCheck <= 0)
+        if (EnableIntegrityCheck)
         {
-            Disconnect(DisconnectReason.InvalidIntegrity);
+            TimeoutIntegrityCheck -= delta;
 
-            return false;
+            if (TimeoutIntegrityCheck <= 0)
+            {
+                Disconnect(DisconnectReason.InvalidIntegrity);
+
+                return false;
+            }
         }
-
+        
         return true;
     }
 
@@ -112,7 +121,7 @@ public class UDPSocket
 
             response.Write(PacketType.Disconnect);
 
-            QueueBuffer.RemoveSocket(Id.ToString());
+            QueueBuffer.RemoveSocket(Id);
 
             Send(response);
         }
@@ -124,5 +133,15 @@ public class UDPSocket
         {
             State = ConnectionState.Disconnected;
         }
+    }
+
+    public bool AddReliablePacket(uint packetId, ByteBuffer buffer)
+    {
+        return ReliablePackets.TryAdd(packetId, buffer);
+    }
+
+    public void ProcessPacket(PacketType type, ByteBuffer buffer)
+    {
+
     }
 }

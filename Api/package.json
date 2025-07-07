@@ -1,0 +1,26 @@
+{
+    "name": "ToS-Api-5",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "dev": "cmmv dev --watch --debug",
+        "build": "cmmv build",
+        "start": "cmmv start",
+        "test": "vitest"
+    },
+    "keywords": [],
+    "author": "Andre Ferreira",
+    "license": "MIT",
+    "packageManager": "pnpm@10.12.1",
+    "dependencies": {
+        "@cmmv/core": "^0.17.0",
+        "@cmmv/http": "^0.17.0",
+        "@cmmv/repository": "^0.17.0",
+        "dotenv": "^17.0.1"
+    },
+    "devDependencies": {
+        "@cmmv/cli": "^0.11.0",
+        "@cmmv/tsconfig": "^0.0.3"
+    }
+}
