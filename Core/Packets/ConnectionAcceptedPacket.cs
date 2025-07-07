@@ -15,7 +15,7 @@ public class ConnectionAcceptedPacket: Packet
     public ByteBuffer Serialize(ConnectionAccepted data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Write((byte)ServerPacket.ConnectionAccepted);
+        buffer.Write(PacketType.ConnectionAccepted);
         buffer.Write(data.Id);
         return buffer;
     }

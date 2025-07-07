@@ -15,7 +15,7 @@ public class PingPacket: Packet
     public ByteBuffer Serialize(Ping data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Write((byte)ServerPacket.Ping);
+        buffer.Write(PacketType.Ping);
         buffer.Write(data.SentTimestamp);
         return buffer;
     }

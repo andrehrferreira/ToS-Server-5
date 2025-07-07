@@ -255,7 +255,7 @@ public sealed class UDPServer
                     {
                         if (buffer.Connection != null)
                         {
-                            var addr = buffer.Connection.RemoteEndPoint;
+                            var address = buffer.Connection.RemoteEndPoint;
 
                             //if (_options.UseXOREncode && _options.XORKey != null)
                             //    BufferUtils.ApplyXOR(buffer.Data, buffer.Length, _options.XORKey);
@@ -263,22 +263,25 @@ public sealed class UDPServer
                             //if (_options.UseEncryption && _options.EncryptionKey != null && _options.EncryptionIV != null)
                             //    BufferUtils.ApplyEncryption(buffer.Data, buffer.Length, _options.EncryptionKey, _options.EncryptionIV);
 
-                            if (
-                                buffer.Data[0] == (byte)PacketType.Reliable ||
-                                buffer.Data[0] == (byte)PacketType.Unreliable ||
-                                buffer.Data[0] == (byte)PacketType.Ack
-                            )
+                            if(buffer.Length > 0 && buffer.Data != null)
                             {
-                                uint crc32c = CRC32C.Compute(buffer.Data);
+                                if (
+                                    buffer.Data[0] == (byte)PacketType.Reliable ||
+                                    buffer.Data[0] == (byte)PacketType.Unreliable ||
+                                    buffer.Data[0] == (byte)PacketType.Ack
+                                )
+                                {
+                                    uint crc32c = CRC32C.Compute(buffer.Data);
 
-                                if (buffer.Reliable)
-                                    buffer.Connection.AddReliablePacket(crc32c, buffer);
+                                    if (buffer.Reliable)
+                                        buffer.Connection.AddReliablePacket(crc32c, buffer);
 
-                                buffer.Write(crc32c);
+                                    buffer.Write(crc32c);
+                                }
+
+                                if (buffer.Data != null && !buffer.IsDestroyed && buffer.Length > 0)
+                                    ServerSocket.SendTo(buffer.Data, 0, buffer.Length, SocketFlags.None, address);
                             }
-
-                            if (buffer.Data != null && !buffer.IsDestroyed && buffer.Length > 0)
-                                ServerSocket.SendTo(buffer.Data, 0, buffer.Length, SocketFlags.None, addr);
                         }
                     }
                     catch { }
@@ -352,7 +355,7 @@ public sealed class UDPServer
             {
                 string token = null;
 
-                if (buffer.Length - buffer.Offset > 0)
+                /*if (buffer.Length - buffer.Offset > 0)
                 {
                     int tokenLen = buffer.ReadByte();
 
@@ -364,11 +367,17 @@ public sealed class UDPServer
                     }
                 }
 
-                if(token == null || token.Length < 90)
+                if(token == null || token.Length < 90 || Clients.Count >= _options.MaxConnections)
                 {
+                    if (PacketManager.TryGet(PacketType.ConnectionDenied, out var packet))
+                    {
+                        ByteBuffer bufferConnectionDenied = packet.Serialize();
+                        ServerSocket.SendTo(buffer.Data, 0, buffer.Length, SocketFlags.None, address);
+                    }
+
                     ByteBufferPool.Release(buffer);
                     return;
-                }
+                }*/
 
                 if (!Clients.TryGetValue(address, out conn))
                 {

@@ -14,7 +14,7 @@ public class UpdateEntityPacket: Packet
     public ByteBuffer Serialize()
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Write((byte)ServerPacket.UpdateEntity);
+        buffer.Write((ushort)ServerPacket.UpdateEntity);
         return buffer;
     }
 

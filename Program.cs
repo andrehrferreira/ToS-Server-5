@@ -114,7 +114,9 @@ class Program
             totalUpdateMs += frameSw.Elapsed.TotalMilliseconds;
             frames++;
         }
+
         sw.Stop();
+
         Console.WriteLine($"Benchmark: Updated {entityCount} entities for {frames} frames in {sw.Elapsed.TotalSeconds:F2} seconds");
         Console.WriteLine($"Average update time per frame: {totalUpdateMs / frames:F4} ms");
         Console.WriteLine($"Average FPS: {frames / sw.Elapsed.TotalSeconds:F2}");

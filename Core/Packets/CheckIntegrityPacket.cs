@@ -16,7 +16,7 @@ public class CheckIntegrityPacket: Packet
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
         buffer.Reliable = true;
-        buffer.Write((byte)ServerPacket.CheckIntegrity);
+        buffer.Write(PacketType.CheckIntegrity);
         buffer.Write(data.Index);
         buffer.Write(data.Version);
         return buffer;

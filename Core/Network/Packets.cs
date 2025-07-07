@@ -60,7 +60,6 @@ public static class PacketFlagsUtils
     }
 }
 
-
 public static class PacketPong
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -86,18 +85,5 @@ public static class PacketPong
 
         //if (conn.State == ConnectionState.Connected)
         //    Console.WriteLine($"Client: {conn.RemoteEndPoint} Ping: {conn.Ping} ms");
-    }
-}
-
-public static class PacketConnectionAccepted
-{
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ByteBuffer Serialize(uint Id)
-    {
-        ByteBuffer bufferPing = ByteBufferPool.Acquire();
-        bufferPing.Reliable = true;
-        bufferPing.Write(PacketType.ConnectionAccepted);
-        bufferPing.Write(Id);
-        return bufferPing;
     }
 }

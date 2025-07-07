@@ -15,7 +15,7 @@ public class CreateEntityPacket: Packet
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
         buffer.Reliable = true;
-        buffer.Write((byte)ServerPacket.CreateEntity);
+        buffer.Write((ushort)ServerPacket.CreateEntity);
         return buffer;
     }
 

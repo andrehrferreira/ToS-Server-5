@@ -1,6 +1,6 @@
 {
     "name": "ToS-MMO-Server",
-    "version": "5.0.0",
+    "version": "5.0.1",
     "description": "Tales Of Shadowland server version 5",
     "scripts": {
         "dev": "dotnet watch run -warnaserror:false",

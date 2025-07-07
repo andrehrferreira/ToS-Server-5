@@ -14,7 +14,7 @@ public class DisconnectPacket: Packet
     public ByteBuffer Serialize()
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Write((byte)ServerPacket.Disconnect);
+        buffer.Write(PacketType.Disconnect);
         return buffer;
     }
 

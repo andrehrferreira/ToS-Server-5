@@ -15,7 +15,7 @@ public class RemoveEntityPacket: Packet
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
         buffer.Reliable = true;
-        buffer.Write((byte)ServerPacket.RemoveEntity);
+        buffer.Write((ushort)ServerPacket.RemoveEntity);
         return buffer;
     }
 

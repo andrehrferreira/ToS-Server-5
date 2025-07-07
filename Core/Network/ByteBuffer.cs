@@ -25,7 +25,7 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
 
-public unsafe class ByteBuffer : IDisposable
+public class ByteBuffer : IDisposable
 {
     private bool Disposed = false;
 
@@ -53,6 +53,7 @@ public unsafe class ByteBuffer : IDisposable
     public ByteBuffer()
     {
         Data = ArrayPool<byte>.Shared.Rent(3600);
+
         Offset = 0;
     }
 

@@ -7,6 +7,7 @@ public static class IntegrityKeyTableGenerator
     public static IntegrityKeyTable GenerateTable(string version)
     {
         short[] keys = new short[2048];
+
         using (var rng = RandomNumberGenerator.Create())
         {
             byte[] buffer = new byte[2];

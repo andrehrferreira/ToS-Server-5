@@ -14,7 +14,7 @@ public class ConnectionDeniedPacket: Packet
     public ByteBuffer Serialize()
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Write((byte)ServerPacket.ConnectionDenied);
+        buffer.Write(PacketType.ConnectionDenied);
         return buffer;
     }
 

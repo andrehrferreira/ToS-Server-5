@@ -21,7 +21,6 @@
 * SOFTWARE.
 */
 
-using System.Diagnostics.Contracts;
 using System.Reflection;
 
 public class ContractTraspiler : AbstractTranspiler
@@ -35,6 +34,8 @@ public class ContractTraspiler : AbstractTranspiler
         string networkDirectoryPath = Path.Combine(projectDirectory, "Core", "Network");
 
         List<string> serverPackets = new List<string>();
+        List<bool> serverLowLevelPacket = new List<bool>();
+        List<string> serverPacketType = new List<string>();
         List<string> clientPackets = new List<string>();
 
         if (!Directory.Exists(baseDirectoryPath))
@@ -53,7 +54,10 @@ public class ContractTraspiler : AbstractTranspiler
             if (attribute.LayerType == PacketLayerType.Server)
             {
                 string filePath = Path.Combine(baseDirectoryPath, $"{rawName}Packet.cs");
+
                 serverPackets.Add(contract.Name);
+                serverPacketType.Add(attribute.PacketType.ToString());
+                serverLowLevelPacket.Add(attribute.PacketType != PacketType.None);
 
                 using (var writer = new StreamWriter(filePath))
                 {
@@ -77,11 +81,17 @@ public class ContractTraspiler : AbstractTranspiler
             }
         }
 
-        GenerateEnum("ClientPacket", clientPackets, networkDirectoryPath);
-        GenerateEnum("ServerPacket", serverPackets, networkDirectoryPath);
+        GenerateEnum("ClientPacket", clientPackets, networkDirectoryPath, null, null);
+        GenerateEnum("ServerPacket", serverPackets, networkDirectoryPath, serverLowLevelPacket, serverPacketType);
     }
 
-    private static void GenerateEnum(string enumName, List<string> values, string directoryPath)
+    private static void GenerateEnum(
+        string enumName,
+        List<string> values,
+        string directoryPath,
+        List<bool>? serverLowLevelPacket,
+        List<string>? serverPacketType
+    )
     {
         string filePath = Path.Combine(directoryPath, $"{enumName}.cs");
 
@@ -115,7 +125,11 @@ public class ContractTraspiler : AbstractTranspiler
                 {
                     string value = values[i];
                     var rawName = value.Replace("Contract", "");
-                    writer.WriteLine($"        PacketManager.Register(ServerPacket.{rawName}, new {rawName}Packet());");
+
+                    if (serverLowLevelPacket[i])
+                        writer.WriteLine($"        PacketManager.Register(PacketType.{serverPacketType[i]}, new {rawName}Packet());");
+                    else
+                        writer.WriteLine($"        PacketManager.Register(ServerPacket.{rawName}, new {rawName}Packet());");
                 }
 
                 writer.WriteLine("    }");
@@ -147,7 +161,10 @@ public class ContractTraspiler : AbstractTranspiler
             if (contractAttribute.Flags.HasFlag(ContractPacketFlags.Reliable))
                 writer.WriteLine("        buffer.Reliable = true;");
 
-            writer.WriteLine($"        buffer.Write((byte)ServerPacket.{contract.Name.Replace("Contract", "")});");
+            if(contractAttribute.PacketType != PacketType.None)
+                writer.WriteLine($"        buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
+            else
+                writer.WriteLine($"        buffer.Write((ushort)ServerPacket.{contract.Name.Replace("Contract", "")});");
 
             foreach (var field in fields)
             {
@@ -208,12 +225,14 @@ public class ContractTraspiler : AbstractTranspiler
             if (contractAttribute.Flags.HasFlag(ContractPacketFlags.Reliable))
                 writer.WriteLine("        buffer.Reliable = true;");
 
-            writer.WriteLine($"        buffer.Write((byte)ServerPacket.{contract.Name.Replace("Contract", "")});");
+            if (contractAttribute.PacketType != PacketType.None)
+                writer.WriteLine($"        buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
+            else
+                writer.WriteLine($"        buffer.Write((ushort)ServerPacket.{contract.Name.Replace("Contract", "")});");
+
             writer.WriteLine("        return buffer;");
             writer.WriteLine("    }");
         }
-
-        
     }
 
     private static void GenerateSendFunction(StreamWriter writer, Type contract, FieldInfo[] fields, ContractAttribute attribute)
