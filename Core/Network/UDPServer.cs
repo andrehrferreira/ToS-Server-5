@@ -30,6 +30,8 @@ public sealed class UDPServer
 
     private static Socket ServerSocket;
 
+    private static int ServerFD;
+
     private static bool Running = true;
 
     private static ConcurrentDictionary<EndPoint, UDPSocket> Clients =
@@ -97,6 +99,8 @@ public sealed class UDPServer
                 ServerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
                 ServerSocket.Bind(new IPEndPoint(IPAddress.Any, port));
+
+                ServerFD = (int)ServerSocket.Handle;
 
                 ServerSocket.ReceiveTimeout = _options.ReceiveTimeout;
 
@@ -264,6 +268,7 @@ public sealed class UDPServer
                 while (buffer != null)
                 {
                     var next = buffer.Next;
+
                     try
                     {
                         if (buffer.Connection != null)
@@ -295,8 +300,8 @@ public sealed class UDPServer
                                 if (buffer.Data != null && !buffer.IsDestroyed && buffer.Length > 0)
                                 {
                                     ServerSocket.SendTo(buffer.Data, 0, buffer.Length, SocketFlags.None, address);
-                                    System.Threading.Interlocked.Increment(ref _packetsSent);
-                                    System.Threading.Interlocked.Add(ref _bytesSent, buffer.Length);
+                                    Interlocked.Increment(ref _packetsSent);
+                                    Interlocked.Add(ref _bytesSent, buffer.Length);
                                 }
                             }
                         }
