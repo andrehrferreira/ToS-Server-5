@@ -587,12 +587,13 @@ public sealed class UDPServer
                 memLog.Restart();
             }
 
+
             if (trimTimer.Elapsed >= TimeSpan.FromSeconds(10))
             {
                 ByteBufferPool.TrimExcess(1024);
                 trimTimer.Restart();
             }
-
+          
             double elapsed = sw.Elapsed.TotalMilliseconds - now;
             int sleep = (int)(targetFrameTime - elapsed);
 
