@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using Spectre.Console;
 
 public static class ServerMonitor
 {
@@ -8,6 +9,7 @@ public static class ServerMonitor
     private static bool _running;
     private static TimeSpan _lastCpu;
     private static DateTime _lastCheck;
+    private static Table _table;
 
     public static void Start()
     {
@@ -28,19 +30,30 @@ public static class ServerMonitor
 
     private static void Run()
     {
-        Console.Clear();
-
-        while (_running)
-        {
-            Console.SetCursorPosition(0, 0);
-            Console.WriteLine("Tales Of Shadowland Server Monitor");
-            Console.WriteLine("------------------------------------");
-            PrintStats();
-            Thread.Sleep(1000);
-        }
+        _table = CreateTable();
+        AnsiConsole.Clear();
+        AnsiConsole.Live(_table)
+            .Start(ctx =>
+            {
+                while (_running)
+                {
+                    UpdateStats();
+                    ctx.Refresh();
+                    Thread.Sleep(1000);
+                }
+            });
     }
 
-    private static void PrintStats()
+    private static Table CreateTable()
+    {
+        var table = new Table().Border(TableBorder.Rounded);
+        table.Title = new TableTitle("[yellow]Tales Of Shadowland Server Monitor[/]");
+        table.AddColumn("Metric");
+        table.AddColumn("Value");
+        return table;
+    }
+
+    private static void UpdateStats()
     {
         int connections = UDPServer.ConnectionCount;
         long packetsSent = UDPServer.PacketsSent;
@@ -61,13 +74,14 @@ public static class ServerMonitor
         _lastCpu = cpu;
         _lastCheck = now;
 
-        Console.WriteLine($"Connections:       {connections}");
-        Console.WriteLine($"Packets Tx/Rx:     {packetsSent} / {packetsReceived}");
-        Console.WriteLine($"Traffic Tx/Rx:     {bytesSent / 1024}KB / {bytesReceived / 1024}KB");
-        Console.WriteLine($"Memory Managed:    {managed / (1024 * 1024)} MB");
-        Console.WriteLine($"Memory Private:    {privateBytes / (1024 * 1024)} MB");
-        Console.WriteLine($"Buffers Created:   {created}  In Use: {created - pooled}");
-        Console.WriteLine($"GC Collections:    {GC.CollectionCount(0)} / {GC.CollectionCount(1)} / {GC.CollectionCount(2)}");
-        Console.WriteLine($"CPU Usage:         {cpuUsage:F2}%");
+        _table.Rows.Clear();
+        _table.AddRow("Connections", connections.ToString());
+        _table.AddRow("Packets Tx/Rx", $"{packetsSent} / {packetsReceived}");
+        _table.AddRow("Traffic Tx/Rx", $"{bytesSent / 1024}KB / {bytesReceived / 1024}KB");
+        _table.AddRow("Memory Managed", $"{managed / (1024 * 1024)} MB");
+        _table.AddRow("Memory Private", $"{privateBytes / (1024 * 1024)} MB");
+        _table.AddRow("Buffers Created", $"{created}  In Use: {created - pooled}");
+        _table.AddRow("GC Collections", $"{GC.CollectionCount(0)} / {GC.CollectionCount(1)} / {GC.CollectionCount(2)}");
+        _table.AddRow("CPU Usage", $"{cpuUsage:F2}%");
     }
 }
