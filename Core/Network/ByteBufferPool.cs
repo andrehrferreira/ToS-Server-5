@@ -62,11 +62,11 @@ public static class ByteBufferPool
         if (buffer == null)
         {
             buffer = new ByteBuffer();
-            System.Threading.Interlocked.Increment(ref _createdCount);
+            Interlocked.Increment(ref _createdCount);
         }
         else
         {
-            System.Threading.Interlocked.Decrement(ref _pooledCount);
+            Interlocked.Decrement(ref _pooledCount);
         }
 
         return buffer;
@@ -79,7 +79,7 @@ public static class ByteBufferPool
 
         buffer.Reset();
         Local.Add(buffer);
-        System.Threading.Interlocked.Increment(ref _pooledCount);
+        Interlocked.Increment(ref _pooledCount);
     }
 
     public static void Merge()
@@ -112,8 +112,8 @@ public static class ByteBufferPool
         {
             var buffer = new ByteBuffer();
             Local.Add(buffer);
-            System.Threading.Interlocked.Increment(ref _createdCount);
-            System.Threading.Interlocked.Increment(ref _pooledCount);
+            Interlocked.Increment(ref _createdCount);
+            Interlocked.Increment(ref _pooledCount);
         }
 
         Merge();
@@ -128,12 +128,13 @@ public static class ByteBufferPool
             while (_pooledCount > minCount)
             {
                 var buffer = Global.Take();
+
                 if (buffer == null)
                     break;
 
                 buffer.Destroy();
-                System.Threading.Interlocked.Decrement(ref _createdCount);
-                System.Threading.Interlocked.Decrement(ref _pooledCount);
+                Interlocked.Decrement(ref _createdCount);
+                Interlocked.Decrement(ref _pooledCount);
             }
         }
     }
