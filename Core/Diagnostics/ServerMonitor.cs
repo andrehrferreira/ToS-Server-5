@@ -28,6 +28,8 @@ public static class ServerMonitor
 
     private static void Run()
     {
+        Console.Clear();
+
         while (_running)
         {
             Console.SetCursorPosition(0, 0);
