@@ -45,6 +45,17 @@ public class ByteBuffer : IDisposable
 
     public volatile bool Reliable;
 
+    public void Destroy()
+    {
+        if (IsDestroyed)
+            return;
+
+        ArrayPool<byte>.Shared.Return(Data);
+        Data = Array.Empty<byte>();
+        IsDestroyed = true;
+        Disposed = true;
+    }
+
     public bool HasData
     {
         get { return Offset > 0; }

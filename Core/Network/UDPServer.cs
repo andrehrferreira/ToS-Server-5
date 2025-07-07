@@ -570,6 +570,8 @@ public sealed class UDPServer
         Stopwatch sw = new Stopwatch();
         sw.Start();
         double lastTime = sw.Elapsed.TotalMilliseconds;
+        Stopwatch memLog = Stopwatch.StartNew();
+        Stopwatch trimTimer = Stopwatch.StartNew();
 
         while (Running)
         {
@@ -578,6 +580,18 @@ public sealed class UDPServer
             lastTime = now;
 
             Update((float)(delta / 1000.0));
+
+            if (memLog.Elapsed >= TimeSpan.FromSeconds(10))
+            {
+                MemoryUsageLogger.Log();
+                memLog.Restart();
+            }
+
+            if (trimTimer.Elapsed >= TimeSpan.FromSeconds(10))
+            {
+                ByteBufferPool.TrimExcess(1024);
+                trimTimer.Restart();
+            }
 
             double elapsed = sw.Elapsed.TotalMilliseconds - now;
             int sleep = (int)(targetFrameTime - elapsed);
