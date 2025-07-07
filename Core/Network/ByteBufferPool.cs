@@ -137,9 +137,5 @@ public static class ByteBufferPool
                 Interlocked.Decrement(ref _pooledCount);
             }
         }
-
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
     }
 }

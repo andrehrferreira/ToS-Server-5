@@ -53,6 +53,8 @@ public sealed class UDPServer
 
     public static TimeSpan ReliableTimeout = TimeSpan.FromMilliseconds(250f);
 
+    public static byte[] ReciveBuffer = ArrayPool<byte>.Shared.Rent(3600);
+
     public delegate bool ConnectionHandler(UDPSocket socket, string token);
 
     private static ConnectionHandler _connectionHandler;
@@ -63,10 +65,10 @@ public sealed class UDPServer
     public static World GetWorld() => _worldRef;
 
     public static int ConnectionCount => Clients.Count;
-    public static long PacketsSent => System.Threading.Interlocked.Read(ref _packetsSent);
-    public static long PacketsReceived => System.Threading.Interlocked.Read(ref _packetsReceived);
-    public static long BytesSent => System.Threading.Interlocked.Read(ref _bytesSent);
-    public static long BytesReceived => System.Threading.Interlocked.Read(ref _bytesReceived);
+    public static long PacketsSent => Interlocked.Read(ref _packetsSent);
+    public static long PacketsReceived => Interlocked.Read(ref _packetsReceived);
+    public static long BytesSent => Interlocked.Read(ref _bytesSent);
+    public static long BytesReceived => Interlocked.Read(ref _bytesReceived);
 
     public static uint GetRandomId() =>
         (uint)BitConverter.ToInt32(Guid.NewGuid().ToByteArray(), 0) & 0x7FFFFFFF;
@@ -166,7 +168,7 @@ public sealed class UDPServer
                         }
                     }
 
-                    if (pingTimer.Elapsed >= TimeSpan.FromSeconds(5))
+                    if (pingTimer.Elapsed >= TimeSpan.FromSeconds(1))
                     {
                         if (PacketManager.TryGet(PacketType.Ping, out var packet))
                         {
@@ -320,11 +322,10 @@ public sealed class UDPServer
     public static bool Poll(int timeout)
     {
         EndPoint address = new IPEndPoint(IPAddress.Any, 0);
-        byte[] bufferRaw = ArrayPool<byte>.Shared.Rent(3600);
 
         try
         {
-            int receivedBytes = ServerSocket.ReceiveFrom(bufferRaw, ref address);
+            int receivedBytes = ServerSocket.ReceiveFrom(ReciveBuffer, ref address);
 
             if(_options.EnableWAF)
             {
@@ -333,14 +334,12 @@ public sealed class UDPServer
 #if DEBUG
                     ServerMonitor.Log($"[WAF] Packet dropped due to rate limit from {address}");
 #endif
-
-                    ArrayPool<byte>.Shared.Return(bufferRaw);
                     return false;
                 }
             }
             
             var buffer = ByteBufferPool.Acquire();
-            buffer.Assign(bufferRaw, receivedBytes);
+            buffer.Assign(ReciveBuffer, receivedBytes);
             var type = buffer.ReadPacketType();
 
             // Optionally decrypt / XOR here if needed on receive
@@ -354,12 +353,10 @@ public sealed class UDPServer
 
             Interlocked.Increment(ref _packetsReceived);
             Interlocked.Add(ref _bytesReceived, receivedBytes);
-
             return true;
         }
         catch (SocketException)
         {
-            ArrayPool<byte>.Shared.Return(bufferRaw);
             return false;
         }
     }
@@ -611,7 +608,7 @@ public sealed class UDPServer
 
             if (trimTimer.Elapsed >= TimeSpan.FromSeconds(60))
             {
-                ByteBufferPool.TrimExcess(20000);
+                ByteBufferPool.TrimExcess(1024);
                 trimTimer.Restart();
             }
           

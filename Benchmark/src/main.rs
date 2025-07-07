@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     const SERVER_ADDR: &str = "127.0.0.1:3565";
-    const CLIENT_COUNT: usize = 5000;
+    const CLIENT_COUNT: usize = 2000;
     const TEST_DURATION: Duration = Duration::from_secs(60);
     const BATCH_SIZE: usize = 1000;
 

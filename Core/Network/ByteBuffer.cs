@@ -63,7 +63,7 @@ public class ByteBuffer : IDisposable
 
     public ByteBuffer()
     {
-        Data = ArrayPool<byte>.Shared.Rent(3600);
+        Data = ArrayPool<byte>.Shared.Rent(1200);
 
         Offset = 0;
     }
@@ -83,7 +83,7 @@ public class ByteBuffer : IDisposable
         if (other == null)
             throw new ArgumentNullException(nameof(other));
 
-        Data = ArrayPool<byte>.Shared.Rent(3600);
+        Data = ArrayPool<byte>.Shared.Rent(1200);
         Array.Copy(other.Data, 0, Data, 0, other.Data.Length);
 
         Offset = 0;
