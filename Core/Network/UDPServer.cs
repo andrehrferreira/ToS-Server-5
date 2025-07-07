@@ -1,8 +1,9 @@
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Collections.Generic;
+using System.Threading;
 
 public class UDPServerOptions
 {
@@ -55,7 +56,6 @@ public sealed class UDPServer
 
     public static TimeSpan ReliableTimeout = TimeSpan.FromMilliseconds(250f);
 
-    public static byte[] ReciveBuffer = ArrayPool<byte>.Shared.Rent(3600);
 
     public delegate bool ConnectionHandler(UDPSocket socket, string token);
 
@@ -265,6 +265,8 @@ public sealed class UDPServer
                     buffer = GlobalSendQueue.Clear();
                 }
 
+                var batch = new List<(object addr, byte[] data, int length)>();
+
                 while (buffer != null)
                 {
                     var next = buffer.Next;
@@ -275,13 +277,7 @@ public sealed class UDPServer
                         {
                             var address = buffer.Connection.RemoteEndPoint;
 
-                            //if (_options.UseXOREncode && _options.XORKey != null)
-                            //    BufferUtils.ApplyXOR(buffer.Data, buffer.Length, _options.XORKey);
-
-                            //if (_options.UseEncryption && _options.EncryptionKey != null && _options.EncryptionIV != null)
-                            //    BufferUtils.ApplyEncryption(buffer.Data, buffer.Length, _options.EncryptionKey, _options.EncryptionIV);
-
-                            if(buffer.Length > 0 && buffer.Data != null)
+                            if (buffer.Length > 0 && buffer.Data != null)
                             {
                                 if (
                                     buffer.Data[0] == (byte)PacketType.Reliable ||
@@ -297,11 +293,9 @@ public sealed class UDPServer
                                     buffer.Write(crc32c);
                                 }
 
-                                if (buffer.Data != null && !buffer.IsDestroyed && buffer.Length > 0)
+                                if (!buffer.IsDestroyed && buffer.Length > 0)
                                 {
-                                    ServerSocket.SendTo(buffer.Data, 0, buffer.Length, SocketFlags.None, address);
-                                    Interlocked.Increment(ref _packetsSent);
-                                    Interlocked.Add(ref _bytesSent, buffer.Length);
+                                    batch.Add((FormatAddress(address), buffer.Data, buffer.Length));
                                 }
                             }
                         }
@@ -315,6 +309,19 @@ public sealed class UDPServer
                     buffer = next;
                 }
 
+                if (batch.Count > 0)
+                {
+                    UdpBatchIO.SendBatch(ServerSocket, batch);
+
+                    foreach (var p in batch)
+                    {
+                        Interlocked.Increment(ref _packetsSent);
+                        Interlocked.Add(ref _bytesSent, p.length);
+                    }
+
+                    batch.Clear();
+                }
+
                 ByteBufferPool.Merge();
             }
         });
@@ -326,44 +333,74 @@ public sealed class UDPServer
 
     public static bool Poll(int timeout)
     {
-        EndPoint address = new IPEndPoint(IPAddress.Any, 0);
+        bool received = false;
 
-        try
+        UdpBatchIO.ReceiveBatch(ServerSocket, 32, (addrObj, data, len) =>
         {
-            int receivedBytes = ServerSocket.ReceiveFrom(ReciveBuffer, ref address);
+            var address = ConvertToEndPoint(addrObj);
 
-            if(_options.EnableWAF)
+            if (_options.EnableWAF && !WAFRateLimiter.AllowPacket(address))
             {
-                if (!WAFRateLimiter.AllowPacket(address))
-                {
 #if DEBUG
-                    ServerMonitor.Log($"[WAF] Packet dropped due to rate limit from {address}");
+                ServerMonitor.Log($"[WAF] Packet dropped due to rate limit from {address}");
 #endif
-                    return false;
-                }
+                return;
             }
-            
+
             var buffer = ByteBufferPool.Acquire();
-            buffer.Assign(ReciveBuffer, receivedBytes);
+            buffer.Assign(data, len);
             var type = buffer.ReadPacketType();
 
-            // Optionally decrypt / XOR here if needed on receive
-            //if (_options.UseXOREncode && _options.XORKey != null)
-            //    BufferUtils.ApplyXOR(buffer.Data, buffer.Length, _options.XORKey);
-
-            //if (_options.UseEncryption && _options.EncryptionKey != null && _options.EncryptionIV != null)
-            //    BufferUtils.ApplyDecryption(buffer.Data, buffer.Length, _options.EncryptionKey, _options.EncryptionIV);
+            // Optional decryption/XOR could be placed here if needed
 
             HandlePacket(type, buffer, address);
 
             Interlocked.Increment(ref _packetsReceived);
-            Interlocked.Add(ref _bytesReceived, receivedBytes);
-            return true;
-        }
-        catch (SocketException)
+            Interlocked.Add(ref _bytesReceived, len);
+
+            received = true;
+        });
+
+        return received;
+    }
+
+    private static EndPoint ConvertToEndPoint(object addr)
+    {
+#if LINUX
+        if (addr is UdpBatchIO_Linux.sockaddr_in linuxAddr)
         {
-            return false;
+            uint ip = linuxAddr.sin_addr;
+            byte[] ipBytes = new byte[]
+            {
+                (byte)((ip >> 24) & 0xFF),
+                (byte)((ip >> 16) & 0xFF),
+                (byte)((ip >> 8) & 0xFF),
+                (byte)(ip & 0xFF)
+            };
+            var ipAddress = new IPAddress(ipBytes);
+            int port = (ushort)IPAddress.NetworkToHostOrder((short)linuxAddr.sin_port);
+            return new IPEndPoint(ipAddress, port);
         }
+#endif
+        return addr as EndPoint ?? new IPEndPoint(IPAddress.Any, 0);
+    }
+
+    private static object FormatAddress(EndPoint ep)
+    {
+#if LINUX
+        if (ep is IPEndPoint ip)
+        {
+            byte[] bytes = ip.Address.MapToIPv4().GetAddressBytes();
+            uint ipUint = ((uint)bytes[0] << 24) | ((uint)bytes[1] << 16) | ((uint)bytes[2] << 8) | bytes[3];
+            return new UdpBatchIO_Linux.sockaddr_in
+            {
+                sin_family = (ushort)AddressFamily.InterNetwork,
+                sin_port = (ushort)IPAddress.HostToNetworkOrder((short)ip.Port),
+                sin_addr = ipUint
+            };
+        }
+#endif
+        return ep;
     }
 
     private static void HandlePacket(PacketType type, ByteBuffer buffer, EndPoint address)
