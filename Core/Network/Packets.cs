@@ -59,31 +59,3 @@ public static class PacketFlagsUtils
         return flags & ~flagToRemove;
     }
 }
-
-public static class PacketPong
-{
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ByteBuffer Serialize()
-    {
-        ByteBuffer bufferPing = ByteBufferPool.Acquire();
-        bufferPing.Reliable = false;
-        bufferPing.Write(PacketType.Pong);
-        return bufferPing;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Deserialize(ByteBuffer buffer, UDPSocket conn)
-    {
-        long sentTimestamp = buffer.ReadLong();
-        long nowTimestamp = Stopwatch.GetTimestamp();
-        long elapsedTicks = nowTimestamp - sentTimestamp;
-
-        double rttMs = (elapsedTicks * 1000.0) / Stopwatch.Frequency;
-
-        conn.Ping = (uint)rttMs;
-        conn.TimeoutLeft = 30f;
-
-        //if (conn.State == ConnectionState.Connected)
-        //    Console.WriteLine($"Client: {conn.RemoteEndPoint} Ping: {conn.Ping} ms");
-    }
-}

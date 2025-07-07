@@ -420,7 +420,16 @@ public sealed class UDPServer
             case PacketType.Pong:
             {
                 if (Clients.TryGetValue(address, out conn))
-                    PacketPong.Deserialize(buffer, conn);
+                {
+                    long sentTimestamp = buffer.ReadLong();
+                    long nowTimestamp = Stopwatch.GetTimestamp();
+                    long elapsedTicks = nowTimestamp - sentTimestamp;
+
+                    double rttMs = (elapsedTicks * 1000.0) / Stopwatch.Frequency;
+
+                    conn.Ping = (uint)rttMs;
+                    conn.TimeoutLeft = 30f;
+                }
 
                 ByteBufferPool.Release(buffer);
             }

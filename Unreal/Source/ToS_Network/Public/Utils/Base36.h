@@ -5,7 +5,7 @@
 #include "Base36.generated.h"
 
 UCLASS()
-class CLIENT_API UBase36 : public UBlueprintFunctionLibrary
+class TOS_NETWORK_API UBase36 : public UBlueprintFunctionLibrary
 {
     GENERATED_BODY()
 

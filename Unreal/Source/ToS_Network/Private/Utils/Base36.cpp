@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
- #include "Base36.h"
+ #include "Utils/Base36.h"
 
  int32 UBase36::Base36ToInt(const FString& Value)
  {

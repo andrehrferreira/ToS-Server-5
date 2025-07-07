@@ -1,4 +1,4 @@
-﻿/*
+/*
 * ByteBufferPool
 * 
 * Author: Diego Guedes
@@ -85,5 +85,19 @@ public static class ByteBufferPool
         {
             return Global.Clear();
         }
+    }
+
+    public static void PreAllocate(int count)
+    {
+        if (Local == null)
+            Local = new ByteBufferLinked();
+
+        for (int i = 0; i < count; i++)
+        {
+            var buffer = new ByteBuffer();
+            Local.Add(buffer);
+        }
+
+        Merge();
     }
 }
