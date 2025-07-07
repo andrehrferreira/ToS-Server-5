@@ -7,7 +7,7 @@ public static class MemoryUsageLogger
         long managed = GC.GetTotalMemory(false);
         long privateBytes = Process.GetCurrentProcess().PrivateMemorySize64;
         var stats = ByteBufferPool.GetStats();
-        Console.WriteLine($"[Memory]{prefix} Managed: {managed / (1024 * 1024)}MB " +
+        ServerMonitor.Log($"[Memory]{prefix} Managed: {managed / (1024 * 1024)}MB " +
                           $"Private: {privateBytes / (1024 * 1024)}MB " +
                           $"BuffersCreated: {stats.created} InPool: {stats.pooled} InUse: {stats.created - stats.pooled}");
     }

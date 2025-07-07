@@ -1,7 +1,11 @@
-using System;
-using System.Diagnostics;
-using System.Threading;
 using Spectre.Console;
+using Spectre.Console.Rendering;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading;
 
 public static class ServerMonitor
 {
@@ -9,79 +13,184 @@ public static class ServerMonitor
     private static bool _running;
     private static TimeSpan _lastCpu;
     private static DateTime _lastCheck;
-    private static Table _table;
+    private static List<string> _logs = new();
+    private static readonly object _logLock = new();
 
     public static void Start()
     {
+        Console.Clear();
+
         if (_running)
             return;
 
         _running = true;
         _lastCpu = Process.GetCurrentProcess().TotalProcessorTime;
         _lastCheck = DateTime.UtcNow;
-        _thread = new Thread(Run) { IsBackground = true };
-        _thread.Start();
-    }
 
-    public static void Stop()
-    {
-        _running = false;
-    }
+        var cpuMemTable = new Table().NoBorder().Expand();
+        cpuMemTable.AddColumn(new TableColumn("[u]Usage[/]").LeftAligned());
+        cpuMemTable.AddColumn(new TableColumn("[u]Graph[/]").LeftAligned());
 
-    private static void Run()
-    {
-        _table = CreateTable();
-        AnsiConsole.Clear();
-        AnsiConsole.Live(_table)
-            .Start(ctx =>
+        var metricsTable = new Table().NoBorder().Expand();
+        metricsTable.AddColumn(new TableColumn("[u]Metric[/]").LeftAligned());
+        metricsTable.AddColumn(new TableColumn("[u]Value[/]").RightAligned());
+
+        var logsTable = new Table().NoBorder().Expand();
+        logsTable.AddColumn(new TableColumn("[u]Logs[/]").LeftAligned());
+
+        var layout = new Table().Centered();
+        layout.AddColumn("[bold green]Tales Of Shadowland Server Monitor[/]");
+        layout.AddRow(new Rule("[yellow]CPU & Memory Usage[/]"));
+        layout.AddRow(cpuMemTable);
+        layout.AddRow(new Rule("[yellow]Metrics[/]"));
+        layout.AddRow(metricsTable);
+        layout.AddRow(new Rule("[yellow]Logs[/]"));
+        layout.AddRow(logsTable);
+
+        AnsiConsole.Live(layout)
+        .Start(ctx =>
+        {
+            while (_running)
             {
-                while (_running)
-                {
-                    UpdateStats();
-                    ctx.Refresh();
-                    Thread.Sleep(1000);
-                }
-            });
+                UpdateCpuAndMemory(cpuMemTable);
+                UpdateMetrics(metricsTable);
+                UpdateLogs(logsTable);
+
+                ctx.Refresh();
+                Thread.Sleep(1000);
+            }
+        });
     }
 
-    private static Table CreateTable()
+    public static void Stop() => _running = false;
+
+    public static void Log(string message)
     {
-        var table = new Table().Border(TableBorder.Rounded);
-        table.Title = new TableTitle("[yellow]Tales Of Shadowland Server Monitor[/]");
-        table.AddColumn("Metric");
-        table.AddColumn("Value");
-        return table;
+        lock (_logLock)
+        {
+            _logs.Add($"[{DateTime.Now:HH:mm:ss}] {message}");
+            if (_logs.Count > 10)
+                _logs.RemoveAt(0);
+        }
     }
 
-    private static void UpdateStats()
+    private static void UpdateCpuAndMemory(Table table)
     {
+        double cpuUsage = GetCpuUsage();
+        long privateBytes = Process.GetCurrentProcess().PrivateMemorySize64;
+        double memUsage = GetMemoryUsagePercentage(privateBytes, out double totalGB);
+
+        table.Rows.Clear();
+
+        int cpuBlocks = Math.Clamp((int)(cpuUsage / 5), 1, 20);
+        int memBlocks = Math.Clamp((int)(memUsage / 5), 1, 20);
+
+        string cpuBar = $"[green]{new string('█', cpuBlocks).PadRight(20)}[/] {cpuUsage:F1}%";
+        string memBar = $"[blue]{new string('█', memBlocks).PadRight(20)}[/] {memUsage:F1}% of {totalGB:F1} GB";
+
+        table.AddRow("CPU Usage", cpuBar);
+        table.AddRow("Memory Usage", memBar);
+    }
+
+    private static void UpdateMetrics(Table table)
+    {
+        table.Rows.Clear();
+
         int connections = UDPServer.ConnectionCount;
         long packetsSent = UDPServer.PacketsSent;
         long packetsReceived = UDPServer.PacketsReceived;
         long bytesSent = UDPServer.BytesSent;
         long bytesReceived = UDPServer.BytesReceived;
-
         var (created, pooled) = ByteBufferPool.GetStats();
+
         long managed = GC.GetTotalMemory(false);
         long privateBytes = Process.GetCurrentProcess().PrivateMemorySize64;
 
+        table.AddRow("Connections", connections.ToString());
+        table.AddRow("Packets Tx/Rx", $"{packetsSent} / {packetsReceived}");
+        table.AddRow("Traffic Tx/Rx", $"{bytesSent / 1024} KB / {bytesReceived / 1024} KB");
+        table.AddRow("Buffers Created", $"{created} (In Use: {created - pooled})");
+        table.AddRow("Managed Memory", $"{managed / (1024 * 1024)} MB");
+        table.AddRow("Private Memory", $"{privateBytes / (1024 * 1024)} MB");
+        table.AddRow("GC Collections", $"{GC.CollectionCount(0)} / {GC.CollectionCount(1)} / {GC.CollectionCount(2)}");
+    }
+
+    private static void UpdateLogs(Table table)
+    {
+        table.Rows.Clear();
+
+        lock (_logLock)
+        {
+            if (_logs.Count == 0)
+                table.AddRow("[grey]No logs yet...[/]");
+            else
+                foreach (var log in _logs)
+                    table.AddRow(log.EscapeMarkup());
+        }
+    }
+
+    private static double GetCpuUsage()
+    {
         DateTime now = DateTime.UtcNow;
         TimeSpan cpu = Process.GetCurrentProcess().TotalProcessorTime;
-        double cpuUsage = 0.0;
         double delta = (now - _lastCheck).TotalSeconds;
+        double cpuUsage = 0.0;
+
         if (delta > 0)
             cpuUsage = (cpu - _lastCpu).TotalSeconds / (Environment.ProcessorCount * delta) * 100.0;
+
         _lastCpu = cpu;
         _lastCheck = now;
+        return cpuUsage;
+    }
 
-        _table.Rows.Clear();
-        _table.AddRow("Connections", connections.ToString());
-        _table.AddRow("Packets Tx/Rx", $"{packetsSent} / {packetsReceived}");
-        _table.AddRow("Traffic Tx/Rx", $"{bytesSent / 1024}KB / {bytesReceived / 1024}KB");
-        _table.AddRow("Memory Managed", $"{managed / (1024 * 1024)} MB");
-        _table.AddRow("Memory Private", $"{privateBytes / (1024 * 1024)} MB");
-        _table.AddRow("Buffers Created", $"{created}  In Use: {created - pooled}");
-        _table.AddRow("GC Collections", $"{GC.CollectionCount(0)} / {GC.CollectionCount(1)} / {GC.CollectionCount(2)}");
-        _table.AddRow("CPU Usage", $"{cpuUsage:F2}%");
+    private static double GetMemoryUsagePercentage(long appPrivateBytes, out double totalGB)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            MEMORYSTATUSEX memStatus = new MEMORYSTATUSEX();
+            if (GlobalMemoryStatusEx(memStatus))
+            {
+                totalGB = memStatus.ullTotalPhys / (1024.0 * 1024 * 1024);
+                return appPrivateBytes / (double)memStatus.ullTotalPhys * 100.0;
+            }
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            try
+            {
+                var lines = System.IO.File.ReadAllLines("/proc/meminfo");
+                var line = lines.FirstOrDefault(l => l.StartsWith("MemTotal"));
+                if (line != null)
+                {
+                    var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    double totalKb = double.Parse(parts[1]);
+                    double total = totalKb * 1024;
+                    totalGB = total / (1024.0 * 1024 * 1024);
+                    return appPrivateBytes / total * 100.0;
+                }
+            }
+            catch { }
+        }
+
+        totalGB = 0;
+        return 0;
+    }
+
+    [DllImport("kernel32.dll")]
+    private static extern bool GlobalMemoryStatusEx([In, Out] MEMORYSTATUSEX lpBuffer);
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    private class MEMORYSTATUSEX
+    {
+        public uint dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
+        public uint dwMemoryLoad;
+        public ulong ullTotalPhys;
+        public ulong ullAvailPhys;
+        public ulong ullTotalPageFile;
+        public ulong ullAvailPageFile;
+        public ulong ullTotalVirtual;
+        public ulong ullAvailVirtual;
+        public ulong ullAvailExtendedVirtual;
     }
 }

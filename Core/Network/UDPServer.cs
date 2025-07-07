@@ -107,7 +107,7 @@ public sealed class UDPServer
                 PacketRegistration.RegisterPackets();
 
 #if DEBUG
-                Console.WriteLine($"UDP server started on port {port}");
+                ServerMonitor.Log($"UDP server started on port {port}");
 #endif
 
                 SendOnBackgroundThread();
@@ -122,7 +122,7 @@ public sealed class UDPServer
         catch (Exception ex)
         {
 #if DEBUG
-            Console.WriteLine($"Error initializing UDP server: {ex.Message}");
+            ServerMonitor.Log($"Error initializing UDP server: {ex.Message}");
 #endif
             Running = false;
 
@@ -136,7 +136,7 @@ public sealed class UDPServer
         ServerSocket?.Close();
 
 #if DEBUG
-        Console.WriteLine("UDP server stopped.");
+        ServerMonitor.Log("UDP server stopped.");
 #endif
     }
 
@@ -213,7 +213,7 @@ public sealed class UDPServer
                                 {
                                     client.OnDisconnect();
 #if DEBUG
-                                    Console.WriteLine($"Client timeout/disconnected: {kv.Key}");
+                                    //ServerMonitor.Log($"Client timeout/disconnected: {kv.Key}");
 #endif
                                 }
                             }
@@ -233,7 +233,7 @@ public sealed class UDPServer
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro: {ex.Message}");
+                ServerMonitor.Log($"Erro: {ex.Message}");
             }
         });
 
@@ -313,6 +313,7 @@ public sealed class UDPServer
         });
 
         SendThread.IsBackground = true;
+
         SendThread.Start();
     }
 
@@ -330,7 +331,7 @@ public sealed class UDPServer
                 if (!WAFRateLimiter.AllowPacket(address))
                 {
 #if DEBUG
-                    Console.WriteLine($"[WAF] Packet dropped due to rate limit from {address}");
+                    ServerMonitor.Log($"[WAF] Packet dropped due to rate limit from {address}");
 #endif
 
                     ArrayPool<byte>.Shared.Return(bufferRaw);
@@ -351,8 +352,8 @@ public sealed class UDPServer
 
             HandlePacket(type, buffer, address);
 
-            System.Threading.Interlocked.Increment(ref _packetsReceived);
-            System.Threading.Interlocked.Add(ref _bytesReceived, receivedBytes);
+            Interlocked.Increment(ref _packetsReceived);
+            Interlocked.Add(ref _bytesReceived, receivedBytes);
 
             return true;
         }
@@ -429,7 +430,7 @@ public sealed class UDPServer
                         newSocket.State = ConnectionState.Connected;
 
             #if DEBUG
-                        Console.WriteLine($"Client connected: {address} ID:{ID}");
+                            //ServerMonitor.Log($"Client connected: {address} ID:{ID}");
             #endif
                     }
                 }
@@ -460,7 +461,7 @@ public sealed class UDPServer
                 {
                     conn.OnDisconnect();
 #if DEBUG
-                    Console.WriteLine($"Client disconnected: {address}");
+                    ServerMonitor.Log($"Client disconnected: {address}");
 #endif
                 }
 
@@ -509,7 +510,7 @@ public sealed class UDPServer
                     {
                         conn.Disconnect(DisconnectReason.InvalidIntegrity);
 #if DEBUG
-                        Console.WriteLine($"The Client did not respond to the key correctly {address}");
+                        ServerMonitor.Log($"The Client did not respond to the key correctly {address}");
 #endif
                     }
                     else
@@ -608,9 +609,9 @@ public sealed class UDPServer
             }
 
 
-            if (trimTimer.Elapsed >= TimeSpan.FromSeconds(10))
+            if (trimTimer.Elapsed >= TimeSpan.FromSeconds(60))
             {
-                ByteBufferPool.TrimExcess(1024);
+                ByteBufferPool.TrimExcess(20000);
                 trimTimer.Restart();
             }
           

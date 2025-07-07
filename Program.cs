@@ -40,7 +40,7 @@ class Program
         Console.WriteLine("Running in release mode. Tests and transpilers are skipped.");
 #endif
 
-        ByteBufferPool.PreAllocate(1024); 
+        ByteBufferPool.PreAllocate(20000); 
 
         World world = new World(100000);
 
