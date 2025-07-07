@@ -63,10 +63,12 @@ enum class EPacketType : uint8
 
 class FPacketPollRunnable : public FRunnable
 {
+    friend class UDPClient;
 public:
     FPacketPollRunnable(UDPClient* InClient) : Client(InClient), bStop(false) {}
     virtual uint32 Run() override;
     void Stop() override { bStop = true; }
+    bool IsStopped() const { return bStop; }
 private:
     UDPClient* Client;
     FThreadSafeBool bStop;

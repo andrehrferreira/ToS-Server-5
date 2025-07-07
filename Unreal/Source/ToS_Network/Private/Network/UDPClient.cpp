@@ -144,6 +144,9 @@ void UDPClient::SendIntegrity(uint16 Code)
 
 void UDPClient::PollIncomingPackets()
 {
+    if (!Socket || (!bIsConnected && !bIsConnecting))
+        return;
+
     if (bIsConnected && (FPlatformTime::Seconds() - LastPingTime > 15.0))
     {
         if (OnDisconnect)
@@ -157,7 +160,7 @@ void UDPClient::PollIncomingPackets()
         return;
 
     uint32 PendingDataSize = 0;
-    while (Socket->HasPendingData(PendingDataSize))
+    while (!PacketPollRunnable->bStop && Socket->HasPendingData(PendingDataSize))
     {
         TArray<uint8> ReceivedData;
         ReceivedData.SetNumUninitialized(PendingDataSize);
