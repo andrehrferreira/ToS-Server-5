@@ -1,4 +1,5 @@
 #include "Network/UByteBuffer.h"
+#include "Network/CRC32C.h"
 
 UByteBuffer* UByteBuffer::CreateEmptyByteBuffer(int32 Capacity)
 {
@@ -87,6 +88,24 @@ UByteBuffer* UByteBuffer::WriteInt32(int32 Value)
     return this;
 }
 
+UByteBuffer* UByteBuffer::WriteUInt32(uint32 Value)
+{
+    if (Offset + 4 > Buffer.Num())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UByteBuffer::WriteUInt32 - Buffer overflow. Cannot write uint32 value."));
+        return this;
+    }
+
+    Buffer[Offset++] = static_cast<uint8>(Value);
+    Buffer[Offset++] = static_cast<uint8>(Value >> 8);
+    Buffer[Offset++] = static_cast<uint8>(Value >> 16);
+    Buffer[Offset++] = static_cast<uint8>(Value >> 24);
+
+    Length = FMath::Max(Length, Offset);
+
+    return this;
+}
+
 UByteBuffer* UByteBuffer::WriteInt64(int64 Value)
 {
     if (Offset + 8 > Buffer.Num()) {
@@ -151,6 +170,12 @@ UByteBuffer* UByteBuffer::WriteFRotator(const FRotator& Value)
     WriteInt32(static_cast<int32>(Value.Yaw));
     WriteInt32(static_cast<int32>(Value.Roll));
     return this;
+}
+
+void UByteBuffer::WriteSign()
+{
+    uint32 Crc = FCRC32C::Compute(Buffer.GetData(), Length);
+    WriteUInt32(Crc);
 }
 
 // Read
@@ -272,6 +297,11 @@ void UByteBuffer::Reset()
     Length = 0;
 }
 
+void UByteBuffer::ResetOffset()
+{
+    Offset = 0;
+}
+
 FString UByteBuffer::ToHex() const
 {
     uint32 Hash = 0;
@@ -290,4 +320,41 @@ int32 UByteBuffer::GetHashFast() const
         Hash = (Hash << 5) + Hash + Buffer[i];
     
     return Hash;
+}
+
+uint32 UByteBuffer::ReadUInt32()
+{
+    if (Buffer.Num() >= Offset + 4)
+    {
+        uint32 result = 0;
+        result |= static_cast<uint32>(Buffer[Offset]);
+        result |= static_cast<uint32>(Buffer[Offset + 1]) << 8;
+        result |= static_cast<uint32>(Buffer[Offset + 2]) << 16;
+        result |= static_cast<uint32>(Buffer[Offset + 3]) << 24;
+
+        Offset += 4;
+        return result;
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("UByteBuffer::ReadUInt32 - Buffer underflow."));
+        return 0;
+    }
+}
+
+uint32 UByteBuffer::ReadSign()
+{
+    if (Length < 4)
+    {
+        UE_LOG(LogTemp, Error, TEXT("UByteBuffer::ReadSign - Buffer too small to contain CRC32C signature."));
+        return 0;
+    }
+
+    int32 Index = Length - 4;
+    uint32 value = static_cast<uint32>(Buffer[Index]) |
+                   (static_cast<uint32>(Buffer[Index + 1]) << 8) |
+                   (static_cast<uint32>(Buffer[Index + 2]) << 16) |
+                   (static_cast<uint32>(Buffer[Index + 3]) << 24);
+
+    return value;
 }
