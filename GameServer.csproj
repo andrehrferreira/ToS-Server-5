@@ -14,9 +14,10 @@
 		<Compile Remove="Unreal\**\*.cs" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-	</ItemGroup>
+        <ItemGroup>
+          <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+          <PackageReference Include="Spectre.Console" Version="0.47.0" />
+        </ItemGroup>
 
 	<ItemGroup>
 	  <Folder Include="Core\Handlers\" />
