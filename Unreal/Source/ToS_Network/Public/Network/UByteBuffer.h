@@ -49,8 +49,10 @@ public:
 
 	UByteBuffer* WriteUInt16(uint16 Value);
 
-	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
-	UByteBuffer* WriteInt32(int32 Value);
+        UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+        UByteBuffer* WriteInt32(int32 Value);
+
+        UByteBuffer* WriteUInt32(uint32 Value);
 
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	UByteBuffer* WriteInt64(int64 Value);
@@ -67,8 +69,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	UByteBuffer* WriteFVector(const FVector& Value);
 
-	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
-	UByteBuffer* WriteFRotator(const FRotator& Value);
+        UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+        UByteBuffer* WriteFRotator(const FRotator& Value);
+
+        UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+        void WriteSign();
 
 	// Read
 
@@ -77,8 +82,10 @@ public:
 
 	uint16 ReadUInt16();
 
-	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
-	int32 ReadInt32();
+        UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+        int32 ReadInt32();
+
+        uint32 ReadUInt32();
 
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	int64 ReadInt64();
@@ -95,13 +102,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	FVector ReadFVector();
 
-	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
-	FRotator ReadFRotator();
+        UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+        FRotator ReadFRotator();
+
+        uint32 ReadSign();
 
 	// Utility
 
-	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
-	void Reset();
+        UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+        void Reset();
+
+        UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+        void ResetOffset();
 
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	FString ToHex() const;
