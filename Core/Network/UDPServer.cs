@@ -40,6 +40,11 @@ public sealed class UDPServer
     [ThreadStatic]
     static ByteBufferLinked LocalSendQueue;
 
+    private static long _packetsSent = 0;
+    private static long _bytesSent = 0;
+    private static long _packetsReceived = 0;
+    private static long _bytesReceived = 0;
+
     private static Thread SendThread;
 
     private static Thread ReceiveThread;
@@ -56,6 +61,12 @@ public sealed class UDPServer
 
     public static void SetWorld(World worldRef) => _worldRef = worldRef;
     public static World GetWorld() => _worldRef;
+
+    public static int ConnectionCount => Clients.Count;
+    public static long PacketsSent => System.Threading.Interlocked.Read(ref _packetsSent);
+    public static long PacketsReceived => System.Threading.Interlocked.Read(ref _packetsReceived);
+    public static long BytesSent => System.Threading.Interlocked.Read(ref _bytesSent);
+    public static long BytesReceived => System.Threading.Interlocked.Read(ref _bytesReceived);
 
     public static uint GetRandomId() =>
         (uint)BitConverter.ToInt32(Guid.NewGuid().ToByteArray(), 0) & 0x7FFFFFFF;
@@ -280,7 +291,11 @@ public sealed class UDPServer
                                 }
 
                                 if (buffer.Data != null && !buffer.IsDestroyed && buffer.Length > 0)
+                                {
                                     ServerSocket.SendTo(buffer.Data, 0, buffer.Length, SocketFlags.None, address);
+                                    System.Threading.Interlocked.Increment(ref _packetsSent);
+                                    System.Threading.Interlocked.Add(ref _bytesSent, buffer.Length);
+                                }
                             }
                         }
                     }
@@ -336,6 +351,9 @@ public sealed class UDPServer
 
             HandlePacket(type, buffer, address);
 
+            System.Threading.Interlocked.Increment(ref _packetsReceived);
+            System.Threading.Interlocked.Add(ref _bytesReceived, receivedBytes);
+
             return true;
         }
         catch (SocketException)
@@ -373,6 +391,8 @@ public sealed class UDPServer
                     {
                         ByteBuffer bufferConnectionDenied = packet.Serialize();
                         ServerSocket.SendTo(buffer.Data, 0, buffer.Length, SocketFlags.None, address);
+                        System.Threading.Interlocked.Increment(ref _packetsSent);
+                        System.Threading.Interlocked.Add(ref _bytesSent, buffer.Length);
                     }
 
                     ByteBufferPool.Release(buffer);
