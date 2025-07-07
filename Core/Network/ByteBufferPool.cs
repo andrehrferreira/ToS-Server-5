@@ -118,4 +118,23 @@ public static class ByteBufferPool
 
         Merge();
     }
+
+    public static void TrimExcess(int minCount)
+    {
+        Merge();
+
+        lock (Global)
+        {
+            while (_pooledCount > minCount)
+            {
+                var buffer = Global.Take();
+                if (buffer == null)
+                    break;
+
+                buffer.Destroy();
+                System.Threading.Interlocked.Decrement(ref _createdCount);
+                System.Threading.Interlocked.Decrement(ref _pooledCount);
+            }
+        }
+    }
 }
