@@ -42,6 +42,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "ByteBuffer")
 	void Assign(const TArray<uint8>& Source);
 
+	static UByteBuffer* Pack(UByteBuffer* Buffer, uint8 PacketType, uint16 Flags = 0);
+
 	// Write
 
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
@@ -49,10 +51,10 @@ public:
 
 	UByteBuffer* WriteUInt16(uint16 Value);
 
-        UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
-        UByteBuffer* WriteInt32(int32 Value);
+    UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+    UByteBuffer* WriteInt32(int32 Value);
 
-        UByteBuffer* WriteUInt32(uint32 Value);
+    UByteBuffer* WriteUInt32(uint32 Value);
 
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	UByteBuffer* WriteInt64(int64 Value);
@@ -69,11 +71,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	UByteBuffer* WriteFVector(const FVector& Value);
 
-        UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
-        UByteBuffer* WriteFRotator(const FRotator& Value);
+    UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+    UByteBuffer* WriteFRotator(const FRotator& Value);
 
-        UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
-        void WriteSign();
+    UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+    void WriteSign();
 
 	// Read
 
@@ -82,10 +84,10 @@ public:
 
 	uint16 ReadUInt16();
 
-        UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
-        int32 ReadInt32();
+    UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+    int32 ReadInt32();
 
-        uint32 ReadUInt32();
+    uint32 ReadUInt32();
 
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	int64 ReadInt64();
@@ -102,18 +104,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	FVector ReadFVector();
 
-        UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
-        FRotator ReadFRotator();
+    UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+    FRotator ReadFRotator();
 
-        uint32 ReadSign();
+    uint32 ReadSign();
 
 	// Utility
 
-        UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
-        void Reset();
+	void ReadBytes(uint8* OutBuffer, int32 Count);
 
-        UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
-        void ResetOffset();
+    UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+    void Reset();
+
+    UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
+    void ResetOffset();
 
 	UFUNCTION(BlueprintCallable, Category = "ByteBuffer")
 	FString ToHex() const;
@@ -139,6 +143,8 @@ public:
 	}
 
 	UByteBuffer* Next = nullptr; 
+
+	bool Reliable = false; 
 
 private:
 	TArray<uint8> Buffer;

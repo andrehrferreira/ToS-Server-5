@@ -1,10 +1,10 @@
 #include "Network/UByteBuffer.h"
-#include "Network/CRC32C.h"
+#include "Utils/CRC32C.h"
 
 UByteBuffer* UByteBuffer::CreateEmptyByteBuffer(int32 Capacity)
 {
     UByteBuffer* ByteBuffer = NewObject<UByteBuffer>();
-    ByteBuffer->Buffer.SetNumUninitialized(Capacity); 
+    ByteBuffer->Buffer.SetNumUninitialized(Capacity);
     ByteBuffer->Offset = 0;
     ByteBuffer->Length = 0;
     return ByteBuffer;
@@ -16,9 +16,9 @@ UByteBuffer* UByteBuffer::CreateByteBuffer(const TArray<uint8>& Data)
     int32 DataSize = Data.Num();
     ByteBuffer->Buffer.SetNumUninitialized(DataSize);
 
-    if (DataSize > 0)    
+    if (DataSize > 0)
         FMemory::Memcpy(ByteBuffer->Buffer.GetData(), Data.GetData(), DataSize);
-    
+
     ByteBuffer->Offset = 0;
     ByteBuffer->Length = DataSize;
     return ByteBuffer;
@@ -41,7 +41,35 @@ void UByteBuffer::Assign(const TArray<uint8>& Source)
     Length = InLength;
 }
 
-//Write 
+UByteBuffer* UByteBuffer::Pack(UByteBuffer* Buffer, uint8 PacketType, uint16 Flags)
+{
+    if (!Buffer) return nullptr;
+
+    int32 PayloadLength = Buffer->Length;
+
+    UByteBuffer* PackedBuffer = CreateEmptyByteBuffer(PayloadLength + 4);
+
+    PackedBuffer->WriteByte(Buffer->Reliable ? 1 : 0);
+    PackedBuffer->WriteByte(PacketType);
+    PackedBuffer->WriteUInt16(Flags);
+
+    if (PayloadLength > 0)
+    {
+        if (PackedBuffer->Offset + PayloadLength > PackedBuffer->Buffer.Num())
+        {
+            UE_LOG(LogTemp, Error, TEXT("UByteBuffer::Pack - Payload too large for packed buffer."));
+            return PackedBuffer;
+        }
+
+        FMemory::Memcpy(PackedBuffer->Buffer.GetData() + PackedBuffer->Offset, Buffer->Buffer.GetData(), PayloadLength);
+        PackedBuffer->Offset += PayloadLength;
+        PackedBuffer->Length += PayloadLength;
+    }
+
+    return PackedBuffer;
+}
+
+//Write
 
 UByteBuffer* UByteBuffer::WriteByte(uint8 Value)
 {
@@ -72,12 +100,12 @@ UByteBuffer* UByteBuffer::WriteUInt16(uint16 Value)
 
 UByteBuffer* UByteBuffer::WriteInt32(int32 Value)
 {
-    if (Offset + 4 > Buffer.Num()) 
+    if (Offset + 4 > Buffer.Num())
     {
         UE_LOG(LogTemp, Warning, TEXT("UByteBuffer::WriteInt32 - Buffer overflow. Cannot write int32 value."));
         return this;
     }
-		
+
     Buffer[Offset++] = static_cast<uint8>(Value);
     Buffer[Offset++] = static_cast<uint8>(Value >> 8);
     Buffer[Offset++] = static_cast<uint8>(Value >> 16);
@@ -182,9 +210,9 @@ void UByteBuffer::WriteSign()
 
 uint8 UByteBuffer::ReadByte()
 {
-    if (Offset >= Length)    
+    if (Offset >= Length)
         return 0;
-    
+
     return Buffer[Offset++];
 }
 
@@ -289,6 +317,18 @@ FRotator UByteBuffer::ReadFRotator()
     return FRotator(Pitch, Yaw, Roll);
 }
 
+void UByteBuffer::ReadBytes(uint8* OutBuffer, int32 Count)
+{
+    if (Offset + Count > Length)
+    {
+        UE_LOG(LogTemp, Error, TEXT("UByteBuffer::ReadBytes - Insufficient data."));
+        return;
+    }
+
+    FMemory::Memcpy(OutBuffer, Buffer.GetData() + Offset, Count);
+    Offset += Count;
+}
+
 // Utility
 
 void UByteBuffer::Reset()
@@ -306,9 +346,9 @@ FString UByteBuffer::ToHex() const
 {
     uint32 Hash = 0;
 
-    for (int32 i = 0; i < Offset; i++)    
+    for (int32 i = 0; i < Offset; i++)
         Hash = (Hash << 5) + Hash + Buffer[i];
-    
+
     return FString::Printf(TEXT("%08X"), Hash);
 }
 
@@ -316,9 +356,9 @@ int32 UByteBuffer::GetHashFast() const
 {
     int32 Hash = 0;
 
-    for (int32 i = 0; i < Offset; i++)    
+    for (int32 i = 0; i < Offset; i++)
         Hash = (Hash << 5) + Hash + Buffer[i];
-    
+
     return Hash;
 }
 
