@@ -24,7 +24,6 @@
 
 using System.Buffers;
 using System.Runtime.CompilerServices;
-using System.Xml.Serialization;
 
 public class ByteBuffer : IDisposable
 {
