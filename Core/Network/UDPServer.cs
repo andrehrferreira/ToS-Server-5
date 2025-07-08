@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
+using System.Buffers;
 using System.Threading;
 
 public class UDPServerOptions
@@ -254,7 +255,7 @@ public sealed class UDPServer
                     node = GlobalSendQueue.Clear();
                 }
 
-                var batch = new List<(object addr, byte[] data, int length)>();
+                var batch = new List<SendPacket>();
 
                 while (node != null)
                 {
@@ -263,7 +264,7 @@ public sealed class UDPServer
 
                     if (packet.Buffer != null && packet.Length > 0)
                     {
-                        batch.Add((FormatAddress(packet.Address), packet.Buffer, packet.Length));
+                        batch.Add(packet);
                     }
 
                     node = next;
@@ -271,12 +272,18 @@ public sealed class UDPServer
 
                 if (batch.Count > 0)
                 {
-                    UdpBatchIO.SendBatch(ServerSocket, batch);
+                    var sendBatch = new List<(object addr, byte[] data, int length)>(batch.Count);
+                    foreach (var p in batch)
+                        sendBatch.Add((FormatAddress(p.Address), p.Buffer, p.Length));
+
+                    UdpBatchIO.SendBatch(ServerSocket, sendBatch);
 
                     foreach (var p in batch)
                     {
                         Interlocked.Increment(ref _packetsSent);
-                        Interlocked.Add(ref _bytesSent, p.length);
+                        Interlocked.Add(ref _bytesSent, p.Length);
+                        if (p.Pooled)
+                            ArrayPool<byte>.Shared.Return(p.Buffer);
                     }
 
                     batch.Clear();
@@ -524,7 +531,7 @@ public sealed class UDPServer
         if (t == PacketType.Reliable || t == PacketType.Unreliable || t == PacketType.Ack)
         {
             uint crc32c = CRC32C.Compute(data, data.Length);
-            byte[] result = new byte[data.Length + 4];
+            byte[] result = ArrayPool<byte>.Shared.Rent(data.Length + 4);
             Buffer.BlockCopy(data, 0, result, 0, data.Length);
             ByteBuffer.WriteUInt(result, (uint)data.Length, crc32c);
             return result;
@@ -533,7 +540,7 @@ public sealed class UDPServer
         return data;
     }
 
-    public static void Send(byte[] data, UDPSocket socket)
+    public static void Send(byte[] data, UDPSocket socket, bool pooled = false)
     {
         if (LocalSendQueue == null)
             LocalSendQueue = new QueueStructLinked<SendPacket>();
@@ -541,12 +548,17 @@ public sealed class UDPServer
         if (data.Length > 0)
         {
             var signed = AddSignature(data);
+            bool poolSigned = pooled || !ReferenceEquals(signed, data);
+
+            if (!ReferenceEquals(signed, data) && pooled)
+                ArrayPool<byte>.Shared.Return(data);
 
             var packet = new SendPacket
             {
                 Buffer = signed,
                 Length = signed.Length,
-                Address = socket.RemoteEndPoint
+                Address = socket.RemoteEndPoint,
+                Pooled = poolSigned
             };
 
             LocalSendQueue.Add(packet);
@@ -561,16 +573,20 @@ public sealed class UDPServer
 
         if (buffer.Length > 0 && buffer.Connection != null)
         {
-            byte[] data = new byte[buffer.Length];
+            byte[] data = ArrayPool<byte>.Shared.Rent(buffer.Length);
             Buffer.BlockCopy(buffer.Data, 0, data, 0, buffer.Length);
 
-            data = AddSignature(data);
+            var signed = AddSignature(data);
+            bool pooled = true;
+            if (!ReferenceEquals(signed, data))
+                ArrayPool<byte>.Shared.Return(data);
 
             var packet = new SendPacket
             {
-                Buffer = data,
-                Length = data.Length,
-                Address = buffer.Connection.RemoteEndPoint
+                Buffer = signed,
+                Length = signed.Length,
+                Address = buffer.Connection.RemoteEndPoint,
+                Pooled = pooled
             };
 
             LocalSendQueue.Add(packet);

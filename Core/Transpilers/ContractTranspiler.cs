@@ -146,7 +146,7 @@ public class ContractTraspiler : AbstractTranspiler
         if(fields.Length > 0)
         {
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            writer.WriteLine($"    public override byte[] Serialize(object? data = null)");
+            writer.WriteLine($"    public override NativeBuffer Serialize(object? data = null)");
             writer.WriteLine("    {");
             writer.WriteLine($"        var typedData = data is {contract.Name} p ? p : throw new InvalidCastException(\"Invalid data type.\");");
             writer.WriteLine("        return Serialize(typedData);");
@@ -154,10 +154,10 @@ public class ContractTraspiler : AbstractTranspiler
             writer.WriteLine();
 
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            writer.WriteLine($"    public byte[] Serialize({data})");
+            writer.WriteLine($"    public unsafe NativeBuffer Serialize({data})");
             writer.WriteLine("    {");
             writer.WriteLine("        uint offset = 0;");
-            writer.WriteLine("        byte[] buffer = new byte[3600];");
+            writer.WriteLine("        byte* buffer = (byte*)NativeMemory.Alloc(3600);");
 
             if (contractAttribute.PacketType != PacketType.None)
                 writer.WriteLine($"        offset = ByteBuffer.WritePacketType(buffer, offset, PacketType.{contractAttribute.PacketType.ToString()});");
@@ -222,7 +222,7 @@ public class ContractTraspiler : AbstractTranspiler
 
             }
 
-            writer.WriteLine("        return buffer;");
+            writer.WriteLine("        return new NativeBuffer(buffer, 3600);");
             writer.WriteLine("    }");
         }
         else
@@ -235,21 +235,21 @@ public class ContractTraspiler : AbstractTranspiler
             writer.WriteLine();
 
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            writer.WriteLine($"    public byte[] Serialize()");
+            writer.WriteLine($"    public unsafe NativeBuffer Serialize()");
             writer.WriteLine("    {");
             
             if (contractAttribute.PacketType != PacketType.None)
             {
-                writer.WriteLine("        byte[] buffer = new byte[1];");
-                writer.WriteLine($"        ByteBuffer.WritePacketType(buffer, 0, PacketType.{contractAttribute.PacketType.ToString()});");
+            writer.WriteLine("        unsafe byte* buffer = (byte*)NativeMemory.Alloc(1);");
+            writer.WriteLine($"        ByteBuffer.WritePacketType(buffer, 0, PacketType.{contractAttribute.PacketType.ToString()});");
+            writer.WriteLine("        return new NativeBuffer(buffer, 1);");
             }
             else
             {
-                writer.WriteLine("        byte[] buffer = new byte[2];");
+                writer.WriteLine("        unsafe byte* buffer = (byte*)NativeMemory.Alloc(2);");
                 writer.WriteLine($"        ByteBuffer.WriteUShort(buffer, 0, (ushort)ServerPacket.{contract.Name.Replace("Contract", "")});");
-            }                
-
-            writer.WriteLine("        return buffer;");
+                writer.WriteLine("        return new NativeBuffer(buffer, 2);");
+            }
             writer.WriteLine("    }");
         }
     }
