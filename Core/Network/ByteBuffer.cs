@@ -246,6 +246,13 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe uint WriteByte(byte* data, uint offset, byte value)
+    {
+        data[offset] = value;
+        return offset + 1;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(PacketType value)
     {
         if (Offset + 1 > Data.Length)
@@ -267,6 +274,13 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe uint WritePacketType(byte* data, uint offset, PacketType value)
+    {
+        data[offset] = (byte)value;
+        return offset + 1;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(bool value)
     {
         return Write((byte)(value ? 1 : 0));
@@ -274,6 +288,12 @@ public class ByteBuffer : IDisposable
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint WriteBool(byte[] data, uint offset, bool value)
+    {
+        return WriteByte(data, offset, (byte)(value ? 1 : 0));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe uint WriteBool(byte* data, uint offset, bool value)
     {
         return WriteByte(data, offset, (byte)(value ? 1 : 0));
     }
@@ -308,6 +328,16 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe uint WriteInt(byte* data, uint offset, int value)
+    {
+        data[offset] = (byte)(value & 0xFF);
+        data[offset + 1] = (byte)((value >> 8) & 0xFF);
+        data[offset + 2] = (byte)((value >> 16) & 0xFF);
+        data[offset + 3] = (byte)((value >> 24) & 0xFF);
+        return offset + 4;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(uint value)
     {
         if (Offset + 4 > Data.Length)
@@ -333,6 +363,16 @@ public class ByteBuffer : IDisposable
         data[offset + 2] = (byte)((value >> 16) & 0xFF);
         data[offset + 3] = (byte)((value >> 24) & 0xFF);
 
+        return offset + 4;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe uint WriteUInt(byte* data, uint offset, uint value)
+    {
+        data[offset] = (byte)(value & 0xFF);
+        data[offset + 1] = (byte)((value >> 8) & 0xFF);
+        data[offset + 2] = (byte)((value >> 16) & 0xFF);
+        data[offset + 3] = (byte)((value >> 24) & 0xFF);
         return offset + 4;
     }
 
@@ -374,6 +414,20 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe uint WriteLong(byte* data, uint offset, long value)
+    {
+        data[offset] = (byte)(value & 0xFF);
+        data[offset + 1] = (byte)((value >> 8) & 0xFF);
+        data[offset + 2] = (byte)((value >> 16) & 0xFF);
+        data[offset + 3] = (byte)((value >> 24) & 0xFF);
+        data[offset + 4] = (byte)((value >> 32) & 0xFF);
+        data[offset + 5] = (byte)((value >> 40) & 0xFF);
+        data[offset + 6] = (byte)((value >> 48) & 0xFF);
+        data[offset + 7] = (byte)((value >> 56) & 0xFF);
+        return offset + 8;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(float value)
     {
         if (Offset + 4 > Data.Length)
@@ -392,6 +446,13 @@ public class ByteBuffer : IDisposable
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint WriteFloat(byte[] data, uint offset, float value)
+    {
+        int intValue = BitConverter.SingleToInt32Bits(value);
+        return WriteInt(data, offset, intValue);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe uint WriteFloat(byte* data, uint offset, float value)
     {
         int intValue = BitConverter.SingleToInt32Bits(value);
         return WriteInt(data, offset, intValue);
@@ -442,6 +503,25 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe uint WriteString(byte* data, uint offset, string value)
+    {
+        if (value == null)
+            value = string.Empty;
+
+        var encoding = System.Text.Encoding.UTF8;
+        int byteCount = encoding.GetByteCount(value);
+
+        offset = WriteInt(data, offset, byteCount);
+
+        fixed (char* c = value)
+        {
+            encoding.GetBytes(c, value.Length, new Span<byte>(data + offset, byteCount));
+        }
+
+        return offset + (uint)byteCount;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(ushort value)
     {
         if (Offset + 2 > Data.Length)
@@ -467,6 +547,14 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe uint WriteUShort(byte* data, uint offset, ushort value)
+    {
+        data[offset] = (byte)(value & 0xFF);
+        data[offset + 1] = (byte)((value >> 8) & 0xFF);
+        return offset + 2;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(FVector value)
     {
         Write((int)value.X);
@@ -486,6 +574,15 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe uint WriteFVector(byte* data, uint offset, FVector value)
+    {
+        offset = WriteInt(data, offset, (int)value.X);
+        offset = WriteInt(data, offset, (int)value.Y);
+        offset = WriteInt(data, offset, (int)value.Z);
+        return offset;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(FRotator value)
     {
         Write((int)value.Pitch);
@@ -497,6 +594,15 @@ public class ByteBuffer : IDisposable
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint WriteFRotator(byte[] data, uint offset, FRotator value)
+    {
+        offset = WriteInt(data, offset, (int)value.Pitch);
+        offset = WriteInt(data, offset, (int)value.Yaw);
+        offset = WriteInt(data, offset, (int)value.Roll);
+        return offset;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe uint WriteFRotator(byte* data, uint offset, FRotator value)
     {
         offset = WriteInt(data, offset, (int)value.Pitch);
         offset = WriteInt(data, offset, (int)value.Yaw);

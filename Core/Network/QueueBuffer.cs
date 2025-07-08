@@ -22,6 +22,8 @@
  */
 
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
+using System.Buffers;
 
 public class QueueBuffer
 {
@@ -66,6 +68,17 @@ public class QueueBuffer
     public static void AddBuffer(uint socketId, byte[] buffer)
     {
 
+    }
+
+    public unsafe static void AddBuffer(uint socketId, NativeBuffer buffer)
+    {
+        byte[] managed = ArrayPool<byte>.Shared.Rent(buffer.Length);
+        Marshal.Copy((IntPtr)buffer.Data, managed, 0, buffer.Length);
+        NativeMemory.Free(buffer.Data);
+
+        var bb = ByteBufferPool.Acquire();
+        bb.Assign(managed, buffer.Length);
+        AddBuffer(socketId, bb);
     }
 
     public static void CheckAndSend(uint socketId)

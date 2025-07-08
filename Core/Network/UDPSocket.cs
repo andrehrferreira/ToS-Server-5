@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
+using System.Buffers;
 
 public enum ConnectionState
 {
@@ -73,6 +75,20 @@ public class UDPSocket
             throw new InvalidOperationException("Socket is not initialized or remote endpoint is not set.");
 
         UDPServer.Send(buffer, this);
+    }
+
+    public unsafe void Send(NativeBuffer buffer)
+    {
+        if (ServerSocket == null || RemoteEndPoint == null)
+            throw new InvalidOperationException("Socket is not initialized or remote endpoint is not set.");
+
+        byte[] managed = ArrayPool<byte>.Shared.Rent(buffer.Length);
+        Marshal.Copy((IntPtr)buffer.Data, managed, 0, buffer.Length);
+
+        UDPServer.Send(managed, this);
+
+        ArrayPool<byte>.Shared.Return(managed);
+        NativeMemory.Free(buffer.Data);
     }
 
     public void Send(ByteBuffer buffer)
