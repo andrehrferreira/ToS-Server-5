@@ -28,6 +28,8 @@ using System.Xml.Serialization;
 
 public class ByteBuffer : IDisposable
 {
+    private static readonly ArrayPool<byte> FixedPool = ArrayPool<byte>.Create(4096, 1000);
+
     private bool Disposed = false;
 
     public volatile bool IsDestroyed = false;
@@ -51,8 +53,8 @@ public class ByteBuffer : IDisposable
         if (IsDestroyed)
             return;
 
-        ArrayPool<byte>.Shared.Return(Data);
-        Data = Array.Empty<byte>();
+        FixedPool.Return(Data);
+        Data = null!;
         IsDestroyed = true;
         Disposed = true;
     }
@@ -64,7 +66,7 @@ public class ByteBuffer : IDisposable
 
     public ByteBuffer()
     {
-        Data = ArrayPool<byte>.Shared.Rent(3600);
+        Data = FixedPool.Rent(4096);
 
         Offset = 0;
     }
@@ -109,8 +111,6 @@ public class ByteBuffer : IDisposable
 
         Offset = 0;
         Length = length;
-
-        ArrayPool<byte>.Shared.Return(source);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

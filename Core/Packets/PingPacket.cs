@@ -1,31 +1,27 @@
 // This file was generated automatically, please do not change it.
 
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using System.Buffers;
 
 public class PingPacket: Packet
 {
+    public PingPacket()
+    {
+        _buffer = new byte[9];
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override NativeBuffer Serialize(object? data = null)
+    public override void Serialize(object? data = null)
     {
         var typedData = data is Ping p ? p : throw new InvalidCastException("Invalid data type.");
-        return Serialize(typedData);
+        Serialize(typedData);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe NativeBuffer Serialize(Ping data)
+    public void Serialize(Ping data)
     {
         uint offset = 0;
-        byte* buffer = (byte*)NativeMemory.Alloc(3600);
-        offset = ByteBuffer.WritePacketType(buffer, offset, PacketType.Ping);
-        offset = ByteBuffer.WriteLong(buffer, offset, data.SentTimestamp);
-        return new NativeBuffer(buffer, 3600);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Send(Entity owner , Ping data, Entity entity)
-    {
-        var buffer = Serialize(data);
-        QueueBuffer.AddBuffer(entity.Id, buffer);
+        offset = ByteBuffer.WritePacketType(_buffer, offset, PacketType.Ping);
+        offset = ByteBuffer.WriteLong(_buffer, offset, data.SentTimestamp);
     }
 }

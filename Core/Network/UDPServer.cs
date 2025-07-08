@@ -1,10 +1,9 @@
+using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using System.Collections.Generic;
-using System.Buffers;
-using System.Threading;
 
 public class UDPServerOptions
 {
@@ -56,7 +55,6 @@ public sealed class UDPServer
     private static AutoResetEvent SendEvent;
 
     public static TimeSpan ReliableTimeout = TimeSpan.FromMilliseconds(250f);
-
 
     public delegate bool ConnectionHandler(UDPSocket socket, string token);
 
@@ -167,14 +165,21 @@ public sealed class UDPServer
 
                     if (pingTimer.Elapsed >= TimeSpan.FromSeconds(1))
                     {
-                        if (PacketManager.TryGet(PacketType.Ping, out var packet))
+                        if(Clients.Count > 0)
                         {
-                            foreach (var kv in Clients)
+                            if (PacketManager.TryGet(PacketType.Ping, out var packet))
                             {
-                                kv.Value.PingSentAt = DateTime.UtcNow;
-                                kv.Value.Send(packet.Serialize(new Ping {
-                                    SentTimestamp = Stopwatch.GetTimestamp()
-                                }));
+                                packet.Serialize(new Ping { SentTimestamp = Stopwatch.GetTimestamp() });
+                                var sendBatch = new (object, byte[], int)[Clients.Count];
+                                int count = 0;
+
+                                foreach (var kv in Clients)
+                                {
+                                    sendBatch[count++] = (FormatAddress(kv.Value.RemoteEndPoint), packet.Buffer, 9);
+                                    kv.Value.PingSentAt = DateTime.UtcNow;
+                                }
+
+                                UdpBatchIO.SendBatch(ServerSocket, sendBatch.AsSpan(0, count));
                             }
                         }
 
@@ -185,16 +190,17 @@ public sealed class UDPServer
                     {
                         if (checkIntegrityTimer.Elapsed >= TimeSpan.FromSeconds(30))
                         {
-                            if (PacketManager.TryGet(PacketType.CheckIntegrity, out var packet))
+                            if (Clients.Count > 0)
                             {
-                                foreach (var kv in Clients)
+                                if (PacketManager.TryGet(PacketType.CheckIntegrity, out var packet))
                                 {
-                                    kv.Value.IntegrityCheckSentAt = DateTime.UtcNow;
-                                    kv.Value.IntegrityCheck = IntegrityKeyTableGenerator.GenerateIndex();
-                                    kv.Value.Send(packet.Serialize(new CheckIntegrity {
-                                        Index = kv.Value.IntegrityCheck,
-                                        Version = _options.Version,
-                                    }));
+                                    foreach (var kv in Clients)
+                                    {
+                                        kv.Value.IntegrityCheckSentAt = DateTime.UtcNow;
+                                        kv.Value.IntegrityCheck = IntegrityKeyTableGenerator.GenerateIndex();
+                                        packet.Serialize(new CheckIntegrity { Index = kv.Value.IntegrityCheck, Version = _options.Version });
+                                        kv.Value.Send(packet.Buffer);
+                                    }
                                 }
                             }
 
@@ -204,13 +210,16 @@ public sealed class UDPServer
 
                     if (cleanupTimer.Elapsed >= TimeSpan.FromSeconds(5))
                     {
-                        foreach (var kv in Clients)
+                        if(Clients.Count > 0)
                         {
-                            if (kv.Value.TimeoutLeft <= 0)
+                            foreach (var kv in Clients)
                             {
-                                if (Clients.TryRemove(kv.Key, out var client))
+                                if (kv.Value.TimeoutLeft <= 0)
                                 {
-                                    client.OnDisconnect();
+                                    if (Clients.TryRemove(kv.Key, out var client))
+                                    {
+                                        client.OnDisconnect();
+                                    }
                                 }
                             }
                         }
@@ -270,9 +279,11 @@ public sealed class UDPServer
 
                 if (batch.Count > 0)
                 {
-                    var sendBatch = new List<(object addr, byte[] data, int length)>(batch.Count);
+                    var sendBatch = new (object, byte[], int)[batch.Count];
+                    int count = 0;
+
                     foreach (var p in batch)
-                        sendBatch.Add((FormatAddress(p.Address), p.Buffer, p.Length));
+                        sendBatch[count++] = (FormatAddress(p.Address), p.Buffer, p.Length);
 
                     UdpBatchIO.SendBatch(ServerSocket, sendBatch);
 
@@ -280,6 +291,7 @@ public sealed class UDPServer
                     {
                         Interlocked.Increment(ref _packetsSent);
                         Interlocked.Add(ref _bytesSent, p.Length);
+
                         if (p.Pooled)
                             ArrayPool<byte>.Shared.Return(p.Buffer);
                     }
@@ -421,9 +433,8 @@ public sealed class UDPServer
 
                         if(PacketManager.TryGet(PacketType.ConnectionAccepted, out var packet))
                         {
-                            newSocket.Send(packet.Serialize(new ConnectionAccepted {
-                                Id = ID
-                            }));
+                            packet.Serialize(new ConnectionAccepted { Id = ID });
+                            newSocket.Send(packet.Buffer);
                         }
 
                         newSocket.State = ConnectionState.Connected;
@@ -576,6 +587,7 @@ public sealed class UDPServer
 
             var signed = AddSignature(data);
             bool pooled = true;
+
             if (!ReferenceEquals(signed, data))
                 ArrayPool<byte>.Shared.Return(data);
 
@@ -660,5 +672,7 @@ public sealed class UDPServer
             if (sleep > 0)
                 Thread.Sleep(sleep);
         }
+
+        ByteBufferPool.Merge();
     }
 }

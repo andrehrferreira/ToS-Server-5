@@ -39,41 +39,45 @@ public static class UdpBatchIO
 #endif
     }
 
-    public static int SendBatch(Socket socket, List<(object addr, byte[] data, int length)> packets)
+    public static int SendBatch(Socket socket, ReadOnlySpan<(object addr, byte[] data, int length)> packets)
     {
 #if LINUX
-        int fd = (int)socket.Handle;
-        var nativePackets = new List<(UdpBatchIO_Linux.sockaddr_in, byte[], int)>();
+    int fd = (int)socket.Handle;
+    var nativePackets = new List<(UdpBatchIO_Linux.sockaddr_in, byte[], int)>(packets.Length);
 
-        foreach (var p in packets)
-        {
-            if (p.addr is UdpBatchIO_Linux.sockaddr_in nativeAddr)
-                nativePackets.Add((nativeAddr, p.data, p.length));
-        }
+    foreach (var p in packets)
+    {
+        if (p.addr is UdpBatchIO_Linux.sockaddr_in nativeAddr)
+            nativePackets.Add((nativeAddr, p.data, p.length));
+    }
 
-        return UdpBatchIO_Linux.SendBatch(fd, nativePackets);
+    return UdpBatchIO_Linux.SendBatch(fd, nativePackets);
+
 #elif WINDOWS
-        var formattedPackets = new List<(EndPoint addr, byte[] data, int length)>();
+        var formattedPackets = new List<(EndPoint addr, byte[] data, int length)>(packets.Length);
         foreach (var p in packets)
         {
             if (p.addr is EndPoint ep)
                 formattedPackets.Add((ep, p.data, p.length));
         }
+
         UdpBatchIO_Windows.SendBatch(socket, formattedPackets);
         return formattedPackets.Count;
+
 #else
-        int sent = 0;
-        foreach (var p in packets)
+    int sent = 0;
+    foreach (var p in packets)
+    {
+        if (p.addr is EndPoint ep)
         {
-            if (p.addr is EndPoint ep)
-            {
-                socket.SendTo(p.data, 0, p.length, SocketFlags.None, ep);
-                sent++;
-            }
+            socket.SendTo(p.data, 0, p.length, SocketFlags.None, ep);
+            sent++;
         }
-        return sent;
+    }
+    return sent;
 #endif
     }
+
 
 #if WINDOWS
     public static void Shutdown()

@@ -1,33 +1,27 @@
 // This file was generated automatically, please do not change it.
 
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using System.Buffers;
 
 public class ConnectionAcceptedPacket: Packet
 {
+    public ConnectionAcceptedPacket()
+    {
+        _buffer = new byte[5];
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override NativeBuffer Serialize(object? data = null)
+    public override void Serialize(object? data = null)
     {
         var typedData = data is ConnectionAccepted p ? p : throw new InvalidCastException("Invalid data type.");
-        return Serialize(typedData);
+        Serialize(typedData);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe NativeBuffer Serialize(ConnectionAccepted data)
+    public void Serialize(ConnectionAccepted data)
     {
         uint offset = 0;
-        byte* buffer = (byte*)NativeMemory.Alloc(3600);
-        offset = ByteBuffer.WritePacketType(buffer, offset, PacketType.ConnectionAccepted);
-        offset = ByteBuffer.WriteUInt(buffer, offset, data.Id);
-        return new NativeBuffer(buffer, 3600);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Send(Entity owner , ConnectionAccepted data, Entity entity)
-    {
-        var buffer = Serialize(data);
-
-        if (EntitySocketMap.TryGet(entity.Id, out var socket))
-             socket.Send(buffer);
+        offset = ByteBuffer.WritePacketType(_buffer, offset, PacketType.ConnectionAccepted);
+        offset = ByteBuffer.WriteUInt(_buffer, offset, data.Id);
     }
 }

@@ -145,8 +145,11 @@ public class UDPSocket
 
             QueueBuffer.RemoveSocket(Id);
 
-            if (PacketManager.TryGet(PacketType.Disconnect, out var disconnectPacket))            
-                Send(disconnectPacket.Serialize());                      
+            if (PacketManager.TryGet(PacketType.Disconnect, out var disconnectPacket))
+            {
+                disconnectPacket.Serialize();
+                Send(disconnectPacket.Buffer);
+            }                     
         }
     }
 

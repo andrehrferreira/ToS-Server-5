@@ -21,6 +21,7 @@
 * SOFTWARE.
 */
 
+using System;
 using System.Reflection;
 
 public class ContractTraspiler : AbstractTranspiler
@@ -64,13 +65,13 @@ public class ContractTraspiler : AbstractTranspiler
                     writer.WriteLine("// This file was generated automatically, please do not change it.");
                     writer.WriteLine();
                     writer.WriteLine("using System.Runtime.CompilerServices;");
-                    writer.WriteLine("using System.Runtime.InteropServices;");                    
+                    writer.WriteLine("using System.Buffers;");                    
                     writer.WriteLine();
-                    writer.WriteLine($"public class {rawName}Packet: Packet");
+                    writer.WriteLine($"public class {rawName}Packet: Packet");                    
                     writer.WriteLine("{");
 
                     GenerateSerialize(writer, contract, fields, attribute);
-                    GenerateSendFunction(writer, contract, fields, attribute);
+                    //GenerateSendFunction(writer, contract, fields, attribute);
 
                     writer.WriteLine("}");
                 }
@@ -114,7 +115,7 @@ public class ContractTraspiler : AbstractTranspiler
 
             writer.WriteLine("}");
 
-            if(enumName == "ServerPacket")
+            if (enumName == "ServerPacket")
             {
                 writer.WriteLine();
                 writer.WriteLine("public static partial class PacketRegistration");
@@ -143,27 +144,11 @@ public class ContractTraspiler : AbstractTranspiler
     private static void GenerateSerialize(StreamWriter writer, Type contract, FieldInfo[] fields, ContractAttribute contractAttribute)
     {
         var data = contractAttribute.Flags.HasFlag(ContractPacketFlags.NoContent) ? "" : $"{contract.Name} data";
+        var rawName = contract.Name.Replace("Contract", "");
 
-        if(fields.Length > 0)
+        if (fields.Length > 0)
         {
-            writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            writer.WriteLine($"    public override NativeBuffer Serialize(object? data = null)");
-            writer.WriteLine("    {");
-            writer.WriteLine($"        var typedData = data is {contract.Name} p ? p : throw new InvalidCastException(\"Invalid data type.\");");
-            writer.WriteLine("        return Serialize(typedData);");
-            writer.WriteLine("    }");
-            writer.WriteLine();
-
-            writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            writer.WriteLine($"    public unsafe NativeBuffer Serialize({data})");
-            writer.WriteLine("    {");
-            writer.WriteLine("        uint offset = 0;");
-            writer.WriteLine("        byte* buffer = (byte*)NativeMemory.Alloc(3600);");
-
-            if (contractAttribute.PacketType != PacketType.None)
-                writer.WriteLine($"        offset = ByteBuffer.WritePacketType(buffer, offset, PacketType.{contractAttribute.PacketType.ToString()});");
-            else
-                writer.WriteLine($"        offset = ByteBuffer.WriteUShort(buffer, offset, (ushort)ServerPacket.{contract.Name.Replace("Contract", "")});");
+            uint totalBytes = 1;
 
             foreach (var field in fields)
             {
@@ -176,45 +161,112 @@ public class ContractTraspiler : AbstractTranspiler
                     case "integer":
                     case "int":
                     case "int32":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteInt(buffer, offset, data.{fieldName});");
-                    break;
                     case "uint":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteUInt(buffer, offset, data.{fieldName});");
-                    break;
-                    case "ushort":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteUShort(buffer, offset, data.{fieldName});");
+                    case "decimal":
+                    case "float":
+                    case "id":
+                        totalBytes += 4;
                         break;
+                    case "ushort":
                     case "short":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteShort(buffer, offset, data.{fieldName});");
+                        totalBytes += 2;
                         break;
                     case "str":
                     case "string":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteString(buffer, offset, data.{fieldName});");
+                        totalBytes = 3600;
                         break;
                     case "byte":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteByte(buffer, offset, data.{fieldName});");
-                        break;
-                    case "float":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteFloat(buffer, offset, data.{fieldName});");
+                    case "bool":
+                    case "boolean":
+                        totalBytes += 1;
                         break;
                     case "long":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteLong(buffer, offset, data.{fieldName});");
+                        totalBytes += 8;
+                        break;
+                    case "FVector":
+                    case "FRotator":
+                        totalBytes += 12;
+                        break;
+                }
+
+                if (totalBytes == 3600)
+                    break;
+            }
+
+            writer.WriteLine($"    public {rawName}Packet()");
+            writer.WriteLine("    {");
+            writer.WriteLine($"        _buffer = new byte[{totalBytes}];");
+            writer.WriteLine("    }");
+            writer.WriteLine();
+
+            writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            writer.WriteLine($"    public override void Serialize(object? data = null)");
+            writer.WriteLine("    {");
+            writer.WriteLine($"        var typedData = data is {contract.Name} p ? p : throw new InvalidCastException(\"Invalid data type.\");");
+            writer.WriteLine("        Serialize(typedData);");
+            writer.WriteLine("    }");
+            writer.WriteLine();
+
+            writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            writer.WriteLine($"    public void Serialize({data})");
+            writer.WriteLine("    {");
+            writer.WriteLine("        uint offset = 0;");
+
+            if (contractAttribute.PacketType != PacketType.None)
+                writer.WriteLine($"        offset = ByteBuffer.WritePacketType(_buffer, offset, PacketType.{contractAttribute.PacketType.ToString()});");
+            else
+                writer.WriteLine($"        offset = ByteBuffer.WriteUShort(_buffer, offset, (ushort)ServerPacket.{contract.Name.Replace("Contract", "")});");
+
+            foreach (var field in fields)
+            {
+                var attribute = field.GetCustomAttribute<ContractFieldAttribute>();
+                var fieldType = attribute.Type;
+                var fieldName = field.Name;
+
+                switch (fieldType)
+                {
+                    case "integer":
+                    case "int":
+                    case "int32":
+                        writer.WriteLine($"        offset = ByteBuffer.WriteInt(_buffer, offset, data.{fieldName});");
+                        break;
+                    case "uint":
+                        writer.WriteLine($"        offset = ByteBuffer.WriteUInt(_buffer, offset, data.{fieldName});");
+                        break;
+                    case "ushort":
+                        writer.WriteLine($"        offset = ByteBuffer.WriteUShort(_buffer, offset, data.{fieldName});");
+                        break;
+                    case "short":
+                        writer.WriteLine($"        offset = ByteBuffer.WriteShort(_buffer, offset, data.{fieldName});");
+                        break;
+                    case "str":
+                    case "string":
+                        writer.WriteLine($"        offset = ByteBuffer.WriteString(_buffer, offset, data.{fieldName});");
+                        break;
+                    case "byte":
+                        writer.WriteLine($"        offset = ByteBuffer.WriteByte(_buffer, offset, data.{fieldName});");
+                        break;
+                    case "float":
+                        writer.WriteLine($"        offset = ByteBuffer.WriteFloat(_buffer, offset, data.{fieldName});");
+                        break;
+                    case "long":
+                        writer.WriteLine($"        offset = ByteBuffer.WriteLong(_buffer, offset, data.{fieldName});");
                         break;
                     case "bool":
                     case "boolean":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteBool(buffer, offset, data.{fieldName});");
+                        writer.WriteLine($"        offset = ByteBuffer.WriteBool(_buffer, offset, data.{fieldName});");
                         break;
                     case "FVector":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteFVector(buffer, offset, data.{fieldName});");
+                        writer.WriteLine($"        offset = ByteBuffer.WriteFVector(_buffer, offset, data.{fieldName});");
                         break;
                     case "FRotator":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteFRotator(buffer, offset, data.{fieldName});");
+                        writer.WriteLine($"        offset = ByteBuffer.WriteFRotator(_buffer, offset, data.{fieldName});");
                         break;
                     case "id":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteInt(buffer, offset, Base36.ToInt(data.{fieldName}));");
+                        writer.WriteLine($"        offset = ByteBuffer.WriteInt(_buffer, offset, Base36.ToInt(data.{fieldName}));");
                         break;
                     case "decimal":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteFloat(buffer, offset, (float)data.{fieldName});");
+                        writer.WriteLine($"        offset = ByteBuffer.WriteFloat(_buffer, offset, (float)data.{fieldName});");
                         break;
                     default:
                         writer.WriteLine($"    // Tipo não suportado: {fieldType}");
@@ -223,34 +275,35 @@ public class ContractTraspiler : AbstractTranspiler
 
             }
 
-            writer.WriteLine("        return new NativeBuffer(buffer, 3600);");
             writer.WriteLine("    }");
         }
         else
         {
+            if (contractAttribute.PacketType == PacketType.None)
+            {
+                writer.WriteLine($"    public {rawName}Packet()");
+                writer.WriteLine("    {");
+                writer.WriteLine($"        _buffer = new byte[9];");
+                writer.WriteLine("    }");
+                writer.WriteLine();
+            }
+
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            writer.WriteLine($"    public override NativeBuffer Serialize(object? data = null)");
+            writer.WriteLine($"    public override void Serialize(object? data = null)");
             writer.WriteLine("    {");
-            writer.WriteLine("        return Serialize();");
+            writer.WriteLine("        Serialize();");
             writer.WriteLine("    }");
             writer.WriteLine();
 
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            writer.WriteLine($"    public unsafe NativeBuffer Serialize()");
+            writer.WriteLine($"    public void Serialize()");
             writer.WriteLine("    {");
+
+            if (contractAttribute.PacketType != PacketType.None)            
+                writer.WriteLine($"        ByteBuffer.WritePacketType(_buffer, 0, PacketType.{contractAttribute.PacketType.ToString()});");
+            else            
+                writer.WriteLine($"        ByteBuffer.WriteUShort(_buffer, 0, (ushort)ServerPacket.{contract.Name.Replace("Contract", "")});");
             
-            if (contractAttribute.PacketType != PacketType.None)
-            {
-            writer.WriteLine("        byte* buffer = (byte*)NativeMemory.Alloc(1);");
-            writer.WriteLine($"        ByteBuffer.WritePacketType(buffer, 0, PacketType.{contractAttribute.PacketType.ToString()});");
-            writer.WriteLine("        return new NativeBuffer(buffer, 1);");
-            }
-            else
-            {
-                writer.WriteLine("        byte* buffer = (byte*)NativeMemory.Alloc(2);");
-                writer.WriteLine($"        ByteBuffer.WriteUShort(buffer, 0, (ushort)ServerPacket.{contract.Name.Replace("Contract", "")});");
-                writer.WriteLine("        return new NativeBuffer(buffer, 2);");
-            }
             writer.WriteLine("    }");
         }
     }
@@ -263,7 +316,7 @@ public class ContractTraspiler : AbstractTranspiler
         var dataParam = (attribute.Flags.HasFlag(ContractPacketFlags.NoContent)) ? "" : $" , {contractName} data";
         var dataSerialize = !attribute.Flags.HasFlag(ContractPacketFlags.NoContent) ? "data" : "";
 
-        if(fields.Length > 0)
+        if (fields.Length > 0)
         {
             writer.WriteLine();
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
