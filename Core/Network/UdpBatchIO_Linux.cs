@@ -1,4 +1,3 @@
-// UdpBatchIO_Linux.cs
 #if LINUX
 using System;
 using System.Collections.Generic;

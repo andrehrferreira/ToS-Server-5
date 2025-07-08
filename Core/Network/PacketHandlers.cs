@@ -29,14 +29,14 @@ public abstract class PacketHandler
 
 public interface IPacket
 {
-    ByteBuffer Serialize(object? data = null);
+    byte[] Serialize(object? data = null);
 }
 
 public class Packet : IPacket
 {
     static readonly Packet[] Handlers = new Packet[1024];
 
-    public virtual ByteBuffer Serialize(object? data = null)
+    public virtual byte[] Serialize(object? data = null)
     {
         throw new NotImplementedException("Serialization method not implemented for this packet type.");
     }

@@ -5,16 +5,16 @@ using System.Runtime.CompilerServices;
 public class UpdateEntityPacket: Packet
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override ByteBuffer Serialize(object? data = null)
+    public override byte[] Serialize(object? data = null)
     {
         return Serialize();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ByteBuffer Serialize()
+    public byte[] Serialize()
     {
-        var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Write((ushort)ServerPacket.UpdateEntity);
+        byte[] buffer = new byte[2];
+        ByteBuffer.WriteUShort(buffer, 0, (ushort)ServerPacket.UpdateEntity);
         return buffer;
     }
 

@@ -24,6 +24,7 @@
 
 using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Xml.Serialization;
 
 public class ByteBuffer : IDisposable
 {
@@ -63,7 +64,7 @@ public class ByteBuffer : IDisposable
 
     public ByteBuffer()
     {
-        Data = ArrayPool<byte>.Shared.Rent(1200);
+        Data = ArrayPool<byte>.Shared.Rent(3600);
 
         Offset = 0;
     }
@@ -83,7 +84,7 @@ public class ByteBuffer : IDisposable
         if (other == null)
             throw new ArgumentNullException(nameof(other));
 
-        Data = ArrayPool<byte>.Shared.Rent(1200);
+        Data = ArrayPool<byte>.Shared.Rent(3600);
         Array.Copy(other.Data, 0, Data, 0, other.Data.Length);
 
         Offset = 0;
@@ -234,6 +235,17 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint WriteByte(byte[] data, uint offset, byte value)
+    {
+        if (offset + 1 > data.Length)
+            throw new InvalidOperationException("Buffer overflow");
+
+        data[offset] = value;
+
+        return offset + 1;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(PacketType value)
     {
         if (Offset + 1 > Data.Length)
@@ -245,9 +257,25 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint WritePacketType(byte[] data, uint offset, PacketType value)
+    {
+        if (offset + 1 > data.Length)
+            throw new InvalidOperationException("Buffer overflow");
+
+        data[offset] = (byte)value;
+        return offset + 1;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(bool value)
     {
         return Write((byte)(value ? 1 : 0));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint WriteBool(byte[] data, uint offset, bool value)
+    {
+        return WriteByte(data, offset, (byte)(value ? 1 : 0));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -266,6 +294,20 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint WriteInt(byte[] data, uint offset, int value)
+    {
+        if (offset + 4 > data.Length)
+            throw new InvalidOperationException("Buffer overflow");
+
+        data[offset] = (byte)(value & 0xFF);
+        data[offset + 1] = (byte)((value >> 8) & 0xFF);
+        data[offset + 2] = (byte)((value >> 16) & 0xFF);
+        data[offset + 3] = (byte)((value >> 24) & 0xFF);
+
+        return offset + 4;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(uint value)
     {
         if (Offset + 4 > Data.Length)
@@ -278,6 +320,20 @@ public class ByteBuffer : IDisposable
         Length += 4;
 
         return this;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint WriteUInt(byte[] data, uint offset, uint value)
+    {
+        if (offset + 4 > data.Length)
+            throw new InvalidOperationException("Buffer overflow");
+
+        data[offset] = (byte)(value & 0xFF);
+        data[offset + 1] = (byte)((value >> 8) & 0xFF);
+        data[offset + 2] = (byte)((value >> 16) & 0xFF);
+        data[offset + 3] = (byte)((value >> 24) & 0xFF);
+
+        return offset + 4;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -300,6 +356,24 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint WriteLong(byte[] data, uint offset, long value)
+    {
+        if (offset + 8 > data.Length)
+            throw new InvalidOperationException("Buffer overflow");
+
+        data[offset] = (byte)(value & 0xFF);
+        data[offset + 1] = (byte)((value >> 8) & 0xFF);
+        data[offset + 2] = (byte)((value >> 16) & 0xFF);
+        data[offset + 3] = (byte)((value >> 24) & 0xFF);
+        data[offset + 4] = (byte)((value >> 32) & 0xFF);
+        data[offset + 5] = (byte)((value >> 40) & 0xFF);
+        data[offset + 6] = (byte)((value >> 48) & 0xFF);
+        data[offset + 7] = (byte)((value >> 56) & 0xFF);
+
+        return offset + 8;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(float value)
     {
         if (Offset + 4 > Data.Length)
@@ -314,6 +388,13 @@ public class ByteBuffer : IDisposable
 
         Length += 4;
         return this;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint WriteFloat(byte[] data, uint offset, float value)
+    {
+        int intValue = BitConverter.SingleToInt32Bits(value);
+        return WriteInt(data, offset, intValue);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -342,6 +423,25 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint WriteString(byte[] data, uint offset, string value)
+    {
+        if (value == null)
+            value = string.Empty;
+
+        var encoding = System.Text.Encoding.UTF8;
+        int byteCount = encoding.GetByteCount(value);
+
+        if (offset + 4 + byteCount > data.Length)
+            throw new InvalidOperationException("Buffer overflow");
+
+        offset = WriteInt(data, offset, byteCount);
+
+        encoding.GetBytes(value, 0, value.Length, data, (int)offset);
+
+        return offset + (uint)byteCount;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(ushort value)
     {
         if (Offset + 2 > Data.Length)
@@ -355,6 +455,18 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint WriteUShort(byte[] data, uint offset, ushort value)
+    {
+        if (offset + 2 > data.Length)
+            throw new InvalidOperationException("Buffer overflow");
+
+        data[offset] = (byte)(value & 0xFF);
+        data[offset + 1] = (byte)((value >> 8) & 0xFF);
+
+        return offset + 2;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(FVector value)
     {
         Write((int)value.X);
@@ -365,6 +477,15 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint WriteFVector(byte[] data, uint offset, FVector value)
+    {
+        offset = WriteInt(data, offset, (int)value.X);
+        offset = WriteInt(data, offset, (int)value.Y);
+        offset = WriteInt(data, offset, (int)value.Z);
+        return offset;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(FRotator value)
     {
         Write((int)value.Pitch);
@@ -372,6 +493,15 @@ public class ByteBuffer : IDisposable
         Write((int)value.Roll);
 
         return this;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint WriteFRotator(byte[] data, uint offset, FRotator value)
+    {
+        offset = WriteInt(data, offset, (int)value.Pitch);
+        offset = WriteInt(data, offset, (int)value.Yaw);
+        offset = WriteInt(data, offset, (int)value.Roll);
+        return offset;
     }
 
     //Read
@@ -427,9 +557,24 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static byte ReadByte(byte[] data, int offset, int len)
+    {
+        if (offset + 1 > len)
+            throw new InvalidOperationException("Buffer underflow");
+
+        return data[offset];
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ReadBool()
     {
         return ReadByte() != 0;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool ReadBool(byte[] data, int offset, int len)
+    {
+        return ReadByte(data, offset, len) != 0;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -449,6 +594,21 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int ReadInt(byte[] data, int offset, int len)
+    {
+        if (offset + 4 > len)
+            throw new InvalidOperationException("Buffer underflow");
+
+        int value =
+            data[offset] |
+            (data[offset + 1] << 8) |
+            (data[offset + 2] << 16) |
+            (data[offset + 3] << 24);
+
+        return value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public uint ReadUInt()
     {
         if (Offset + 4 > Data.Length)
@@ -461,6 +621,21 @@ public class ByteBuffer : IDisposable
             ((uint)Data[Offset + 3] << 24);
 
         Offset += 4;
+        return value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint ReadUInt(byte[] data, int offset, int len)
+    {
+        if (offset + 4 > len)
+            throw new InvalidOperationException("Buffer underflow");
+
+        uint value =
+            (uint)data[offset] |
+            ((uint)data[offset + 1] << 8) |
+            ((uint)data[offset + 2] << 16) |
+            ((uint)data[offset + 3] << 24);
+
         return value;
     }
 
@@ -485,9 +660,35 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static long ReadLong(byte[] data, int offset, int len)
+    {
+        if (offset + 8 > len)
+            throw new InvalidOperationException("Buffer underflow");
+
+        long value =
+            (long)data[offset] |
+            ((long)data[offset + 1] << 8) |
+            ((long)data[offset + 2] << 16) |
+            ((long)data[offset + 3] << 24) |
+            ((long)data[offset + 4] << 32) |
+            ((long)data[offset + 5] << 40) |
+            ((long)data[offset + 6] << 48) |
+            ((long)data[offset + 7] << 56);
+
+        return value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float ReadFloat()
     {
         int intValue = ReadInt();
+        return BitConverter.Int32BitsToSingle(intValue);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float ReadFloat(byte[] data, int offset, int len)
+    {
+        int intValue = ReadInt(data, offset, len);
         return BitConverter.Int32BitsToSingle(intValue);
     }
 
@@ -501,6 +702,27 @@ public class ByteBuffer : IDisposable
 
         string value = System.Text.Encoding.UTF8.GetString(Data, Offset, len);
         Offset += len;
+        return value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string ReadString(byte[] data, int offset, int len, out int bytesRead)
+    {
+        if (offset + 4 > len)
+            throw new InvalidOperationException("Buffer underflow while reading string length.");
+
+        int strLen =
+            data[offset] |
+            (data[offset + 1] << 8) |
+            (data[offset + 2] << 16) |
+            (data[offset + 3] << 24);
+
+        if (offset + 4 + strLen > len)
+            throw new InvalidOperationException("Buffer underflow while reading string data.");
+
+        string value = System.Text.Encoding.UTF8.GetString(data, offset + 4, strLen);
+        bytesRead = 4 + strLen;
+
         return value;
     }
 
@@ -520,6 +742,20 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ushort ReadUShort(byte[] data, int offset, int len)
+    {
+        if (offset + 2 > len)
+            throw new InvalidOperationException("Buffer underflow");
+
+        ushort value = (ushort)(
+            data[offset] |
+            (data[offset + 1] << 8)
+        );
+
+        return value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public FVector ReadFVector()
     {
         float x = (float)ReadInt();
@@ -529,11 +765,29 @@ public class ByteBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static FVector ReadFVector(byte[] data, int offset, int len)
+    {
+        float x = ReadFloat(data, offset, len);
+        float y = ReadFloat(data, offset + 4, len);
+        float z = ReadFloat(data, offset + 8, len);
+        return new FVector(x, y, z);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public FRotator ReadFRotator()
     {
         float pitch = (float)ReadInt();
         float yaw = (float)ReadInt();
         float roll = (float)ReadInt();
+        return new FRotator(pitch, yaw, roll);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static FRotator ReadFRotator(byte[] data, int offset, int len)
+    {
+        float pitch = ReadFloat(data, offset, len);
+        float yaw = ReadFloat(data, offset + 4, len);
+        float roll = ReadFloat(data, offset + 8, len);
         return new FRotator(pitch, yaw, roll);
     }
 
@@ -550,6 +804,23 @@ public class ByteBuffer : IDisposable
             ((uint)Data[index + 1] << 8) |
             ((uint)Data[index + 2] << 16) |
             ((uint)Data[index + 3] << 24);
+
+        return value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint ReadSign(byte[] data, int len)
+    {
+        if (len < 4)
+            throw new InvalidOperationException("Buffer too small to contain CRC32C signature.");
+
+        int index = len - 4;
+
+        uint value =
+            (uint)data[index] |
+            ((uint)data[index + 1] << 8) |
+            ((uint)data[index + 2] << 16) |
+            ((uint)data[index + 3] << 24);
 
         return value;
     }

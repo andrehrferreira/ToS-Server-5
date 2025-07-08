@@ -5,18 +5,19 @@ using System.Runtime.CompilerServices;
 public class PingPacket: Packet
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override ByteBuffer Serialize(object? data = null)
+    public override byte[] Serialize(object? data = null)
     {
         var typedData = data is Ping p ? p : throw new InvalidCastException("Invalid data type.");
         return Serialize(typedData);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ByteBuffer Serialize(Ping data)
+    public byte[] Serialize(Ping data)
     {
-        var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Write(PacketType.Ping);
-        buffer.Write(data.SentTimestamp);
+        uint offset = 0;
+        byte[] buffer = new byte[3600];
+        offset = ByteBuffer.WritePacketType(buffer, offset, PacketType.Ping);
+        offset = ByteBuffer.WriteLong(buffer, offset, data.SentTimestamp);
         return buffer;
     }
 

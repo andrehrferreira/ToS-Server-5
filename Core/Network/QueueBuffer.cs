@@ -63,6 +63,11 @@ public class QueueBuffer
         }
     }
 
+    public static void AddBuffer(uint socketId, byte[] buffer)
+    {
+
+    }
+
     public static void CheckAndSend(uint socketId)
     {
         if (Queues.ContainsKey(socketId))

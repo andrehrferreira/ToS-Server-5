@@ -5,16 +5,16 @@ using System.Runtime.CompilerServices;
 public class ConnectionDeniedPacket: Packet
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override ByteBuffer Serialize(object? data = null)
+    public override byte[] Serialize(object? data = null)
     {
         return Serialize();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ByteBuffer Serialize()
+    public byte[] Serialize()
     {
-        var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Write(PacketType.ConnectionDenied);
+        byte[] buffer = new byte[1];
+        ByteBuffer.WritePacketType(buffer, 0, PacketType.ConnectionDenied);
         return buffer;
     }
 

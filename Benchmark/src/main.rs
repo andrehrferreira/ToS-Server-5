@@ -8,13 +8,13 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     const SERVER_ADDR: &str = "127.0.0.1:3565";
-    const CLIENT_COUNT: usize = 2000;
+    const CLIENT_COUNT: usize = 20_000;
     const TEST_DURATION: Duration = Duration::from_secs(60);
-    const BATCH_SIZE: usize = 1000;
+    const BATCH_SIZE: usize = 10000;
 
     let packets_received = Arc::new(AtomicUsize::new(0));
     let packets_sent = Arc::new(AtomicUsize::new(0));
-    let sem = Arc::new(Semaphore::new(2000));
+    let sem = Arc::new(Semaphore::new(30_000));
 
     let server_addr: SocketAddr = SERVER_ADDR.parse().unwrap();
     let start = Instant::now();

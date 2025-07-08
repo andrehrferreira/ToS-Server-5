@@ -22,6 +22,7 @@ public enum PacketType : byte
     ConnectionDenied,
     ConnectionAccepted,
     CheckIntegrity,
+    BenckmarkTest,
     None = 255
 }
 

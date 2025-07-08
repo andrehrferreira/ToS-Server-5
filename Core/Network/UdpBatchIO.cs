@@ -22,10 +22,9 @@ public static class UdpBatchIO
             UdpBatchIO_Windows.Initialize(socket, callback);
             _initialized = true;
         }
-        // IOCP + Overlapped is handled internally; return 0 to indicate non-blocking handled elsewhere
         return 0;
 #else
-        byte[] buffer = new byte[65535];
+        byte[] buffer = new byte[4096];
         EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
         try
         {

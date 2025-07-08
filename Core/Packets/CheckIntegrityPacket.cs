@@ -5,20 +5,20 @@ using System.Runtime.CompilerServices;
 public class CheckIntegrityPacket: Packet
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override ByteBuffer Serialize(object? data = null)
+    public override byte[] Serialize(object? data = null)
     {
         var typedData = data is CheckIntegrity p ? p : throw new InvalidCastException("Invalid data type.");
         return Serialize(typedData);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ByteBuffer Serialize(CheckIntegrity data)
+    public byte[] Serialize(CheckIntegrity data)
     {
-        var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Reliable = true;
-        buffer.Write(PacketType.CheckIntegrity);
-        buffer.Write(data.Index);
-        buffer.Write(data.Version);
+        uint offset = 0;
+        byte[] buffer = new byte[3600];
+        offset = ByteBuffer.WritePacketType(buffer, offset, PacketType.CheckIntegrity);
+        offset = ByteBuffer.WriteUShort(buffer, offset, data.Index);
+        offset = ByteBuffer.WriteUInt(buffer, offset, data.Version);
         return buffer;
     }
 

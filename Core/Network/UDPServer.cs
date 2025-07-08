@@ -162,15 +162,7 @@ public sealed class UDPServer
             {
                 while (true)
                 {
-                    if (Poll(100))
-                    {
-                        int packetCount = 0;
-
-                        while (Poll(0) && packetCount < 1000)
-                        {
-                            ++packetCount;
-                        }
-                    }
+                    Poll(100);
 
                     if (pingTimer.Elapsed >= TimeSpan.FromSeconds(1))
                     {
@@ -218,9 +210,6 @@ public sealed class UDPServer
                                 if (Clients.TryRemove(kv.Key, out var client))
                                 {
                                     client.OnDisconnect();
-#if DEBUG
-                                    //ServerMonitor.Log($"Client timeout/disconnected: {kv.Key}");
-#endif
                                 }
                             }
                         }
@@ -347,13 +336,8 @@ public sealed class UDPServer
                 return;
             }
 
-            var buffer = ByteBufferPool.Acquire();
-            buffer.Assign(data, len);
-            var type = buffer.ReadPacketType();
-
-            // Optional decryption/XOR could be placed here if needed
-
-            HandlePacket(type, buffer, address);
+            PacketType packetType = (PacketType)data[0];
+            HandlePacket(packetType, data, len, address);
 
             Interlocked.Increment(ref _packetsReceived);
             Interlocked.Add(ref _bytesReceived, len);
@@ -403,7 +387,7 @@ public sealed class UDPServer
         return ep;
     }
 
-    private static void HandlePacket(PacketType type, ByteBuffer buffer, EndPoint address)
+    private static void HandlePacket(PacketType type, byte[] data, int len, EndPoint address)
     {
         UDPSocket conn;
 
@@ -469,19 +453,17 @@ public sealed class UDPServer
                         newSocket.State = ConnectionState.Connected;
 
             #if DEBUG
-                            //ServerMonitor.Log($"Client connected: {address} ID:{ID}");
+                        //ServerMonitor.Log($"Client connected: {address} ID:{ID}");
             #endif
                     }
                 }
-
-                ByteBufferPool.Release(buffer);
             }
             break;
             case PacketType.Pong:
             {
                 if (Clients.TryGetValue(address, out conn))
                 {
-                    long sentTimestamp = buffer.ReadLong();
+                    long sentTimestamp = ByteBuffer.ReadLong(data, 1, len);
                     long nowTimestamp = Stopwatch.GetTimestamp();
                     long elapsedTicks = nowTimestamp - sentTimestamp;
 
@@ -490,8 +472,6 @@ public sealed class UDPServer
                     conn.Ping = (uint)rttMs;
                     conn.TimeoutLeft = 30f;
                 }
-
-                ByteBufferPool.Release(buffer);
             }
             break;
             case PacketType.Disconnect:
@@ -503,8 +483,6 @@ public sealed class UDPServer
                     ServerMonitor.Log($"Client disconnected: {address}");
 #endif
                 }
-
-                ByteBufferPool.Release(buffer);
             }
             break;
             case PacketType.Reliable:
@@ -513,36 +491,30 @@ public sealed class UDPServer
             {
                 if (Clients.TryGetValue(address, out conn))
                 {
-                    var crc32c = CRC32C.Compute(buffer.Data, buffer.Length - 4);
-                    uint receivedCrc32c = buffer.ReadSign();
-
-                    buffer.Length -= 4;
+                    var crc32c = CRC32C.Compute(data, data.Length - 4);
+                    uint receivedCrc32c = ByteBuffer.ReadSign(data, len);
 
                     if (receivedCrc32c == crc32c)
                     {
                         if (conn.State == ConnectionState.Connecting)
                             conn.State = ConnectionState.Connected;
 
+                        var buffer = ByteBufferPool.Acquire();
+                        buffer.Assign(data, len);
+                        buffer.Length -= 4;
+
                         buffer.Connection = conn;
 
-                        conn.ProcessPacket(type, buffer);
-                    }
-                    else
-                    {
-                        ByteBufferPool.Release(buffer);
+                        //conn.ProcessPacket(type, buffer);
                     }
                 }
-                else
-                {
-                    ByteBufferPool.Release(buffer);
-                } 
             }
             break;
             case PacketType.CheckIntegrity:
             {
                 if (Clients.TryGetValue(address, out conn))
                 {
-                    ushort integrityKey = buffer.ReadUShort();
+                    ushort integrityKey = ByteBuffer.ReadUShort(data, 1, len);
                     short key = _integrityKeyTable.Keys[conn.IntegrityCheck];
 
                     if (integrityKey != key)
@@ -557,12 +529,15 @@ public sealed class UDPServer
                         conn.TimeoutIntegrityCheck = 120f;
                     }
                 }
-
-                ByteBufferPool.Release(buffer);
             }
             break;
-            default:            
-                ByteBufferPool.Release(buffer);
+            case PacketType.BenckmarkTest:
+            {
+                if (Clients.TryGetValue(address, out conn))
+                {
+                    
+                }
+            }
             break;
         }
 
@@ -625,7 +600,7 @@ public sealed class UDPServer
 
     public static void RunMainLoop()
     {
-        const int targetFps = 60;
+        const int targetFps = 20;
         const double targetFrameTime = 1000.0 / targetFps;
         Stopwatch sw = new Stopwatch();
         sw.Start();
@@ -647,12 +622,11 @@ public sealed class UDPServer
                 memLog.Restart();
             }
 
-
-            if (trimTimer.Elapsed >= TimeSpan.FromSeconds(60))
+            /*if (trimTimer.Elapsed >= TimeSpan.FromSeconds(60))
             {
-                ByteBufferPool.TrimExcess(1024);
+                ByteBufferPool.TrimExcess(10);
                 trimTimer.Restart();
-            }
+            }*/
           
             double elapsed = sw.Elapsed.TotalMilliseconds - now;
             int sleep = (int)(targetFrameTime - elapsed);

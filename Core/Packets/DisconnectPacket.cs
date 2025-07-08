@@ -5,16 +5,16 @@ using System.Runtime.CompilerServices;
 public class DisconnectPacket: Packet
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override ByteBuffer Serialize(object? data = null)
+    public override byte[] Serialize(object? data = null)
     {
         return Serialize();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ByteBuffer Serialize()
+    public byte[] Serialize()
     {
-        var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Write(PacketType.Disconnect);
+        byte[] buffer = new byte[1];
+        ByteBuffer.WritePacketType(buffer, 0, PacketType.Disconnect);
         return buffer;
     }
 
