@@ -1,6 +1,7 @@
 // This file was generated automatically, please do not change it.
 
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 public class CheckIntegrityPacket: Packet
 {

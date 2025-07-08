@@ -64,6 +64,7 @@ public class ContractTraspiler : AbstractTranspiler
                     writer.WriteLine("// This file was generated automatically, please do not change it.");
                     writer.WriteLine();
                     writer.WriteLine("using System.Runtime.CompilerServices;");
+                    writer.WriteLine("using System.Runtime.InteropServices;");                    
                     writer.WriteLine();
                     writer.WriteLine($"public class {rawName}Packet: Packet");
                     writer.WriteLine("{");
@@ -228,7 +229,7 @@ public class ContractTraspiler : AbstractTranspiler
         else
         {
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            writer.WriteLine($"    public override byte[] Serialize(object? data = null)");
+            writer.WriteLine($"    public override NativeBuffer Serialize(object? data = null)");
             writer.WriteLine("    {");
             writer.WriteLine("        return Serialize();");
             writer.WriteLine("    }");
@@ -240,13 +241,13 @@ public class ContractTraspiler : AbstractTranspiler
             
             if (contractAttribute.PacketType != PacketType.None)
             {
-            writer.WriteLine("        unsafe byte* buffer = (byte*)NativeMemory.Alloc(1);");
+            writer.WriteLine("        byte* buffer = (byte*)NativeMemory.Alloc(1);");
             writer.WriteLine($"        ByteBuffer.WritePacketType(buffer, 0, PacketType.{contractAttribute.PacketType.ToString()});");
             writer.WriteLine("        return new NativeBuffer(buffer, 1);");
             }
             else
             {
-                writer.WriteLine("        unsafe byte* buffer = (byte*)NativeMemory.Alloc(2);");
+                writer.WriteLine("        byte* buffer = (byte*)NativeMemory.Alloc(2);");
                 writer.WriteLine($"        ByteBuffer.WriteUShort(buffer, 0, (ushort)ServerPacket.{contract.Name.Replace("Contract", "")});");
                 writer.WriteLine("        return new NativeBuffer(buffer, 2);");
             }
