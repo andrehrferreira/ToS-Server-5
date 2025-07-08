@@ -84,7 +84,6 @@ public class UDPSocket
 
         byte[] managed = ArrayPool<byte>.Shared.Rent(buffer.Length);
         Marshal.Copy((IntPtr)buffer.Data, managed, 0, buffer.Length);
-
         UDPServer.Send(managed, this, pooled: true);
         NativeMemory.Free(buffer.Data);
     }

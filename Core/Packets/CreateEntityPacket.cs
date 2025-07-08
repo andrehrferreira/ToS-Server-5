@@ -11,11 +11,11 @@ public class CreateEntityPacket: Packet
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public byte[] Serialize()
+    public unsafe NativeBuffer Serialize()
     {
-        byte[] buffer = new byte[2];
+        unsafe byte* buffer = (byte*)NativeMemory.Alloc(2);
         ByteBuffer.WriteUShort(buffer, 0, (ushort)ServerPacket.CreateEntity);
-        return buffer;
+        return new NativeBuffer(buffer, 2);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

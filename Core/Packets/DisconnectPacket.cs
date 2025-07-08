@@ -11,11 +11,11 @@ public class DisconnectPacket: Packet
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public byte[] Serialize()
+    public unsafe NativeBuffer Serialize()
     {
-        byte[] buffer = new byte[1];
+        unsafe byte* buffer = (byte*)NativeMemory.Alloc(1);
         ByteBuffer.WritePacketType(buffer, 0, PacketType.Disconnect);
-        return buffer;
+        return new NativeBuffer(buffer, 1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

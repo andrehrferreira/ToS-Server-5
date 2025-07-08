@@ -515,7 +515,13 @@ public class ByteBuffer : IDisposable
 
         fixed (char* c = value)
         {
-            encoding.GetBytes(c, value.Length, new Span<byte>(data + offset, byteCount));
+            var charSpan = new ReadOnlySpan<char>(c, value.Length);
+            var byteSpan = new Span<byte>(data + offset, byteCount);
+
+            int written = encoding.GetBytes(charSpan, byteSpan);
+            
+            if (written != byteCount)
+                throw new InvalidOperationException("Mismatch in bytes written during UTF8 encoding.");
         }
 
         return offset + (uint)byteCount;
