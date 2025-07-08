@@ -5,20 +5,20 @@ using System.Runtime.CompilerServices;
 public class ConnectionAcceptedPacket: Packet
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override byte[] Serialize(object? data = null)
+    public override NativeBuffer Serialize(object? data = null)
     {
         var typedData = data is ConnectionAccepted p ? p : throw new InvalidCastException("Invalid data type.");
         return Serialize(typedData);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public byte[] Serialize(ConnectionAccepted data)
+    public unsafe NativeBuffer Serialize(ConnectionAccepted data)
     {
         uint offset = 0;
-        byte[] buffer = new byte[3600];
+        byte* buffer = (byte*)NativeMemory.Alloc(3600);
         offset = ByteBuffer.WritePacketType(buffer, offset, PacketType.ConnectionAccepted);
         offset = ByteBuffer.WriteUInt(buffer, offset, data.Id);
-        return buffer;
+        return new NativeBuffer(buffer, 3600);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

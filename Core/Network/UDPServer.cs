@@ -261,11 +261,9 @@ public sealed class UDPServer
                     var next = node.Next;
                     var packet = node.Value;
 
-                    if (packet.Buffer != null && packet.Length > 0)
-                    {
+                    if (packet.Buffer != null && packet.Length > 0)                    
                         batch.Add((FormatAddress(packet.Address), packet.Buffer, packet.Length));
-                    }
-
+                    
                     node = next;
                 }
 
