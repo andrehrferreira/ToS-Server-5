@@ -1,5 +1,10 @@
 using System.Collections.Concurrent;
 
+public interface IPoolable
+{
+    void Reset();
+}
+
 public class ObjectPool<T> where T : class, IPoolable, new()
 {
     private readonly ConcurrentBag<T> _pool = new();
