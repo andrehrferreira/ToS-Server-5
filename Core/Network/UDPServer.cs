@@ -38,10 +38,10 @@ public sealed class UDPServer
     private static ConcurrentDictionary<EndPoint, UDPSocket> Clients =
         new ConcurrentDictionary<EndPoint, UDPSocket>();
 
-    private static ByteBufferLinked GlobalSendQueue = new ByteBufferLinked();
+    private static QueueStructLinked<SendPacket> GlobalSendQueue = new QueueStructLinked<SendPacket>();
 
     [ThreadStatic]
-    static ByteBufferLinked LocalSendQueue;
+    static QueueStructLinked<SendPacket> LocalSendQueue;
 
     private static long _packetsSent = 0;
     private static long _bytesSent = 0;
@@ -247,55 +247,26 @@ public sealed class UDPServer
             {
                 SendEvent.WaitOne(1);
 
-                ByteBuffer buffer;
+                QueueStructLinked<SendPacket>.Node node;
 
                 lock (GlobalSendQueue)
                 {
-                    buffer = GlobalSendQueue.Clear();
+                    node = GlobalSendQueue.Clear();
                 }
 
                 var batch = new List<(object addr, byte[] data, int length)>();
 
-                while (buffer != null)
+                while (node != null)
                 {
-                    var next = buffer.Next;
+                    var next = node.Next;
+                    var packet = node.Value;
 
-                    try
+                    if (packet.Buffer != null && packet.Length > 0)
                     {
-                        if (buffer.Connection != null)
-                        {
-                            var address = buffer.Connection.RemoteEndPoint;
-
-                            if (buffer.Length > 0 && buffer.Data != null)
-                            {
-                                if (
-                                    buffer.Data[0] == (byte)PacketType.Reliable ||
-                                    buffer.Data[0] == (byte)PacketType.Unreliable ||
-                                    buffer.Data[0] == (byte)PacketType.Ack
-                                )
-                                {
-                                    uint crc32c = CRC32C.Compute(buffer.Data);
-
-                                    if (buffer.Reliable)
-                                        buffer.Connection.AddReliablePacket(crc32c, buffer);
-
-                                    buffer.Write(crc32c);
-                                }
-
-                                if (!buffer.IsDestroyed && buffer.Length > 0)
-                                {
-                                    batch.Add((FormatAddress(address), buffer.Data, buffer.Length));
-                                }
-                            }
-                        }
-                    }
-                    catch { }
-                    finally
-                    {
-                        ByteBufferPool.Release(buffer);
+                        batch.Add((FormatAddress(packet.Address), packet.Buffer, packet.Length));
                     }
 
-                    buffer = next;
+                    node = next;
                 }
 
                 if (batch.Count > 0)
@@ -544,35 +515,76 @@ public sealed class UDPServer
         MergeSendQueue();
     }
 
+    private static byte[] AddSignature(byte[] data)
+    {
+        if (data == null || data.Length == 0)
+            return data;
+
+        PacketType t = (PacketType)data[0];
+        if (t == PacketType.Reliable || t == PacketType.Unreliable || t == PacketType.Ack)
+        {
+            uint crc32c = CRC32C.Compute(data, data.Length);
+            byte[] result = new byte[data.Length + 4];
+            Buffer.BlockCopy(data, 0, result, 0, data.Length);
+            ByteBuffer.WriteUInt(result, (uint)data.Length, crc32c);
+            return result;
+        }
+
+        return data;
+    }
+
     public static void Send(byte[] data, UDPSocket socket)
     {
         if (LocalSendQueue == null)
-            LocalSendQueue = new ByteBufferLinked();
+            LocalSendQueue = new QueueStructLinked<SendPacket>();
 
-        if(data.Length > 0){
-            ByteBuffer buffer = ByteBufferPool.Acquire();
-            buffer.Data = data;
-            buffer.Length = data.Length;
-            buffer.Connection = socket;
-            Send(buffer);
+        if (data.Length > 0)
+        {
+            var signed = AddSignature(data);
+
+            var packet = new SendPacket
+            {
+                Buffer = signed,
+                Length = signed.Length,
+                Address = socket.RemoteEndPoint
+            };
+
+            LocalSendQueue.Add(packet);
+            Flush();
         }
     }
 
     public static void Send(ByteBuffer buffer)
     {
         if (LocalSendQueue == null)
-            LocalSendQueue = new ByteBufferLinked();
+            LocalSendQueue = new QueueStructLinked<SendPacket>();
 
-        if (buffer.Length > 0)
+        if (buffer.Length > 0 && buffer.Connection != null)
         {
-            LocalSendQueue.Add(buffer);
+            byte[] data = new byte[buffer.Length];
+            Buffer.BlockCopy(buffer.Data, 0, data, 0, buffer.Length);
+
+            data = AddSignature(data);
+
+            var packet = new SendPacket
+            {
+                Buffer = data,
+                Length = data.Length,
+                Address = buffer.Connection.RemoteEndPoint
+            };
+
+            LocalSendQueue.Add(packet);
             Flush();
         }
+
+        ByteBufferPool.Release(buffer);
     }
 
     public static void Send(ServerPacket packetType, ByteBuffer buffer)
     {
-        Send(ByteBuffer.Pack(buffer, packetType, _baseFlags)); 
+        var packed = ByteBuffer.Pack(buffer, packetType, _baseFlags);
+        ByteBufferPool.Release(buffer);
+        Send(packed);
     }
 
     private static void MergeSendQueue()
