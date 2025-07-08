@@ -1,3 +1,26 @@
+/*
+* UDPSocket
+* 
+* Author: Andre Ferreira
+* 
+* Copyright (c) Uzmi Games. Licensed under the MIT License.
+*    
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+* 
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
+
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -51,8 +74,14 @@ public class UDPSocket
 
     public float TimeoutIntegrityCheck = 120f;
 
-    internal ConcurrentDictionary<uint, ByteBuffer> ReliablePackets =
-        new ConcurrentDictionary<uint, ByteBuffer>();
+    internal ConcurrentDictionary<short, ByteBuffer> ReliablePackets =
+        new ConcurrentDictionary<short, ByteBuffer>();
+
+    private short Sequence = 1;
+
+    internal ByteBuffer ReliableBuffer;
+    internal ByteBuffer UnreliableBuffer;
+    internal ByteBuffer AckBuffer;
 
     public UDPSocket(Socket serverSocket)
     {
@@ -133,7 +162,30 @@ public class UDPSocket
                 return false;
             }
         }
-        
+
+        if (ReliableBuffer != null)
+        {
+            ReliablePackets[ReliableBuffer.Sequence] = ReliableBuffer;
+
+            Send(ReliableBuffer);
+
+            ReliableBuffer = null;
+        }
+
+        if (UnreliableBuffer != null)
+        {
+            Send(UnreliableBuffer);
+
+            UnreliableBuffer = null;
+        }
+
+        if (AckBuffer != null)
+        {
+            Send(AckBuffer);
+
+            AckBuffer = null;
+        }
+
         return true;
     }
 
@@ -161,7 +213,7 @@ public class UDPSocket
         }
     }
 
-    public bool AddReliablePacket(uint packetId, ByteBuffer buffer)
+    public bool AddReliablePacket(short packetId, ByteBuffer buffer)
     {
         return ReliablePackets.TryAdd(packetId, buffer);
     }
@@ -169,5 +221,82 @@ public class UDPSocket
     public void ProcessPacket(PacketType type, ByteBuffer buffer)
     {
 
+    }
+
+    public ByteBuffer BeginReliable()
+    {
+        if (ReliableBuffer == null)
+        {
+            ReliableBuffer = ByteBufferPool.Acquire();
+            ReliableBuffer.Connection = this;
+
+            Sequence = (short)((Sequence + 1) % 16384);
+
+            ReliableBuffer.Write(PacketType.Reliable);
+            ReliableBuffer.Write(Sequence);
+            //ReliableBuffer.Write(Manager.TickNumber);
+
+            ReliableBuffer.Sequence = Sequence;
+            ReliableBuffer.Reliable = true;
+        }
+
+        return ReliableBuffer;
+    }
+
+    public void EndReliable()
+    {
+        if (ReliableBuffer.Offset >= 1200)
+        {
+            ReliablePackets[ReliableBuffer.Sequence] = ReliableBuffer;
+
+            Send(ReliableBuffer);
+
+            ReliableBuffer = null;
+        }
+    }
+
+    public ByteBuffer BeginUnreliable()
+    {
+        if (UnreliableBuffer == null)
+        {
+            UnreliableBuffer = ByteBufferPool.Acquire();
+            UnreliableBuffer.Connection = this;
+
+            UnreliableBuffer.Write((byte)PacketType.Unreliable);
+            //UnreliableBuffer.Write(Manager.TickNumber);
+            UnreliableBuffer.Reliable = false;
+        }
+
+        return UnreliableBuffer;
+    }
+
+    public void EndUnreliable()
+    {
+        if (UnreliableBuffer.Length >= 1200)
+        {
+            Send(UnreliableBuffer);
+
+            UnreliableBuffer = null;
+        }
+    }
+
+    public void PushAck(short sequence)
+    {
+        if (AckBuffer == null)
+        {
+            AckBuffer = ByteBufferPool.Acquire();
+            AckBuffer.Connection = this;
+            AckBuffer.Reliable = false;
+            AckBuffer.Write(PacketType.Ack);
+        }
+
+        AckBuffer.Write(sequence);
+
+        if (AckBuffer.Offset > 1198)
+        {
+            Send(AckBuffer);
+
+            AckBuffer = null;
+        }
     }
 }

@@ -68,7 +68,7 @@ class Program
             Version = VersionReader.ToUInt(currentVersion),
             EnableWAF = false,
             EnableIntegrityCheck = true, 
-            MaxConnections = 25000,
+            MaxConnections = 15000,
             ReceiveBufferSize = 512 * 1024, 
             SendBufferSize = 512 * 1024,
         });

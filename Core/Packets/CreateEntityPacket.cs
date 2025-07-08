@@ -1,7 +1,6 @@
 // This file was generated automatically, please do not change it.
 
 using System.Runtime.CompilerServices;
-using System.Buffers;
 
 public class CreateEntityPacket: Packet
 {

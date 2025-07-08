@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 
 [Flags]
-public enum EntityState : int
+public enum EntityState : uint
 {
     None = 0,
     IsAlive = 1 << 0,

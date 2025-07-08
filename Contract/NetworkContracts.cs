@@ -1,11 +1,21 @@
-[Contract("Ping", PacketLayerType.Server, ContractPacketFlags.Queue_ToEntity, PacketType.Ping)]
+[Contract(
+    "Ping",
+    PacketLayerType.Server,
+    ContractPacketFlags.Queue_ToEntity,
+    PacketType.Ping
+)]
 public struct Ping
 {
     [ContractField("long")]
     public long SentTimestamp;
 }
 
-[Contract("Pong", PacketLayerType.Client, ContractPacketFlags.None, PacketType.Pong)]
+[Contract(
+    "Pong",
+    PacketLayerType.Client,
+    ContractPacketFlags.None,
+    PacketType.Pong
+)]
 public struct Pong
 {
     [ContractField("long")]
@@ -50,6 +60,7 @@ public struct CheckIntegrity
 {
     [ContractField("ushort")]
     public ushort Index;
+
     [ContractField("uint")]
     public uint Version;
 }

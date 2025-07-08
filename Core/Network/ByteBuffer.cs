@@ -48,6 +48,10 @@ public class ByteBuffer : IDisposable
 
     public volatile bool Reliable;
 
+    public short Sequence;
+
+    public uint TickNumber;
+
     public void Destroy()
     {
         if (IsDestroyed)

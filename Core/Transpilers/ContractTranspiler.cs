@@ -21,7 +21,6 @@
 * SOFTWARE.
 */
 
-using System;
 using System.Reflection;
 
 public class ContractTraspiler : AbstractTranspiler
@@ -64,8 +63,7 @@ public class ContractTraspiler : AbstractTranspiler
                 {
                     writer.WriteLine("// This file was generated automatically, please do not change it.");
                     writer.WriteLine();
-                    writer.WriteLine("using System.Runtime.CompilerServices;");
-                    writer.WriteLine("using System.Buffers;");                    
+                    writer.WriteLine("using System.Runtime.CompilerServices;");               
                     writer.WriteLine();
                     writer.WriteLine($"public class {rawName}Packet: Packet");                    
                     writer.WriteLine("{");

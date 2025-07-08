@@ -1,11 +1,8 @@
 using Spectre.Console;
 using Spectre.Console.Rendering;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 public static class ServerMonitor
 {

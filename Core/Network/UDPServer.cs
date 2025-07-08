@@ -1,9 +1,51 @@
-using System;
+/*
+* UDPServer
+* 
+* Author: Andre Ferreira
+* 
+* Copyright (c) Uzmi Games. Licensed under the MIT License.
+*    
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+* 
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
+
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+
+public unsafe struct NativeBuffer
+{
+    public byte* Data;
+    public int Length;
+
+    public NativeBuffer(byte* data, int length)
+    {
+        Data = data;
+        Length = length;
+    }
+}
+
+public struct SendPacket
+{
+    public byte[] Buffer;
+    public int Length;
+    public EndPoint Address;
+    public bool Pooled;
+}
 
 public class UDPServerOptions
 {
@@ -30,8 +72,6 @@ public sealed class UDPServer
     private static IntegrityKeyTable _integrityKeyTable;
 
     private static Socket ServerSocket;
-
-    private static int ServerFD;
 
     private static bool Running = true;
 
@@ -66,6 +106,7 @@ public sealed class UDPServer
     public static World GetWorld() => _worldRef;
 
     public static int ConnectionCount => Clients.Count;
+
     public static long PacketsSent => Interlocked.Read(ref _packetsSent);
     public static long PacketsReceived => Interlocked.Read(ref _packetsReceived);
     public static long BytesSent => Interlocked.Read(ref _bytesSent);
@@ -98,8 +139,6 @@ public sealed class UDPServer
                 ServerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
                 ServerSocket.Bind(new IPEndPoint(IPAddress.Any, port));
-
-                ServerFD = (int)ServerSocket.Handle;
 
                 ServerSocket.ReceiveTimeout = _options.ReceiveTimeout;
 
