@@ -1,4 +1,4 @@
-[Contract("CreateEntity", PacketLayerType.Server, ContractPacketFlags.Reliable_ToEntity)]
+[Contract("CreateEntity", PacketLayerType.Server, ContractPacketFlags.FromEntity)]
 public struct CreateEntity
 {
 
@@ -17,7 +17,7 @@ public struct SyncEntity
     public ushort AnimationState;
 }
 
-[Contract("UpdateEntity", PacketLayerType.Server, ContractPacketFlags.ToEntity)]
+[Contract("UpdateEntity", PacketLayerType.Server, ContractPacketFlags.FromEntity)]
 public struct UpdateEntity
 {
     [ContractField("uint")]

@@ -195,8 +195,6 @@ public class UDPSocket
         {
             Reason = reason;
 
-            QueueBuffer.RemoveSocket(Id);
-
             if (PacketManager.TryGet(PacketType.Disconnect, out var disconnectPacket))
             {
                 disconnectPacket.Serialize();
@@ -207,10 +205,8 @@ public class UDPSocket
 
     internal void OnDisconnect()
     {
-        if (State != ConnectionState.Disconnected)
-        {
+        if (State != ConnectionState.Disconnected)        
             State = ConnectionState.Disconnected;
-        }
     }
 
     public bool AddReliablePacket(short packetId, ByteBuffer buffer)

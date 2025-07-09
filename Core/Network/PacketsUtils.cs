@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-
 public static partial class PacketRegistration { }
 
 public enum PacketLayerType

@@ -45,6 +45,7 @@ public class Packet : IPacket
     {
         throw new NotImplementedException("Serialization method not implemented for this packet type.");
     }
+
     public virtual void Send(Entity owner, object data, Entity entity)
     {
         throw new NotImplementedException("Send method not implemented for this packet type.");

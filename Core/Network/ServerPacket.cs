@@ -10,6 +10,7 @@ public enum ServerPacket: ushort
     ConnectionDenied = 5,
     Disconnect = 6,
     CheckIntegrity = 7,
+    SyncStateInt = 8,
 }
 
 public static partial class PacketRegistration
@@ -24,6 +25,7 @@ public static partial class PacketRegistration
         PacketManager.Register(PacketType.ConnectionDenied, new ConnectionDeniedPacket());
         PacketManager.Register(PacketType.Disconnect, new DisconnectPacket());
         PacketManager.Register(PacketType.CheckIntegrity, new CheckIntegrityPacket());
+        PacketManager.Register(ServerPacket.SyncStateInt, new SyncStateIntPacket());
     }
 }
 

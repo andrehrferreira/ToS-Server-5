@@ -466,8 +466,6 @@ public sealed class UDPServer
 
                     if (Clients.TryAdd(address, newSocket))
                     {
-                        QueueBuffer.AddSocket(newSocket.Id, newSocket);
-
                         uint ID = GetRandomId();
 
                         if(PacketManager.TryGet(PacketType.ConnectionAccepted, out var packet))
@@ -667,8 +665,6 @@ public sealed class UDPServer
 
     public static void Update(float delta)
     {
-        QueueBuffer.Tick();
-
         MergeSendQueue();
 
         foreach (var kv in Clients.Values)

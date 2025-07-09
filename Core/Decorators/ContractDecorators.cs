@@ -8,6 +8,7 @@ public enum ContractPacketFlags : byte
     AreaOfInterest = 1 << 3,
     ToEntity = 1 << 4,
     NoContent = 1 << 5,
+    FromEntity = 1 << 6,
 
     Queue_Self = Queue | Self,
     Queue_Self_NoContent = Queue | Self | NoContent,
