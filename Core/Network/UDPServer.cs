@@ -298,6 +298,7 @@ public sealed class UDPServer
 
         SendThread = new Thread(() =>
         {
+            var batch = new List<SendPacket>();
             while (Running)
             {
                 SendEvent.WaitOne(1);
@@ -309,7 +310,6 @@ public sealed class UDPServer
                     node = GlobalSendQueue.Clear();
                 }
 
-                var batch = new List<SendPacket>();
                 var chain = node;
 
                 while (node != null)
@@ -652,7 +652,7 @@ public sealed class UDPServer
 
         if (length > 0 && socket != null)
         {
-            byte[] managedBuffer = new byte[length];
+            byte[] managedBuffer = ArrayPool<byte>.Shared.Rent(length);
 
             fixed (byte* dst = managedBuffer)
             {
@@ -664,7 +664,7 @@ public sealed class UDPServer
                 Buffer = managedBuffer,
                 Length = length,
                 Address = socket.RemoteEndPoint,
-                Pooled = false
+                Pooled = true
             };
 
             buffer.Free();
