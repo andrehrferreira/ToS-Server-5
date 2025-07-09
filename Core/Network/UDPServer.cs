@@ -217,9 +217,13 @@ public sealed class UDPServer
                                 };
 
                                 kv.Value.PingSentAt = DateTime.UtcNow;
+
+                                Interlocked.Increment(ref _packetsSent);
                             }
 
                             UdpBatchIO.SendBatch(ServerSocket, sendBatch.AsSpan(0, count));
+
+                            buffer.Free();
                         }
 
                         pingTimer.Restart();
