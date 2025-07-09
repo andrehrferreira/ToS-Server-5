@@ -178,10 +178,6 @@ public sealed class UDPServer
     {
         Running = false;
         ServerSocket?.Close();
-
-#if DEBUG
-        ServerMonitor.Log("UDP server stopped.");
-#endif
     }
 
     public static void ReceiveOnBackgroundThread()
@@ -225,7 +221,7 @@ public sealed class UDPServer
                         pingTimer.Restart();
                     }
 
-                    if (_options.EnableIntegrityCheck)
+                    /*if (_options.EnableIntegrityCheck)
                     {
                         if (checkIntegrityTimer.Elapsed >= TimeSpan.FromSeconds(30))
                         {
@@ -245,7 +241,7 @@ public sealed class UDPServer
 
                             checkIntegrityTimer.Restart();
                         }
-                    }
+                    }*/
 
                     if (cleanupTimer.Elapsed >= TimeSpan.FromSeconds(5))
                     {
@@ -648,6 +644,33 @@ public sealed class UDPServer
         var packed = ByteBuffer.Pack(buffer, packetType, _baseFlags);
         ByteBufferPool.Release(buffer);
         Send(packed);
+    }
+
+    public static unsafe void Send(FlatBuffer buffer, int length, UDPSocket socket)
+    {
+        if (LocalSendQueue == null)
+            LocalSendQueue = new QueueStructLinked<SendPacket>();
+
+        if (length > 0 && socket != null)
+        {
+            byte[] managedBuffer = new byte[length];
+
+            fixed (byte* dst = managedBuffer)
+            {
+                Buffer.MemoryCopy(buffer.Data, dst, length, length);
+            }
+
+            var packet = new SendPacket
+            {
+                Buffer = managedBuffer,
+                Length = length,
+                Address = socket.RemoteEndPoint,
+                Pooled = false
+            };
+
+            LocalSendQueue.Add(packet);
+            Flush();
+        }
     }
 
     private static void MergeSendQueue()
