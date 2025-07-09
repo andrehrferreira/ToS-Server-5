@@ -193,7 +193,7 @@ public class ContractTraspiler : AbstractTranspiler
 
             writer.WriteLine($"    public {rawName}Packet()");
             writer.WriteLine("    {");
-            writer.WriteLine($"        _buffer = new byte[{totalBytes}];");
+            writer.WriteLine($"        _buffer = new FlatBuffer({totalBytes});");
             writer.WriteLine("    }");
             writer.WriteLine();
 
@@ -208,12 +208,12 @@ public class ContractTraspiler : AbstractTranspiler
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
             writer.WriteLine($"    public void Serialize({data})");
             writer.WriteLine("    {");
-            writer.WriteLine("        uint offset = 0;");
+            writer.WriteLine("        _buffer.Reset();");
 
             if (contractAttribute.PacketType != PacketType.None)
-                writer.WriteLine($"        offset = ByteBuffer.WritePacketType(_buffer, offset, PacketType.{contractAttribute.PacketType.ToString()});");
+                writer.WriteLine($"        _buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
             else
-                writer.WriteLine($"        offset = ByteBuffer.WriteUShort(_buffer, offset, (ushort)ServerPacket.{contract.Name.Replace("Contract", "")});");
+                writer.WriteLine($"        _buffer.Write((ushort)ServerPacket.{contract.Name.Replace("Contract", "")});");
 
             foreach (var field in fields)
             {
@@ -226,45 +226,45 @@ public class ContractTraspiler : AbstractTranspiler
                     case "integer":
                     case "int":
                     case "int32":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteInt(_buffer, offset, data.{fieldName});");
+                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
                         break;
                     case "uint":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteUInt(_buffer, offset, data.{fieldName});");
+                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
                         break;
                     case "ushort":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteUShort(_buffer, offset, data.{fieldName});");
+                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
                         break;
                     case "short":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteShort(_buffer, offset, data.{fieldName});");
+                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
                         break;
                     case "str":
                     case "string":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteString(_buffer, offset, data.{fieldName});");
+                        writer.WriteLine($"        // String serialization not supported");
                         break;
                     case "byte":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteByte(_buffer, offset, data.{fieldName});");
+                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
                         break;
                     case "float":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteFloat(_buffer, offset, data.{fieldName});");
+                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
                         break;
                     case "long":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteLong(_buffer, offset, data.{fieldName});");
+                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
                         break;
                     case "bool":
                     case "boolean":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteBool(_buffer, offset, data.{fieldName});");
+                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
                         break;
                     case "FVector":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteFVector(_buffer, offset, data.{fieldName});");
+                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
                         break;
                     case "FRotator":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteFRotator(_buffer, offset, data.{fieldName});");
+                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
                         break;
                     case "id":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteInt(_buffer, offset, Base36.ToInt(data.{fieldName}));");
+                        writer.WriteLine($"        _buffer.Write(Base36.ToInt(data.{fieldName}));");
                         break;
                     case "decimal":
-                        writer.WriteLine($"        offset = ByteBuffer.WriteFloat(_buffer, offset, (float)data.{fieldName});");
+                        writer.WriteLine($"        _buffer.Write((float)data.{fieldName});");
                         break;
                     default:
                         writer.WriteLine($"    // Tipo não suportado: {fieldType}");
@@ -281,7 +281,7 @@ public class ContractTraspiler : AbstractTranspiler
             {
                 writer.WriteLine($"    public {rawName}Packet()");
                 writer.WriteLine("    {");
-                writer.WriteLine($"        _buffer = new byte[9];");
+                writer.WriteLine($"        _buffer = new FlatBuffer(9);");
                 writer.WriteLine("    }");
                 writer.WriteLine();
             }
@@ -297,10 +297,12 @@ public class ContractTraspiler : AbstractTranspiler
             writer.WriteLine($"    public void Serialize()");
             writer.WriteLine("    {");
 
-            if (contractAttribute.PacketType != PacketType.None)            
-                writer.WriteLine($"        ByteBuffer.WritePacketType(_buffer, 0, PacketType.{contractAttribute.PacketType.ToString()});");
-            else            
-                writer.WriteLine($"        ByteBuffer.WriteUShort(_buffer, 0, (ushort)ServerPacket.{contract.Name.Replace("Contract", "")});");
+            _buffer.Reset();
+
+            if (contractAttribute.PacketType != PacketType.None)
+                writer.WriteLine($"        _buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
+            else
+                writer.WriteLine($"        _buffer.Write((ushort)ServerPacket.{contract.Name.Replace("Contract", "")});");
             
             writer.WriteLine("    }");
         }
