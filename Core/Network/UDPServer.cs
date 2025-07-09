@@ -49,8 +49,8 @@ public struct SendPacket
     public bool Pooled;
 }
 
-public class UDPServerOptions
-{
+    public class UDPServerOptions
+    {
     public uint Version { get; set; } = 1;
     public bool EnableWAF { get; set; } = true;
     public bool EnableIntegrityCheck { get; set; } = true;
@@ -62,8 +62,9 @@ public class UDPServerOptions
     public byte[] EncryptionIV { get; set; } = null;
     public uint MaxConnections { get; set; } = 25000;
     public int ReceiveBufferSize { get; set; } = 512 * 1024;
-    public int SendBufferSize { get; set; } = 512 * 1024;
-}
+        public int SendBufferSize { get; set; } = 512 * 1024;
+        public int SendThreadCount { get; set; } = 1;
+    }
 
 public sealed class UDPServer
 {
@@ -90,11 +91,11 @@ public sealed class UDPServer
     private static long _packetsReceived = 0;
     private static long _bytesReceived = 0;
 
-    private static Thread SendThread;
+    private static Thread[] SendThreads;
 
     private static Thread ReceiveThread;
 
-    private static AutoResetEvent SendEvent;
+    private static AutoResetEvent[] SendEvents;
 
     public static TimeSpan ReliableTimeout = TimeSpan.FromMilliseconds(250f);
 
@@ -294,67 +295,74 @@ public sealed class UDPServer
 
     public static void SendOnBackgroundThread()
     {
-        SendEvent = new AutoResetEvent(false);
+        int threadCount = Math.Max(1, _options.SendThreadCount);
+        SendEvents = new AutoResetEvent[threadCount];
+        SendThreads = new Thread[threadCount];
 
-        SendThread = new Thread(() =>
+        for (int i = 0; i < threadCount; i++)
         {
-            while (Running)
+            SendEvents[i] = new AutoResetEvent(false);
+            int idx = i;
+            SendThreads[i] = new Thread(() =>
             {
-                SendEvent.WaitOne(1);
-
-                QueueStructLinked<SendPacket>.Node node;
-
-                lock (GlobalSendQueue)
-                {
-                    node = GlobalSendQueue.Clear();
-                }
-
                 var batch = new List<SendPacket>();
-                var chain = node;
-
-                while (node != null)
+                while (Running)
                 {
-                    var packet = node.Value;
+                    SendEvents[idx].WaitOne(1);
 
-                    if (packet.Buffer != null && packet.Length > 0)
+                    QueueStructLinked<SendPacket>.Node node;
 
-                        batch.Add(packet);
-
-                    node = node.Next;
-                }
-
-                if (chain != null)
-                    QueueStructLinked<SendPacket>.ReleaseChain(chain);
-
-                if (batch.Count > 0)
-                {
-                    var sendBatch = ArrayPool<(EndPoint, byte[], int)>.Shared.Rent(batch.Count);
-                    int count = 0;
-
-                    foreach (var p in batch)
-                        sendBatch[count++] = (p.Address, p.Buffer, p.Length);
-
-                    UdpBatchIO.SendBatch(ServerSocket, sendBatch.AsSpan(0, count));
-                    ArrayPool<(EndPoint, byte[], int)>.Shared.Return(sendBatch);
-
-                    foreach (var p in batch)
+                    lock (GlobalSendQueue)
                     {
-                        Interlocked.Increment(ref _packetsSent);
-                        Interlocked.Add(ref _bytesSent, p.Length);
-
-                        if (p.Pooled)
-                            ArrayPool<byte>.Shared.Return(p.Buffer);
+                        node = GlobalSendQueue.Clear();
                     }
 
-                    batch.Clear();
+                    var chain = node;
+
+                    while (node != null)
+                    {
+                        var packet = node.Value;
+
+                        if (packet.Buffer != null && packet.Length > 0)
+
+                            batch.Add(packet);
+
+                        node = node.Next;
+                    }
+
+                    if (chain != null)
+                        QueueStructLinked<SendPacket>.ReleaseChain(chain);
+
+                    if (batch.Count > 0)
+                    {
+                        var sendBatch = ArrayPool<(EndPoint, byte[], int)>.Shared.Rent(batch.Count);
+                        int count = 0;
+
+                        foreach (var p in batch)
+                            sendBatch[count++] = (p.Address, p.Buffer, p.Length);
+
+                        UdpBatchIO.SendBatch(ServerSocket, sendBatch.AsSpan(0, count));
+                        ArrayPool<(EndPoint, byte[], int)>.Shared.Return(sendBatch);
+
+                        foreach (var p in batch)
+                        {
+                            Interlocked.Increment(ref _packetsSent);
+                            Interlocked.Add(ref _bytesSent, p.Length);
+
+                            if (p.Pooled)
+                                ArrayPool<byte>.Shared.Return(p.Buffer);
+                        }
+
+                        batch.Clear();
+                    }
+                    ByteBufferPool.Merge();
                 }
-                ByteBufferPool.Merge();
-            }
-        });
+            });
 
-        SendThread.IsBackground = true;
+            SendThreads[i].IsBackground = true;
 
-        SendThread.Start();
+            SendThreads[i].Start();
+        }
     }
 
     public static bool Poll(int timeout)
@@ -652,7 +660,7 @@ public sealed class UDPServer
 
         if (length > 0 && socket != null)
         {
-            byte[] managedBuffer = new byte[length];
+            byte[] managedBuffer = ArrayPool<byte>.Shared.Rent(length);
 
             fixed (byte* dst = managedBuffer)
             {
@@ -664,7 +672,7 @@ public sealed class UDPServer
                 Buffer = managedBuffer,
                 Length = length,
                 Address = socket.RemoteEndPoint,
-                Pooled = false
+                Pooled = true
             };
 
             buffer.Free();
@@ -685,7 +693,14 @@ public sealed class UDPServer
         }
     }
 
-    public static void Flush() => SendEvent?.Set();
+    public static void Flush()
+    {
+        if (SendEvents != null)
+        {
+            for (int i = 0; i < SendEvents.Length; i++)
+                SendEvents[i].Set();
+        }
+    }
 
     public static void Update(float delta)
     {
