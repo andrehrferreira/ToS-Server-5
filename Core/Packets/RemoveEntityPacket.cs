@@ -4,11 +4,14 @@ using System.Runtime.CompilerServices;
 
 public partial struct RemoveEntityPacket: INetworkPacket
 {
+    public int Size => 7;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
         buffer.Reset();
-
+        buffer.Write(PacketType.Reliable);
         buffer.Write((ushort)ServerPacket.RemoveEntity);
+        buffer.Write(EntityId);
     }
 }

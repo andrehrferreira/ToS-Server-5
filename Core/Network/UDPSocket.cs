@@ -100,7 +100,14 @@ public class UDPSocket
 
     public void Send(INetworkPacket networkPacket)
     {
+        var buffer = new FlatBuffer(networkPacket.Size);
+        networkPacket.Serialize(ref buffer);
+        UDPServer.Send(buffer, buffer.Position, this);
+    }
 
+    public void Send(FlatBuffer buffer)
+    {
+        UDPServer.Send(buffer, buffer.Position, this);
     }
 
     public void Send(byte[] buffer)
@@ -200,11 +207,7 @@ public class UDPSocket
         {
             Reason = reason;
 
-            if (PacketManager.TryGet(PacketType.Disconnect, out var disconnectPacket))
-            {
-                disconnectPacket.Serialize();
-                //Send(disconnectPacket.Buffer);
-            }                     
+            Send(new DisconnectPacket());                  
         }
     }
 

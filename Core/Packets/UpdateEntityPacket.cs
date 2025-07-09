@@ -4,10 +4,13 @@ using System.Runtime.CompilerServices;
 
 public partial struct UpdateEntityPacket: INetworkPacket
 {
+    public int Size => 37;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
         buffer.Reset();
+        buffer.Write(PacketType.Unreliable);
         buffer.Write((ushort)ServerPacket.UpdateEntity);
         buffer.Write(EntityId);
         buffer.Write(Positon);

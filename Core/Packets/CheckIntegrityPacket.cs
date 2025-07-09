@@ -4,6 +4,8 @@ using System.Runtime.CompilerServices;
 
 public partial struct CheckIntegrityPacket: INetworkPacket
 {
+    public int Size => 7;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {

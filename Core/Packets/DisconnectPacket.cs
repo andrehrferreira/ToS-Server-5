@@ -4,11 +4,12 @@ using System.Runtime.CompilerServices;
 
 public partial struct DisconnectPacket: INetworkPacket
 {
+    public int Size => 1;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
         buffer.Reset();
-
         buffer.Write(PacketType.Disconnect);
     }
 }

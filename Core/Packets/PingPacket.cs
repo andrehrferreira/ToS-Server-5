@@ -4,6 +4,8 @@ using System.Runtime.CompilerServices;
 
 public partial struct PingPacket: INetworkPacket
 {
+    public int Size => 9;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {

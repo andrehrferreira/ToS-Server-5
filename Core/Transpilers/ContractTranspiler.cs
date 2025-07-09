@@ -122,7 +122,7 @@ public class ContractTraspiler : AbstractTranspiler
 
         if (fields.Length > 0)
         {
-            uint totalBytes = 1;
+            int totalBytes = (contractAttribute.PacketType != PacketType.None) ? 1 : 3;
 
             foreach (var field in fields)
             {
@@ -167,6 +167,9 @@ public class ContractTraspiler : AbstractTranspiler
                     break;
             }
 
+            writer.WriteLine($"    public int Size => {totalBytes};");
+            writer.WriteLine();
+
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
             writer.WriteLine($"    public void Serialize(ref FlatBuffer buffer)");
             writer.WriteLine("    {");
@@ -175,7 +178,15 @@ public class ContractTraspiler : AbstractTranspiler
             if (contractAttribute.PacketType != PacketType.None)
                 writer.WriteLine($"        buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
             else
+            {
+                if (contractAttribute.Flags.HasFlag(ContractPacketFlags.Reliable))
+                    writer.WriteLine($"        buffer.Write(PacketType.Reliable);");
+                else
+                    writer.WriteLine($"        buffer.Write(PacketType.Unreliable);");
+
                 writer.WriteLine($"        buffer.Write((ushort)ServerPacket.{rawName});");
+            }
+                
 
             foreach (var field in fields)
             {
@@ -215,16 +226,30 @@ public class ContractTraspiler : AbstractTranspiler
         }
         else
         {
+            if (contractAttribute.PacketType != PacketType.None)
+                writer.WriteLine($"    public int Size => 1;");
+            else
+                writer.WriteLine($"    public int Size => 3;");
+
+            writer.WriteLine();
+
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
             writer.WriteLine($"    public void Serialize(ref FlatBuffer buffer)");
             writer.WriteLine("    {");
             writer.WriteLine("        buffer.Reset();");
-            writer.WriteLine();
 
             if (contractAttribute.PacketType != PacketType.None)
                 writer.WriteLine($"        buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
             else
+            {
+                if(contractAttribute.Flags.HasFlag(ContractPacketFlags.Reliable))
+                    writer.WriteLine($"        buffer.Write(PacketType.Reliable);");
+                else
+                    writer.WriteLine($"        buffer.Write(PacketType.Unreliable);");
+
                 writer.WriteLine($"        buffer.Write((ushort)ServerPacket.{rawName});");
+            }
+                
             
             writer.WriteLine("    }");
         }

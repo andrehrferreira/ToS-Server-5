@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 
 [Flags]
 public enum EntityState : uint
@@ -10,6 +11,17 @@ public enum EntityState : uint
     IsCasting = 1 << 3,
     IsInvisible = 1 << 4,
     IsStunned = 1 << 5
+}
+
+[Flags]
+public enum EntityDelta
+{
+    None = 0,
+    Position = 1 << 0,
+    Rotation = 1 << 1,
+    AnimState = 1 << 2,
+    Flags = 1 << 3,
+    All = Position | Rotation | AnimState | Flags
 }
 
 public enum EntityType
@@ -42,13 +54,24 @@ public partial struct Entity
         Type = type;
     }
 
-    public World GetWorld {
+    public World World {
         get
         {
             if (World.Get(WorldId, out var world))
                 return world;
 
             return null;
+        }
+        set
+        {
+            if (value != null)
+            {
+                WorldId = value.Id;
+            }
+            else
+            {
+                WorldId = 0;
+            }
         }
     }
 
@@ -71,6 +94,47 @@ public partial struct Entity
                 EntitySocketMap.Unbind(Id);
             }
         }
+    }
+
+    public bool IsAlive
+    {
+        get => (Flags & EntityState.IsAlive) != 0;
+        set
+        {
+            if (value)
+                Flags |= EntityState.IsAlive;
+            else
+                Flags &= ~EntityState.IsAlive;
+        }
+    }
+
+    public void Snapshot()
+    {
+        EntityManager.Snapshot(Id, this);
+    }
+
+    public void Move(FVector position)
+    {
+        if(position == Position)
+            return;
+
+        Snapshot();
+        Position = position;
+    }
+
+    public EntityDelta Delta()
+    {
+        Entity last;
+        EntityManager.TryGetSnapshot(Id, out last);
+
+        EntityDelta delta = EntityDelta.None;
+
+        if(Position != last.Position) delta |= EntityDelta.Position;
+        if(Rotation != last.Rotation) delta |= EntityDelta.Rotation;
+        if(AnimState != last.AnimState) delta |= EntityDelta.AnimState;
+        if(Flags != last.Flags) delta |= EntityDelta.Flags;
+
+        return delta;
     }
 }
 
@@ -97,10 +161,16 @@ public static class EntitySocketMap
 public static class EntityManager
 {
     private static readonly ConcurrentDictionary<uint, Entity> _entities = new();
+    private static readonly ConcurrentDictionary<uint, Entity> _snapshot = new();
 
     public static void Add(Entity entity)
     {
         _entities[entity.Id] = entity;
+    }
+
+    public static void Snapshot(uint id, Entity entity)
+    {
+        _snapshot[id] = entity;
     }
 
     public static bool TryGet(uint id, out Entity entity)
@@ -108,8 +178,32 @@ public static class EntityManager
         return _entities.TryGetValue(id, out entity);
     }
 
+    public static bool TryGetSnapshot(uint id, out Entity entity)
+    {
+        return _snapshot.TryGetValue(id, out entity);
+    }
+
     public static void Remove(uint id)
     {
         _entities.TryRemove(id, out _);
+    }
+}
+
+public partial struct DeltaSyncPacket
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Delta(Entity entity, ref FlatBuffer buffer)
+    {
+        var delta = entity.Delta();
+        buffer.Write((byte)delta);
+
+        if(delta.HasFlag(EntityDelta.Position))
+            buffer.Write(entity.Position);
+        if (delta.HasFlag(EntityDelta.Rotation))
+            buffer.Write(entity.Rotation);
+        if (delta.HasFlag(EntityDelta.AnimState))
+            buffer.Write(entity.AnimState);
+        if (delta.HasFlag(EntityDelta.Flags))
+            buffer.Write(entity.Flags);
     }
 }

@@ -2,6 +2,7 @@ public static partial class PacketRegistration { }
 
 public interface INetworkPacket
 {
+    int Size { get; }
     void Serialize(ref FlatBuffer buffer);
     //void Deserialize(ref FlatBuffer buffer);
 }

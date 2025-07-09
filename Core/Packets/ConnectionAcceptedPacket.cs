@@ -4,6 +4,8 @@ using System.Runtime.CompilerServices;
 
 public partial struct ConnectionAcceptedPacket: INetworkPacket
 {
+    public int Size => 5;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
