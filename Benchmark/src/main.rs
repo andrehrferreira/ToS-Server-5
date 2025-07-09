@@ -45,33 +45,53 @@ async fn main() -> std::io::Result<()> {
                 }
 
                 let mut buf = [0u8; 1024];
+                let mut update_interval = tokio::time::interval(Duration::from_millis(50));
+                let mut position = (0i32, 0i32, 0i32);
+                let mut rotation = (0i32, 0i32, 0i32);
 
                 while start.elapsed() < TEST_DURATION {
-                    match socket.recv_from(&mut buf).await {
-                        Ok((size, addr)) => {
-                            if size == 0 {
-                                continue;
+                    tokio::select! {
+                        _ = update_interval.tick() => {
+                            let mut packet = [0u8; 25];
+                            packet[0] = 11u8;
+                            packet[1..5].copy_from_slice(&position.0.to_le_bytes());
+                            packet[5..9].copy_from_slice(&position.1.to_le_bytes());
+                            packet[9..13].copy_from_slice(&position.2.to_le_bytes());
+                            packet[13..17].copy_from_slice(&rotation.0.to_le_bytes());
+                            packet[17..21].copy_from_slice(&rotation.1.to_le_bytes());
+                            packet[21..25].copy_from_slice(&rotation.2.to_le_bytes());
+                            if let Ok(_) = socket.send_to(&packet, &server_addr).await {
+                                packets_sent.fetch_add(1, Ordering::Relaxed);
                             }
-                            let packet_type = buf[0];
-                            match packet_type {
-                                1 => {
-                                    if size >= 9 {
-                                        let mut pong_packet = [0u8; 9];
-                                        pong_packet[0] = 2u8;
-                                        pong_packet[1..9].copy_from_slice(&buf[1..9]);
-                                        let _ = socket.send_to(&pong_packet, addr).await;
-                                        packets_sent.fetch_add(1, Ordering::Relaxed);
-                                    } else {
-                                        eprintln!("Received Ping with invalid size: {}", size);
+
+                            position.0 = position.0.wrapping_add(1);
+                            position.1 = position.1.wrapping_add(1);
+                            position.2 = position.2.wrapping_add(1);
+                        },
+                        result = socket.recv_from(&mut buf) => {
+                            match result {
+                                Ok((size, addr)) => {
+                                    if size == 0 { continue; }
+                                    let packet_type = buf[0];
+                                    match packet_type {
+                                        1 => {
+                                            if size >= 9 {
+                                                let mut pong_packet = [0u8; 9];
+                                                pong_packet[0] = 2u8;
+                                                pong_packet[1..9].copy_from_slice(&buf[1..9]);
+                                                let _ = socket.send_to(&pong_packet, addr).await;
+                                                packets_sent.fetch_add(1, Ordering::Relaxed);
+                                            } else {
+                                                eprintln!("Received Ping with invalid size: {}", size);
+                                            }
+                                        }
+                                        9 => { /* ConnectionAccepted */ }
+                                        _ => { /* Ignored */ }
                                     }
+                                    packets_received.fetch_add(1, Ordering::Relaxed);
                                 }
-                                9 => { /* ConnectionAccepted */ }
-                                _ => { /* Ignored */ }
+                                Err(_) => { continue; }
                             }
-                            packets_received.fetch_add(1, Ordering::Relaxed);
-                        }
-                        Err(_) => {
-                            continue;
                         }
                     }
                 }

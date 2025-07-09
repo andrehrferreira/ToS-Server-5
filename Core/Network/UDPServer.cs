@@ -521,11 +521,17 @@ public sealed class UDPServer
                 {
                     var newLocation = ByteBuffer.ReadFVector(data, 1, len);
                     var newRotato = ByteBuffer.ReadFRotator(data, 13, len);
-                    var values = Clients.Values.ToArray();
 
-                    for(int i = 0; i < 250; i++) {
-                        var random = new Random();
-                        var randomValue = values[random.Next(values.Length)];
+                    var values = Clients.Values.ToArray();
+                    if (values.Length == 0)
+                        break;
+
+                    var rnd = new Random();
+                    int limit = Math.Min(250, values.Length);
+
+                    for (int i = 0; i < limit; i++)
+                    {
+                        var randomValue = values[rnd.Next(values.Length)];
 
                         randomValue.Send(new BenchmarkPacket
                         {
