@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 public abstract class PacketHandler
 {
@@ -35,11 +36,20 @@ public interface IPacket
 
 public class Packet : IPacket
 {
-    public byte[] _buffer = new byte[1];
+    public FlatBuffer _buffer = new FlatBuffer(1);
 
     static readonly Packet[] Handlers = new Packet[1024];
 
-    public byte[] Buffer => _buffer;
+    public byte[] Buffer
+    {
+        get
+        {
+            int length = _buffer.Position;
+            byte[] result = new byte[length];
+            Marshal.Copy((IntPtr)_buffer.Data, result, 0, length);
+            return result;
+        }
+    }
 
     public virtual void Serialize(object? data = null)
     {
