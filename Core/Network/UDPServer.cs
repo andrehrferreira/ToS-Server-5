@@ -26,6 +26,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Net.WebSockets;
 
 public unsafe struct NativeBuffer
 {
@@ -518,7 +519,21 @@ public sealed class UDPServer
             {
                 if (Clients.TryGetValue(address, out conn))
                 {
-                    
+                    var newLocation = ByteBuffer.ReadFVector(data, 1, len);
+                    var newRotato = ByteBuffer.ReadFRotator(data, 13, len);
+                    var values = Clients.Values.ToArray();
+
+                    for(int i = 0; i < 250; i++) {
+                        var random = new Random();
+                        var randomValue = values[random.Next(values.Length)];
+
+                        randomValue.Send(new BenchmarkPacket
+                        {
+                            Id = conn.Id,
+                            Positon = newLocation,
+                            Rotator = newRotato
+                        });
+                    }
                 }
             }
             break;

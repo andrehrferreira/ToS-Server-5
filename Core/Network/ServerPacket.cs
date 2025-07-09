@@ -2,14 +2,15 @@
 
 public enum ServerPacket: ushort
 {
-    CreateEntity = 0,
-    UpdateEntity = 1,
-    RemoveEntity = 2,
-    Ping = 3,
-    ConnectionAccepted = 4,
-    ConnectionDenied = 5,
-    Disconnect = 6,
-    CheckIntegrity = 7,
-    DeltaSync = 8,
-    SyncStateInt = 9,
+    Benchmark = 0,
+    CreateEntity = 1,
+    UpdateEntity = 2,
+    RemoveEntity = 3,
+    Ping = 4,
+    ConnectionAccepted = 5,
+    ConnectionDenied = 6,
+    Disconnect = 7,
+    CheckIntegrity = 8,
+    DeltaSync = 9,
+    SyncStateInt = 10,
 }
