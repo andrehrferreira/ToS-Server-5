@@ -30,24 +30,21 @@ public abstract class PacketHandler
 
 public interface IPacket
 {
-    byte[] Buffer { get; }
+    FlatBuffer Buffer { get; }
     void Serialize(object? data = null);
 }
 
-public class Packet : IPacket
+public unsafe class Packet : IPacket
 {
     public FlatBuffer _buffer = new FlatBuffer(1);
 
     static readonly Packet[] Handlers = new Packet[1024];
 
-    public byte[] Buffer
+    public FlatBuffer Buffer
     {
         get
         {
-            int length = _buffer.Position;
-            byte[] result = new byte[length];
-            Marshal.Copy((IntPtr)_buffer.Data, result, 0, length);
-            return result;
+            return _buffer;
         }
     }
 

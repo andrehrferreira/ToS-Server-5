@@ -49,13 +49,13 @@ public class ContractTraspiler : AbstractTranspiler
             var fields = contract.GetFields(BindingFlags.Public | BindingFlags.Instance);
             var attribute = contract.GetCustomAttribute<ContractAttribute>();
             var contractName = contract.Name;
-            var rawName = contractName.Replace("Contract", "");
+            var rawName = contractName.Replace("Packet", "");
 
             if (attribute.LayerType == PacketLayerType.Server)
             {
-                string filePath = Path.Combine(baseDirectoryPath, $"{rawName}Packet.cs");
+                string filePath = Path.Combine(baseDirectoryPath, $"{contractName}.cs");
 
-                serverPackets.Add(contract.Name);
+                serverPackets.Add(attribute.Name);
                 serverPacketType.Add(attribute.PacketType.ToString());
                 serverLowLevelPacket.Add(attribute.PacketType != PacketType.None);
 
@@ -65,7 +65,7 @@ public class ContractTraspiler : AbstractTranspiler
                     writer.WriteLine();
                     writer.WriteLine("using System.Runtime.CompilerServices;");               
                     writer.WriteLine();
-                    writer.WriteLine($"public class {rawName}Packet: Packet");                    
+                    writer.WriteLine($"public partial struct {contractName}: INetworkPacket");                    
                     writer.WriteLine("{");
 
                     GenerateSerialize(writer, contract, fields, attribute);
@@ -107,42 +107,18 @@ public class ContractTraspiler : AbstractTranspiler
             for (int i = 0; i < values.Count; i++)
             {
                 string value = values[i];
-                writer.WriteLine($"    {value.Replace("Contract", "")} = {pointer},");
+                writer.WriteLine($"    {value.Replace("Packet", "")} = {pointer},");
                 pointer++;
             }
 
             writer.WriteLine("}");
-
-            if (enumName == "ServerPacket")
-            {
-                writer.WriteLine();
-                writer.WriteLine("public static partial class PacketRegistration");
-                writer.WriteLine("{");
-                writer.WriteLine("    public static void RegisterPackets()");
-                writer.WriteLine("    {");
-
-                for (int i = 0; i < values.Count; i++)
-                {
-                    string value = values[i];
-                    var rawName = value.Replace("Contract", "");
-
-                    if (serverLowLevelPacket[i])
-                        writer.WriteLine($"        PacketManager.Register(PacketType.{serverPacketType[i]}, new {rawName}Packet());");
-                    else
-                        writer.WriteLine($"        PacketManager.Register(ServerPacket.{rawName}, new {rawName}Packet());");
-                }
-
-                writer.WriteLine("    }");
-                writer.WriteLine("}");
-                writer.WriteLine();
-            }
         }
     }
 
     private static void GenerateSerialize(StreamWriter writer, Type contract, FieldInfo[] fields, ContractAttribute contractAttribute)
     {
         var data = contractAttribute.Flags.HasFlag(ContractPacketFlags.NoContent) ? "" : $"{contract.Name} data";
-        var rawName = contract.Name.Replace("Contract", "");
+        var rawName = contract.Name.Replace("Packet", "");
 
         if (fields.Length > 0)
         {
@@ -191,29 +167,15 @@ public class ContractTraspiler : AbstractTranspiler
                     break;
             }
 
-            writer.WriteLine($"    public {rawName}Packet()");
-            writer.WriteLine("    {");
-            writer.WriteLine($"        _buffer = new FlatBuffer({totalBytes});");
-            writer.WriteLine("    }");
-            writer.WriteLine();
-
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            writer.WriteLine($"    public override void Serialize(object? data = null)");
+            writer.WriteLine($"    public void Serialize(ref FlatBuffer buffer)");
             writer.WriteLine("    {");
-            writer.WriteLine($"        var typedData = data is {contract.Name} p ? p : throw new InvalidCastException(\"Invalid data type.\");");
-            writer.WriteLine("        Serialize(typedData);");
-            writer.WriteLine("    }");
-            writer.WriteLine();
-
-            writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            writer.WriteLine($"    public void Serialize({data})");
-            writer.WriteLine("    {");
-            writer.WriteLine("        _buffer.Reset();");
+            writer.WriteLine("        buffer.Reset();");
 
             if (contractAttribute.PacketType != PacketType.None)
-                writer.WriteLine($"        _buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
+                writer.WriteLine($"        buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
             else
-                writer.WriteLine($"        _buffer.Write((ushort)ServerPacket.{contract.Name.Replace("Contract", "")});");
+                writer.WriteLine($"        buffer.Write((ushort)ServerPacket.{rawName});");
 
             foreach (var field in fields)
             {
@@ -226,45 +188,21 @@ public class ContractTraspiler : AbstractTranspiler
                     case "integer":
                     case "int":
                     case "int32":
-                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
-                        break;
                     case "uint":
-                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
-                        break;
                     case "ushort":
-                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
-                        break;
                     case "short":
-                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
-                        break;
-                    case "str":
-                    case "string":
-                        writer.WriteLine($"        // String serialization not supported");
-                        break;
                     case "byte":
-                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
-                        break;
                     case "float":
-                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
-                        break;
                     case "long":
-                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
-                        break;
                     case "bool":
                     case "boolean":
-                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
-                        break;
+                    case "decimal":
                     case "FVector":
-                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
-                        break;
                     case "FRotator":
-                        writer.WriteLine($"        _buffer.Write(data.{fieldName});");
+                        writer.WriteLine($"        buffer.Write({fieldName});");
                         break;
                     case "id":
-                        writer.WriteLine($"        _buffer.Write(Base36.ToInt(data.{fieldName}));");
-                        break;
-                    case "decimal":
-                        writer.WriteLine($"        _buffer.Write((float)data.{fieldName});");
+                        writer.WriteLine($"        buffer.Write(Base36.ToInt({fieldName}));");
                         break;
                     default:
                         writer.WriteLine($"    // Tipo não suportado: {fieldType}");
@@ -277,32 +215,16 @@ public class ContractTraspiler : AbstractTranspiler
         }
         else
         {
-            if (contractAttribute.PacketType == PacketType.None)
-            {
-                writer.WriteLine($"    public {rawName}Packet()");
-                writer.WriteLine("    {");
-                writer.WriteLine($"        _buffer = new FlatBuffer(9);");
-                writer.WriteLine("    }");
-                writer.WriteLine();
-            }
-
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            writer.WriteLine($"    public override void Serialize(object? data = null)");
+            writer.WriteLine($"    public void Serialize(ref FlatBuffer buffer)");
             writer.WriteLine("    {");
-            writer.WriteLine("        Serialize();");
-            writer.WriteLine("    }");
+            writer.WriteLine("        buffer.Reset();");
             writer.WriteLine();
 
-            writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            writer.WriteLine($"    public void Serialize()");
-            writer.WriteLine("    {");
-
-            _buffer.Reset();
-
             if (contractAttribute.PacketType != PacketType.None)
-                writer.WriteLine($"        _buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
+                writer.WriteLine($"        buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
             else
-                writer.WriteLine($"        _buffer.Write((ushort)ServerPacket.{contract.Name.Replace("Contract", "")});");
+                writer.WriteLine($"        buffer.Write((ushort)ServerPacket.{rawName});");
             
             writer.WriteLine("    }");
         }

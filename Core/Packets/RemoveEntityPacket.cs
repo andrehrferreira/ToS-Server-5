@@ -2,22 +2,13 @@
 
 using System.Runtime.CompilerServices;
 
-public class RemoveEntityPacket: Packet
+public partial struct RemoveEntityPacket: INetworkPacket
 {
-    public RemoveEntityPacket()
-    {
-        _buffer = new byte[9];
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override void Serialize(object? data = null)
+    public void Serialize(ref FlatBuffer buffer)
     {
-        Serialize();
-    }
+        buffer.Reset();
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Serialize()
-    {
-        ByteBuffer.WriteUShort(_buffer, 0, (ushort)ServerPacket.RemoveEntity);
+        buffer.Write((ushort)ServerPacket.RemoveEntity);
     }
 }

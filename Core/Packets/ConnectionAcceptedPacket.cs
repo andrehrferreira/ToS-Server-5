@@ -2,25 +2,13 @@
 
 using System.Runtime.CompilerServices;
 
-public class ConnectionAcceptedPacket: Packet
+public partial struct ConnectionAcceptedPacket: INetworkPacket
 {
-    public ConnectionAcceptedPacket()
-    {
-        _buffer = new byte[5];
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override void Serialize(object? data = null)
+    public void Serialize(ref FlatBuffer buffer)
     {
-        var typedData = data is ConnectionAccepted p ? p : throw new InvalidCastException("Invalid data type.");
-        Serialize(typedData);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Serialize(ConnectionAccepted data)
-    {
-        uint offset = 0;
-        offset = ByteBuffer.WritePacketType(_buffer, offset, PacketType.ConnectionAccepted);
-        offset = ByteBuffer.WriteUInt(_buffer, offset, data.Id);
+        buffer.Reset();
+        buffer.Write(PacketType.ConnectionAccepted);
+        buffer.Write(Id);
     }
 }

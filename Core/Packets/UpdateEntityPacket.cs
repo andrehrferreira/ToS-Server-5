@@ -2,29 +2,17 @@
 
 using System.Runtime.CompilerServices;
 
-public class UpdateEntityPacket: Packet
+public partial struct UpdateEntityPacket: INetworkPacket
 {
-    public UpdateEntityPacket()
-    {
-        _buffer = new byte[35];
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override void Serialize(object? data = null)
+    public void Serialize(ref FlatBuffer buffer)
     {
-        var typedData = data is UpdateEntity p ? p : throw new InvalidCastException("Invalid data type.");
-        Serialize(typedData);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Serialize(UpdateEntity data)
-    {
-        uint offset = 0;
-        offset = ByteBuffer.WriteUShort(_buffer, offset, (ushort)ServerPacket.UpdateEntity);
-        offset = ByteBuffer.WriteUInt(_buffer, offset, data.EntityId);
-        offset = ByteBuffer.WriteFVector(_buffer, offset, data.Positon);
-        offset = ByteBuffer.WriteFRotator(_buffer, offset, data.Rotator);
-        offset = ByteBuffer.WriteUShort(_buffer, offset, data.AnimationState);
-        offset = ByteBuffer.WriteUInt(_buffer, offset, data.Flags);
+        buffer.Reset();
+        buffer.Write((ushort)ServerPacket.UpdateEntity);
+        buffer.Write(EntityId);
+        buffer.Write(Positon);
+        buffer.Write(Rotator);
+        buffer.Write(AnimationState);
+        buffer.Write(Flags);
     }
 }

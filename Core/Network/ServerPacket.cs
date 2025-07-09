@@ -12,20 +12,3 @@ public enum ServerPacket: ushort
     CheckIntegrity = 7,
     SyncStateInt = 8,
 }
-
-public static partial class PacketRegistration
-{
-    public static void RegisterPackets()
-    {
-        PacketManager.Register(ServerPacket.CreateEntity, new CreateEntityPacket());
-        PacketManager.Register(ServerPacket.UpdateEntity, new UpdateEntityPacket());
-        PacketManager.Register(ServerPacket.RemoveEntity, new RemoveEntityPacket());
-        PacketManager.Register(PacketType.Ping, new PingPacket());
-        PacketManager.Register(PacketType.ConnectionAccepted, new ConnectionAcceptedPacket());
-        PacketManager.Register(PacketType.ConnectionDenied, new ConnectionDeniedPacket());
-        PacketManager.Register(PacketType.Disconnect, new DisconnectPacket());
-        PacketManager.Register(PacketType.CheckIntegrity, new CheckIntegrityPacket());
-        PacketManager.Register(ServerPacket.SyncStateInt, new SyncStateIntPacket());
-    }
-}
-

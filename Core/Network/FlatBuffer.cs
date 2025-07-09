@@ -26,7 +26,7 @@ using System.Runtime.InteropServices;
 
 public unsafe struct FlatBuffer : IDisposable
 {
-    private byte* _ptr;
+    public byte* _ptr;
     private int _capacity;
     private int _offset;
     private bool _disposed;
@@ -64,6 +64,7 @@ public unsafe struct FlatBuffer : IDisposable
     public void Write<T>(T value) where T : unmanaged
     {
         int size = sizeof(T);
+
         if (_offset + size > _capacity)
             throw new IndexOutOfRangeException($"Write exceeds buffer size ({_capacity}) at {_offset} with size {size}");
 
@@ -74,6 +75,7 @@ public unsafe struct FlatBuffer : IDisposable
     public T Read<T>() where T : unmanaged
     {
         int size = sizeof(T);
+
         if (_offset + size > _capacity)
             throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {size}");
 

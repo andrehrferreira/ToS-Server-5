@@ -2,17 +2,13 @@
 
 using System.Runtime.CompilerServices;
 
-public class ConnectionDeniedPacket: Packet
+public partial struct ConnectionDeniedPacket: INetworkPacket
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override void Serialize(object? data = null)
+    public void Serialize(ref FlatBuffer buffer)
     {
-        Serialize();
-    }
+        buffer.Reset();
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Serialize()
-    {
-        ByteBuffer.WritePacketType(_buffer, 0, PacketType.ConnectionDenied);
+        buffer.Write(PacketType.ConnectionDenied);
     }
 }

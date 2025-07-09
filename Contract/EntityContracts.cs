@@ -1,11 +1,11 @@
 [Contract("CreateEntity", PacketLayerType.Server, ContractPacketFlags.FromEntity)]
-public struct CreateEntity
+public partial struct CreateEntityPacket
 {
 
 }
 
 [Contract("SyncEntity", PacketLayerType.Client)]
-public struct SyncEntity
+public partial struct SyncEntityPacket
 {
     [ContractField("FVector")]
     public FVector Positon;
@@ -18,7 +18,7 @@ public struct SyncEntity
 }
 
 [Contract("UpdateEntity", PacketLayerType.Server, ContractPacketFlags.FromEntity)]
-public struct UpdateEntity
+public partial struct UpdateEntityPacket
 {
     [ContractField("uint")]
     public uint EntityId;
@@ -37,7 +37,7 @@ public struct UpdateEntity
 }
 
 [Contract("RemoveEntity", PacketLayerType.Server, ContractPacketFlags.Reliable_ToEntity)]
-public struct RemoveEntity
+public partial struct RemoveEntityPacket
 {
 
 }

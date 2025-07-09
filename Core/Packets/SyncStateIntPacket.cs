@@ -2,22 +2,13 @@
 
 using System.Runtime.CompilerServices;
 
-public class SyncStateIntPacket: Packet
+public partial struct SyncStateIntPacket: INetworkPacket
 {
-    public SyncStateIntPacket()
-    {
-        _buffer = new byte[9];
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override void Serialize(object? data = null)
+    public void Serialize(ref FlatBuffer buffer)
     {
-        Serialize();
-    }
+        buffer.Reset();
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Serialize()
-    {
-        ByteBuffer.WriteUShort(_buffer, 0, (ushort)ServerPacket.SyncStateInt);
+        buffer.Write((ushort)ServerPacket.SyncStateInt);
     }
 }

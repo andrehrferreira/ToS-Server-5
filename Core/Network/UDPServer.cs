@@ -148,8 +148,6 @@ public sealed class UDPServer
 
                 Running = true;
 
-                PacketRegistration.RegisterPackets();
-
 #if DEBUG
                 ServerMonitor.Log($"UDP server started on port {port}");
 #endif
@@ -180,7 +178,7 @@ public sealed class UDPServer
         ServerSocket?.Close();
     }
 
-    public static void ReceiveOnBackgroundThread()
+    public unsafe static void ReceiveOnBackgroundThread()
     {
         if (ReceiveThread != null) return;
 
@@ -202,20 +200,26 @@ public sealed class UDPServer
                     {
                         if(Clients.Count > 0)
                         {
-                            if (PacketManager.TryGet(PacketType.Ping, out var packet))
+                            var buffer = new FlatBuffer(9);
+                            var pingPacket = new PingPacket { SentTimestamp = Stopwatch.GetTimestamp() };
+                            pingPacket.Serialize(ref buffer);
+
+                            var sendBatch = new PacketPointer[Clients.Count];
+                            int count = 0;
+
+                            foreach (var kv in Clients)
                             {
-                                packet.Serialize(new Ping { SentTimestamp = Stopwatch.GetTimestamp() });
-                                var sendBatch = new (object, byte[], int)[Clients.Count];
-                                int count = 0;
-
-                                foreach (var kv in Clients)
+                                sendBatch[count++] = new PacketPointer
                                 {
-                                    sendBatch[count++] = (FormatAddress(kv.Value.RemoteEndPoint), packet.Buffer, 9);
-                                    kv.Value.PingSentAt = DateTime.UtcNow;
-                                }
+                                    Addr = kv.Value.RemoteEndPoint,
+                                    DataPtr = (IntPtr)buffer.Data,
+                                    Length = buffer.Position
+                                };
 
-                                UdpBatchIO.SendBatch(ServerSocket, sendBatch.AsSpan(0, count));
+                                kv.Value.PingSentAt = DateTime.UtcNow;
                             }
+
+                            UdpBatchIO.SendBatch(ServerSocket, sendBatch.AsSpan(0, count));
                         }
 
                         pingTimer.Restart();
@@ -314,11 +318,11 @@ public sealed class UDPServer
 
                 if (batch.Count > 0)
                 {
-                    var sendBatch = new (object, byte[], int)[batch.Count];
+                    var sendBatch = new (EndPoint, byte[], int)[batch.Count];
                     int count = 0;
 
                     foreach (var p in batch)
-                        sendBatch[count++] = (FormatAddress(p.Address), p.Buffer, p.Length);
+                        sendBatch[count++] = (p.Address, p.Buffer, p.Length);
 
                     UdpBatchIO.SendBatch(ServerSocket, sendBatch);
 
@@ -347,10 +351,8 @@ public sealed class UDPServer
     {
         bool received = false;
 
-        UdpBatchIO.ReceiveBatch(ServerSocket, 32, (addrObj, data, len) =>
+        UdpBatchIO.ReceiveBatch(ServerSocket, 32, (address, data, len) =>
         {
-            var address = ConvertToEndPoint(addrObj);
-
             if (_options.EnableWAF && !WAFRateLimiter.AllowPacket(address))
             {
 #if DEBUG
@@ -369,45 +371,6 @@ public sealed class UDPServer
         });
 
         return received;
-    }
-
-    private static EndPoint ConvertToEndPoint(object addr)
-    {
-#if LINUX
-        if (addr is UdpBatchIO_Linux.sockaddr_in linuxAddr)
-        {
-            uint ip = linuxAddr.sin_addr;
-            byte[] ipBytes = new byte[]
-            {
-                (byte)((ip >> 24) & 0xFF),
-                (byte)((ip >> 16) & 0xFF),
-                (byte)((ip >> 8) & 0xFF),
-                (byte)(ip & 0xFF)
-            };
-            var ipAddress = new IPAddress(ipBytes);
-            int port = (ushort)IPAddress.NetworkToHostOrder((short)linuxAddr.sin_port);
-            return new IPEndPoint(ipAddress, port);
-        }
-#endif
-        return addr as EndPoint ?? new IPEndPoint(IPAddress.Any, 0);
-    }
-
-    private static object FormatAddress(EndPoint ep)
-    {
-#if LINUX
-        if (ep is IPEndPoint ip)
-        {
-            byte[] bytes = ip.Address.MapToIPv4().GetAddressBytes();
-            uint ipUint = ((uint)bytes[0] << 24) | ((uint)bytes[1] << 16) | ((uint)bytes[2] << 8) | bytes[3];
-            return new UdpBatchIO_Linux.sockaddr_in
-            {
-                sin_family = (ushort)AddressFamily.InterNetwork,
-                sin_port = (ushort)IPAddress.HostToNetworkOrder((short)ip.Port),
-                sin_addr = ipUint
-            };
-        }
-#endif
-        return ep;
     }
 
     private static void HandlePacket(PacketType type, byte[] data, int len, EndPoint address)
@@ -464,11 +427,7 @@ public sealed class UDPServer
                     {
                         uint ID = GetRandomId();
 
-                        if(PacketManager.TryGet(PacketType.ConnectionAccepted, out var packet))
-                        {
-                            packet.Serialize(new ConnectionAccepted { Id = ID });
-                            newSocket.Send(packet.Buffer);
-                        }
+                        newSocket.Send(new ConnectionAcceptedPacket { Id = ID });
 
                         newSocket.State = ConnectionState.Connected;
 

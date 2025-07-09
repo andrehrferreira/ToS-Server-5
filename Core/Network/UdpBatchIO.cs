@@ -47,7 +47,7 @@ public static class UdpBatchIO
     private static Action<object, byte[], int> _receiveCallback;
 #endif
 
-    public static int ReceiveBatch(Socket socket, int maxMessages, Action<object, byte[], int> callback)
+    public static int ReceiveBatch(Socket socket, int maxMessages, Action<EndPoint, byte[], int> callback)
     {
 #if LINUX
         int fd = (int)socket.Handle;
@@ -78,7 +78,7 @@ public static class UdpBatchIO
 #endif
     }
 
-    public static int SendBatch(Socket socket, ReadOnlySpan<(object addr, byte[] data, int length)> packets)
+    public static int SendBatch(Socket socket, ReadOnlySpan<(EndPoint addr, byte[] data, int length)> packets)
     {
     #if LINUX
         int fd = (int)socket.Handle;
@@ -93,17 +93,8 @@ public static class UdpBatchIO
         return UdpBatchIO_Linux.SendBatch(fd, nativePackets);
 
     #elif WINDOWS
-            var formattedPackets = new List<(EndPoint addr, byte[] data, int length)>(packets.Length);
-
-            foreach (var p in packets)
-            {
-                if (p.addr is EndPoint ep)
-                    formattedPackets.Add((ep, p.data, p.length));
-            }
-
-            UdpBatchIO_Windows.SendBatch(socket, formattedPackets);
-            return formattedPackets.Count;
-
+            UdpBatchIO_Windows.SendBatch(socket, packets);
+            return packets.Length;
     #else
         int sent = 0;
         foreach (var p in packets)
@@ -116,6 +107,56 @@ public static class UdpBatchIO
         }
         return sent;
     #endif
+    }
+
+    public static unsafe void SendBatch(Socket socket, ReadOnlySpan<PacketPointer> packets)
+    {
+#if WINDOWS
+        UdpBatchIO_Windows.SendBatch(socket, packets);
+#elif LINUX
+        UdpBatchIO_Linux.SendBatch(socket, packets);
+#else
+        // fallback implementation
+#endif
+    }
+
+    private static EndPoint ConvertToEndPoint(object addr)
+    {
+#if LINUX
+        if (addr is UdpBatchIO_Linux.sockaddr_in linuxAddr)
+        {
+            uint ip = linuxAddr.sin_addr;
+            byte[] ipBytes = new byte[]
+            {
+                (byte)((ip >> 24) & 0xFF),
+                (byte)((ip >> 16) & 0xFF),
+                (byte)((ip >> 8) & 0xFF),
+                (byte)(ip & 0xFF)
+            };
+            var ipAddress = new IPAddress(ipBytes);
+            int port = (ushort)IPAddress.NetworkToHostOrder((short)linuxAddr.sin_port);
+            return new IPEndPoint(ipAddress, port);
+        }
+#endif
+        return addr as EndPoint ?? new IPEndPoint(IPAddress.Any, 0);
+    }
+
+    private static object FormatAddress(EndPoint ep)
+    {
+#if LINUX
+        if (ep is IPEndPoint ip)
+        {
+            byte[] bytes = ip.Address.MapToIPv4().GetAddressBytes();
+            uint ipUint = ((uint)bytes[0] << 24) | ((uint)bytes[1] << 16) | ((uint)bytes[2] << 8) | bytes[3];
+            return new UdpBatchIO_Linux.sockaddr_in
+            {
+                sin_family = (ushort)AddressFamily.InterNetwork,
+                sin_port = (ushort)IPAddress.HostToNetworkOrder((short)ip.Port),
+                sin_addr = ipUint
+            };
+        }
+#endif
+        return ep;
     }
 
 #if WINDOWS

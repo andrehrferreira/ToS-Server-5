@@ -1,5 +1,11 @@
 public static partial class PacketRegistration { }
 
+public interface INetworkPacket
+{
+    void Serialize(ref FlatBuffer buffer);
+    //void Deserialize(ref FlatBuffer buffer);
+}
+
 public enum PacketLayerType
 {
     Server,

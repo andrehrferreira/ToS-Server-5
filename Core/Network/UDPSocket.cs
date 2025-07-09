@@ -98,6 +98,11 @@ public class UDPSocket
         }
     }
 
+    public void Send(INetworkPacket networkPacket)
+    {
+
+    }
+
     public void Send(byte[] buffer)
     {
         if (ServerSocket == null || RemoteEndPoint == null)
@@ -198,7 +203,7 @@ public class UDPSocket
             if (PacketManager.TryGet(PacketType.Disconnect, out var disconnectPacket))
             {
                 disconnectPacket.Serialize();
-                Send(disconnectPacket.Buffer);
+                //Send(disconnectPacket.Buffer);
             }                     
         }
     }

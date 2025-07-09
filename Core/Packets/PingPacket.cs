@@ -2,25 +2,13 @@
 
 using System.Runtime.CompilerServices;
 
-public class PingPacket: Packet
+public partial struct PingPacket: INetworkPacket
 {
-    public PingPacket()
-    {
-        _buffer = new byte[9];
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override void Serialize(object? data = null)
+    public void Serialize(ref FlatBuffer buffer)
     {
-        var typedData = data is Ping p ? p : throw new InvalidCastException("Invalid data type.");
-        Serialize(typedData);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Serialize(Ping data)
-    {
-        uint offset = 0;
-        offset = ByteBuffer.WritePacketType(_buffer, offset, PacketType.Ping);
-        offset = ByteBuffer.WriteLong(_buffer, offset, data.SentTimestamp);
+        buffer.Reset();
+        buffer.Write(PacketType.Ping);
+        buffer.Write(SentTimestamp);
     }
 }
