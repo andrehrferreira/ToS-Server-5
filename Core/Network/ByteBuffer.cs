@@ -27,7 +27,7 @@ using System.Runtime.CompilerServices;
 
 public class ByteBuffer : IDisposable
 {
-    private static readonly ArrayPool<byte> FixedPool = ArrayPool<byte>.Create(4096, 1000);
+    private static readonly ArrayPool<byte> FixedPool = ArrayPool<byte>.Create(4096, 10000);
 
     private bool Disposed = false;
 
