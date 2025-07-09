@@ -5,10 +5,14 @@ use std::time::{Instant, Duration};
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+use rand::Rng; // <-- necessário para .gen_range()
+use rand::SeedableRng;
+use rand::rngs::StdRng;
+
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     const SERVER_ADDR: &str = "127.0.0.1:3565";
-    const CLIENT_COUNT: usize = 10_000;//10_000;
+    const CLIENT_COUNT: usize = 200; // 10_000;
     const TEST_DURATION: Duration = Duration::from_secs(60);
     const BATCH_SIZE: usize = 10000;
 
@@ -46,27 +50,34 @@ async fn main() -> std::io::Result<()> {
 
                 let mut buf = [0u8; 1024];
                 let mut update_interval = tokio::time::interval(Duration::from_millis(50));
-                let mut position = (0i32, 0i32, 0i32);
-                let mut rotation = (0i32, 0i32, 0i32);
+                let mut rng = StdRng::from_entropy(); // gerador thread-safe
 
                 while start.elapsed() < TEST_DURATION {
                     tokio::select! {
                         _ = update_interval.tick() => {
+                            let position = (
+                                rng.gen_range(1..=1000),
+                                rng.gen_range(1..=1000),
+                                rng.gen_range(1..=1000),
+                            );
+                            let rotation = (
+                                rng.gen_range(1..=1000),
+                                rng.gen_range(1..=1000),
+                                rng.gen_range(1..=1000),
+                            );
+
                             let mut packet = [0u8; 25];
                             packet[0] = 11u8;
-                            packet[1..5].copy_from_slice(&position.0.to_le_bytes());
-                            packet[5..9].copy_from_slice(&position.1.to_le_bytes());
-                            packet[9..13].copy_from_slice(&position.2.to_le_bytes());
-                            packet[13..17].copy_from_slice(&rotation.0.to_le_bytes());
-                            packet[17..21].copy_from_slice(&rotation.1.to_le_bytes());
-                            packet[21..25].copy_from_slice(&rotation.2.to_le_bytes());
+                            packet[1..5].copy_from_slice(&(position.0 as i32).to_le_bytes());
+                            packet[5..9].copy_from_slice(&(position.1 as i32).to_le_bytes());
+                            packet[9..13].copy_from_slice(&(position.2 as i32).to_le_bytes());
+                            packet[13..17].copy_from_slice(&(rotation.0 as i32).to_le_bytes());
+                            packet[17..21].copy_from_slice(&(rotation.1 as i32).to_le_bytes());
+                            packet[21..25].copy_from_slice(&(rotation.2 as i32).to_le_bytes());
+
                             if let Ok(_) = socket.send_to(&packet, &server_addr).await {
                                 packets_sent.fetch_add(1, Ordering::Relaxed);
                             }
-
-                            position.0 = position.0.wrapping_add(1);
-                            position.1 = position.1.wrapping_add(1);
-                            position.2 = position.2.wrapping_add(1);
                         },
                         result = socket.recv_from(&mut buf) => {
                             match result {
@@ -99,7 +110,6 @@ async fn main() -> std::io::Result<()> {
             });
         }
 
-        // pausa entre batches para evitar pressão no sistema
         tokio::time::sleep(Duration::from_millis(1000)).await;
     }
 

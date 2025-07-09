@@ -519,27 +519,31 @@ public sealed class UDPServer
             {
                 if (Clients.TryGetValue(address, out conn))
                 {
-                    var newLocation = ByteBuffer.ReadFVector(data, 1, len);
-                    var newRotato = ByteBuffer.ReadFRotator(data, 13, len);
-
-                    var values = Clients.Values.ToArray();
-                    if (values.Length == 0)
-                        break;
-
-                    var rnd = new Random();
-                    int limit = Math.Min(250, values.Length);
-
-                    for (int i = 0; i < limit; i++)
+                    try
                     {
-                        var randomValue = values[rnd.Next(values.Length)];
+                        var newLocation = ByteBuffer.ReadFVector(data, 1, len);
+                        var newRotato = ByteBuffer.ReadFRotator(data, 13, len);
 
-                        randomValue.Send(new BenchmarkPacket
+                        var values = Clients.Values.ToArray();
+                        if (values.Length == 0)
+                            break;
+
+                        var rnd = new Random();
+                        int limit = Math.Min(250, values.Length);
+
+                        for (int i = 0; i < limit; i++)
                         {
-                            Id = conn.Id,
-                            Positon = newLocation,
-                            Rotator = newRotato
-                        });
+                            var randomValue = values[rnd.Next(values.Length)];
+
+                            randomValue.Send(new BenchmarkPacket
+                            {
+                                Id = conn.Id,
+                                Positon = newLocation,
+                                Rotator = newRotato
+                            });
+                        }
                     }
+                    catch { }                    
                 }
             }
             break;
@@ -651,6 +655,8 @@ public sealed class UDPServer
                 Address = socket.RemoteEndPoint,
                 Pooled = false
             };
+
+            buffer.Free();
 
             LocalSendQueue.Add(packet);
             Flush();

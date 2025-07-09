@@ -389,6 +389,9 @@ public static class UdpBatchIO_Windows
 
     private static void ProcessReceive(SocketAsyncEventArgs e)
     {
+        if(_socket == null)
+            return;
+
         if (e.SocketError == SocketError.Success && e.BytesTransferred > 0)
         {
             _callback?.Invoke(e.RemoteEndPoint, e.Buffer, e.BytesTransferred);
