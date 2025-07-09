@@ -28,6 +28,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Net.WebSockets;
 
+using System.Linq;
 public unsafe struct NativeBuffer
 {
     public byte* Data;
@@ -309,27 +310,32 @@ public sealed class UDPServer
                 }
 
                 var batch = new List<SendPacket>();
+                var chain = node;
 
                 while (node != null)
                 {
-                    var next = node.Next;
                     var packet = node.Value;
 
-                    if (packet.Buffer != null && packet.Length > 0)                    
+                    if (packet.Buffer != null && packet.Length > 0)
+
                         batch.Add(packet);
-                    
-                    node = next;
+
+                    node = node.Next;
                 }
+
+                if (chain != null)
+                    QueueStructLinked<SendPacket>.ReleaseChain(chain);
 
                 if (batch.Count > 0)
                 {
-                    var sendBatch = new (EndPoint, byte[], int)[batch.Count];
+                    var sendBatch = ArrayPool<(EndPoint, byte[], int)>.Shared.Rent(batch.Count);
                     int count = 0;
 
                     foreach (var p in batch)
                         sendBatch[count++] = (p.Address, p.Buffer, p.Length);
 
-                    UdpBatchIO.SendBatch(ServerSocket, sendBatch);
+                    UdpBatchIO.SendBatch(ServerSocket, sendBatch.AsSpan(0, count));
+                    ArrayPool<(EndPoint, byte[], int)>.Shared.Return(sendBatch);
 
                     foreach (var p in batch)
                     {
@@ -342,7 +348,6 @@ public sealed class UDPServer
 
                     batch.Clear();
                 }
-
                 ByteBufferPool.Merge();
             }
         });
@@ -524,16 +529,16 @@ public sealed class UDPServer
                         var newLocation = ByteBuffer.ReadFVector(data, 1, len);
                         var newRotato = ByteBuffer.ReadFRotator(data, 13, len);
 
-                        var values = Clients.Values.ToArray();
-                        if (values.Length == 0)
+                        var count = Clients.Count;
+                        if (count == 0)
                             break;
 
-                        var rnd = new Random();
-                        int limit = Math.Min(250, values.Length);
+                        var rnd = Random.Shared;
+                        int limit = Math.Min(250, count);
 
                         for (int i = 0; i < limit; i++)
                         {
-                            var randomValue = values[rnd.Next(values.Length)];
+                            var randomValue = Clients.Values.ElementAt(rnd.Next(count));
 
                             randomValue.Send(new BenchmarkPacket
                             {
@@ -543,7 +548,7 @@ public sealed class UDPServer
                             });
                         }
                     }
-                    catch { }                    
+                    catch { }
                 }
             }
             break;
@@ -552,18 +557,24 @@ public sealed class UDPServer
         MergeSendQueue();
     }
 
-    private static byte[] AddSignature(byte[] data)
+    private static byte[] AddSignature(byte[] data, int length)
     {
-        if (data == null || data.Length == 0)
+        if (data == null || length == 0)
             return data;
 
         PacketType t = (PacketType)data[0];
         if (t == PacketType.Reliable || t == PacketType.Unreliable || t == PacketType.Ack)
         {
-            uint crc32c = CRC32C.Compute(data, data.Length);
-            byte[] result = ArrayPool<byte>.Shared.Rent(data.Length + 4);
-            Buffer.BlockCopy(data, 0, result, 0, data.Length);
-            ByteBuffer.WriteUInt(result, (uint)data.Length, crc32c);
+            uint crc32c = CRC32C.Compute(data, length);
+            if (data.Length >= length + 4)
+            {
+                ByteBuffer.WriteUInt(data, (uint)length, crc32c);
+                return data;
+            }
+
+            byte[] result = ArrayPool<byte>.Shared.Rent(length + 4);
+            Buffer.BlockCopy(data, 0, result, 0, length);
+            ByteBuffer.WriteUInt(result, (uint)length, crc32c);
             return result;
         }
 
@@ -577,7 +588,7 @@ public sealed class UDPServer
 
         if (data.Length > 0)
         {
-            var signed = AddSignature(data);
+            var signed = AddSignature(data, data.Length);
             bool poolSigned = pooled || !ReferenceEquals(signed, data);
 
             if (!ReferenceEquals(signed, data) && pooled)
@@ -603,10 +614,10 @@ public sealed class UDPServer
 
         if (buffer.Length > 0 && buffer.Connection != null)
         {
-            byte[] data = ArrayPool<byte>.Shared.Rent(buffer.Length);
+            byte[] data = ArrayPool<byte>.Shared.Rent(buffer.Length + 4);
             Buffer.BlockCopy(buffer.Data, 0, data, 0, buffer.Length);
 
-            var signed = AddSignature(data);
+            var signed = AddSignature(data, buffer.Length);
             bool pooled = true;
 
             if (!ReferenceEquals(signed, data))
