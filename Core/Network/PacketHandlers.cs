@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 public abstract class PacketHandler
 {
@@ -29,22 +30,29 @@ public abstract class PacketHandler
 
 public interface IPacket
 {
-    byte[] Buffer { get; }
+    FlatBuffer Buffer { get; }
     void Serialize(object? data = null);
 }
 
-public class Packet : IPacket
+public unsafe class Packet : IPacket
 {
-    public byte[] _buffer = new byte[1];
+    public FlatBuffer _buffer = new FlatBuffer(1);
 
     static readonly Packet[] Handlers = new Packet[1024];
 
-    public byte[] Buffer => _buffer;
+    public FlatBuffer Buffer
+    {
+        get
+        {
+            return _buffer;
+        }
+    }
 
     public virtual void Serialize(object? data = null)
     {
         throw new NotImplementedException("Serialization method not implemented for this packet type.");
     }
+
     public virtual void Send(Entity owner, object data, Entity entity)
     {
         throw new NotImplementedException("Send method not implemented for this packet type.");

@@ -2,22 +2,18 @@
 
 using System.Runtime.CompilerServices;
 
-public class CreateEntityPacket: Packet
+public partial struct CreateEntityPacket: INetworkPacket
 {
-    public CreateEntityPacket()
-    {
-        _buffer = new byte[9];
-    }
+    public int Size => 35;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override void Serialize(object? data = null)
+    public void Serialize(ref FlatBuffer buffer)
     {
-        Serialize();
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Serialize()
-    {
-        ByteBuffer.WriteUShort(_buffer, 0, (ushort)ServerPacket.CreateEntity);
+        buffer.Write(PacketType.Reliable);
+        buffer.Write((ushort)ServerPacket.CreateEntity);
+        buffer.Write(EntityId);
+        buffer.Write(Positon);
+        buffer.Write(Rotator);
+        buffer.Write(Flags);
     }
 }

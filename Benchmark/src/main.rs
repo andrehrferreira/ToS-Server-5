@@ -5,10 +5,14 @@ use std::time::{Instant, Duration};
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+use rand::Rng; // <-- necessário para .gen_range()
+use rand::SeedableRng;
+use rand::rngs::StdRng;
+
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     const SERVER_ADDR: &str = "127.0.0.1:3565";
-    const CLIENT_COUNT: usize = 10_000;
+    const CLIENT_COUNT: usize = 500; // 10_000;
     const TEST_DURATION: Duration = Duration::from_secs(60);
     const BATCH_SIZE: usize = 10000;
 
@@ -45,33 +49,78 @@ async fn main() -> std::io::Result<()> {
                 }
 
                 let mut buf = [0u8; 1024];
+                let mut update_interval = tokio::time::interval(Duration::from_millis(250));
+                let mut rng = StdRng::from_entropy(); // gerador thread-safe
 
                 while start.elapsed() < TEST_DURATION {
-                    match socket.recv_from(&mut buf).await {
-                        Ok((size, addr)) => {
-                            if size == 0 {
-                                continue;
+                    tokio::select! {
+                        _ = update_interval.tick() => {
+                            let position = (
+                                rng.gen_range(1..=1000),
+                                rng.gen_range(1..=1000),
+                                rng.gen_range(1..=1000),
+                            );
+                            let rotation = (
+                                rng.gen_range(1..=1000),
+                                rng.gen_range(1..=1000),
+                                rng.gen_range(1..=1000),
+                            );
+
+                            let mut packet = [0u8; 25];
+                            packet[0] = 11u8;
+                            packet[1..5].copy_from_slice(&(position.0 as i32).to_le_bytes());
+                            packet[5..9].copy_from_slice(&(position.1 as i32).to_le_bytes());
+                            packet[9..13].copy_from_slice(&(position.2 as i32).to_le_bytes());
+                            packet[13..17].copy_from_slice(&(rotation.0 as i32).to_le_bytes());
+                            packet[17..21].copy_from_slice(&(rotation.1 as i32).to_le_bytes());
+                            packet[21..25].copy_from_slice(&(rotation.2 as i32).to_le_bytes());
+
+                            if let Ok(_) = socket.send_to(&packet, &server_addr).await {
+                                packets_sent.fetch_add(1, Ordering::Relaxed);
                             }
-                            let packet_type = buf[0];
-                            match packet_type {
-                                1 => {
-                                    if size >= 9 {
-                                        let mut pong_packet = [0u8; 9];
-                                        pong_packet[0] = 2u8;
-                                        pong_packet[1..9].copy_from_slice(&buf[1..9]);
-                                        let _ = socket.send_to(&pong_packet, addr).await;
-                                        packets_sent.fetch_add(1, Ordering::Relaxed);
-                                    } else {
-                                        eprintln!("Received Ping with invalid size: {}", size);
+                        },
+                        result = socket.recv_from(&mut buf) => {
+                            match result {
+                                Ok((size, addr)) => {
+                                    if size == 0 { continue; }
+
+                                    let mut offset = 0;
+                                    while offset < size {
+                                        let packet_type = buf[offset];
+                                        match packet_type {
+                                            // Ping
+                                            1 => {
+                                                if size - offset >= 9 {
+                                                    let mut pong_packet = [0u8; 9];
+                                                    pong_packet[0] = 2u8;
+                                                    pong_packet[1..9].copy_from_slice(&buf[offset + 1..offset + 9]);
+                                                    let _ = socket.send_to(&pong_packet, addr).await;
+                                                    packets_sent.fetch_add(1, Ordering::Relaxed);
+                                                    offset += 9;
+                                                } else {
+                                                    break;
+                                                }
+                                            }
+                                            // ConnectionAccepted
+                                            9 => {
+                                                offset += 5;
+                                            }
+                                            // Benchmark packet
+                                            4 => {
+                                                // 31 bytes per packet
+                                                offset += 31;
+                                            }
+                                            _ => {
+                                                // Unknown packet type, stop processing
+                                                break;
+                                            }
+                                        }
+
+                                        packets_received.fetch_add(1, Ordering::Relaxed);
                                     }
                                 }
-                                9 => { /* ConnectionAccepted */ }
-                                _ => { /* Ignored */ }
+                                Err(_) => { continue; }
                             }
-                            packets_received.fetch_add(1, Ordering::Relaxed);
-                        }
-                        Err(_) => {
-                            continue;
                         }
                     }
                 }
@@ -79,7 +128,6 @@ async fn main() -> std::io::Result<()> {
             });
         }
 
-        // pausa entre batches para evitar pressão no sistema
         tokio::time::sleep(Duration::from_millis(1000)).await;
     }
 
@@ -94,7 +142,7 @@ async fn main() -> std::io::Result<()> {
         let sent = packets_sent.load(Ordering::Relaxed);
 
         println!(
-            "Time: {}s | Packets Received: {} (+{}) | Packets Sent: {} (+{})",
+            "Time: {}s | Received: {} (+{}) | Sent: {} (+{})",
             start.elapsed().as_secs(),
             recv,
             recv.saturating_sub(last_received),

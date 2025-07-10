@@ -1,17 +1,17 @@
 /*
 * UdpBatchIO
-* 
+*
 * Author: Andre Ferreira
-* 
+*
 * Copyright (c) Uzmi Games. Licensed under the MIT License.
-*    
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,7 +23,25 @@
 
 using System.Buffers;
 using System.Net;
+using System.Collections.Concurrent;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
+using System;
+using System.Collections.Generic;
+
+public struct PacketPointer
+{
+    public EndPoint Addr;
+    public IntPtr DataPtr;
+    public int Length;
+}
+
+public struct PacketMemory
+{
+    public EndPoint Addr;
+    public Memory<byte> Buffer;
+    public int Length;
+}
 
 public static class UdpBatchIO
 {
@@ -32,13 +50,14 @@ public static class UdpBatchIO
     private static Action<object, byte[], int> _receiveCallback;
 #endif
 
-    public static int ReceiveBatch(Socket socket, int maxMessages, Action<object, byte[], int> callback)
+    public static int ReceiveBatch(Socket socket, int maxMessages, Action<EndPoint, byte[], int> callback)
     {
 #if LINUX
         int fd = (int)socket.Handle;
         return UdpBatchIO_Linux.ReceiveBatch(fd, maxMessages, (addr, data, len) =>
         {
-            callback(addr, data, len);
+            var endPoint = ConvertToEndPoint(addr);
+            callback(endPoint, data, len);
         });
 #elif WINDOWS
         if (!_initialized)
@@ -63,44 +82,104 @@ public static class UdpBatchIO
 #endif
     }
 
-    public static int SendBatch(Socket socket, ReadOnlySpan<(object addr, byte[] data, int length)> packets)
+    public static int SendBatch(Socket socket, ReadOnlySpan<(EndPoint addr, byte[] data, int length)> packets)
     {
-#if LINUX
-    int fd = (int)socket.Handle;
-    var nativePackets = new List<(UdpBatchIO_Linux.sockaddr_in, byte[], int)>(packets.Length);
-
-    foreach (var p in packets)
-    {
-        if (p.addr is UdpBatchIO_Linux.sockaddr_in nativeAddr)
-            nativePackets.Add((nativeAddr, p.data, p.length));
-    }
-
-    return UdpBatchIO_Linux.SendBatch(fd, nativePackets);
-
-#elif WINDOWS
-        var formattedPackets = new List<(EndPoint addr, byte[] data, int length)>(packets.Length);
+    #if LINUX
+        int fd = (int)socket.Handle;
+        var nativePackets = new List<(UdpBatchIO_Linux.sockaddr_in, byte[], int)>(packets.Length);
 
         foreach (var p in packets)
         {
-            if (p.addr is EndPoint ep)
-                formattedPackets.Add((ep, p.data, p.length));
+            var nativeAddr = FormatAddress(p.addr);
+            if (nativeAddr is UdpBatchIO_Linux.sockaddr_in sockAddr)
+                nativePackets.Add((sockAddr, p.data, p.length));
         }
 
-        UdpBatchIO_Windows.SendBatch(socket, formattedPackets);
-        return formattedPackets.Count;
+        return UdpBatchIO_Linux.SendBatch(fd, nativePackets);
 
-#else
-    int sent = 0;
-    foreach (var p in packets)
-    {
-        if (p.addr is EndPoint ep)
+    #elif WINDOWS
+            UdpBatchIO_Windows.SendBatch(socket, packets);
+            return packets.Length;
+    #else
+        int sent = 0;
+        foreach (var p in packets)
         {
-            socket.SendTo(p.data, 0, p.length, SocketFlags.None, ep);
-            sent++;
+            if (p.addr is EndPoint ep)
+            {
+                socket.SendTo(p.data, 0, p.length, SocketFlags.None, ep);
+                sent++;
+            }
         }
+        return sent;
+    #endif
     }
-    return sent;
+
+    public static unsafe void SendBatch(Socket socket, ReadOnlySpan<PacketPointer> packets)
+    {
+#if WINDOWS
+        UdpBatchIO_Windows.SendBatch(socket, packets);
+#elif LINUX
+        // Convert PacketPointer to the format expected by Linux implementation
+        var nativePackets = new List<(UdpBatchIO_Linux.sockaddr_in, byte[], int)>(packets.Length);
+
+        foreach (var packet in packets)
+        {
+            var nativeAddr = FormatAddress(packet.Addr);
+            if (nativeAddr is UdpBatchIO_Linux.sockaddr_in sockAddr)
+            {
+                byte[] data = new byte[packet.Length];
+                fixed (byte* dest = data)
+                {
+                    Buffer.MemoryCopy((byte*)packet.DataPtr, dest, packet.Length, packet.Length);
+                }
+                nativePackets.Add((sockAddr, data, packet.Length));
+            }
+        }
+
+        int fd = (int)socket.Handle;
+        UdpBatchIO_Linux.SendBatch(fd, nativePackets);
+#else
+        // fallback implementation
 #endif
+    }
+
+    private static EndPoint ConvertToEndPoint(object addr)
+    {
+#if LINUX
+        if (addr is UdpBatchIO_Linux.sockaddr_in linuxAddr)
+        {
+            uint ip = linuxAddr.sin_addr;
+            byte[] ipBytes = new byte[]
+            {
+                (byte)((ip >> 24) & 0xFF),
+                (byte)((ip >> 16) & 0xFF),
+                (byte)((ip >> 8) & 0xFF),
+                (byte)(ip & 0xFF)
+            };
+            var ipAddress = new IPAddress(ipBytes);
+            int port = (ushort)IPAddress.NetworkToHostOrder((short)linuxAddr.sin_port);
+            return new IPEndPoint(ipAddress, port);
+        }
+#endif
+        return addr as EndPoint ?? new IPEndPoint(IPAddress.Any, 0);
+    }
+
+    private static object FormatAddress(EndPoint ep)
+    {
+#if LINUX
+        if (ep is IPEndPoint ip)
+        {
+            byte[] bytes = ip.Address.MapToIPv4().GetAddressBytes();
+            uint ipUint = ((uint)bytes[0] << 24) | ((uint)bytes[1] << 16) | ((uint)bytes[2] << 8) | bytes[3];
+            return new UdpBatchIO_Linux.sockaddr_in
+            {
+                sin_family = (ushort)AddressFamily.InterNetwork,
+                sin_port = (ushort)IPAddress.HostToNetworkOrder((short)ip.Port),
+                sin_addr = ipUint
+            };
+        }
+#endif
+        return ep;
     }
 
 #if WINDOWS
@@ -113,10 +192,6 @@ public static class UdpBatchIO
 }
 
 #if LINUX
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-
 public static unsafe class UdpBatchIO_Linux
 {
     private const int MaxDatagramSize = 65535;
@@ -269,22 +344,68 @@ public static class UdpBatchIO_Windows
 
     private static Socket _socket;
     private static Action<EndPoint, byte[], int> _callback;
+    private static Action<EndPoint, ReadOnlyMemory<byte>, int> _callbackMemory;
     private static List<SocketAsyncEventArgs> _receivePool = new();
-    private static byte[] _bufferRecive = ArrayPool<byte>.Shared.Rent(BufferSize);
+    private static ConcurrentStack<SocketAsyncEventArgs> _sendPool = new();
+
+    private static SocketAsyncEventArgs RentSendArgs()
+    {
+        if (!_sendPool.TryPop(out var args))
+        {
+            args = new SocketAsyncEventArgs();
+            args.Completed += IOCompleted;
+        }
+
+        return args;
+    }
+
+    private static void ReturnSendArgs(SocketAsyncEventArgs args)
+    {
+        args.SetBuffer(null, 0, 0);
+        args.RemoteEndPoint = null;
+        args.UserToken = null;
+        _sendPool.Push(args);
+    }
 
     public static void Initialize(Socket socket, Action<EndPoint, byte[], int> callback)
     {
         _socket = socket;
+        _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, 8 * 1024 * 1024);
+        _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, 8 * 1024 * 1024);
         _callback = callback;
 
         for (int i = 0; i < ConcurrentReceives; i++)
         {
+            var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
             var args = new SocketAsyncEventArgs
             {
                 RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0)
             };
 
-            args.SetBuffer(_bufferRecive, 0, BufferSize);
+            args.SetBuffer(buffer, 0, BufferSize);
+            args.Completed += IOCompleted;
+
+            _receivePool.Add(args);
+
+            if (!_socket.ReceiveFromAsync(args))
+                ProcessReceive(args);
+        }
+    }
+
+    public static void Initialize(Socket socket, Action<EndPoint, ReadOnlyMemory<byte>, int> callback)
+    {
+        _socket = socket;
+        _callbackMemory = callback;
+
+        for (int i = 0; i < ConcurrentReceives; i++)
+        {
+            var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
+            var args = new SocketAsyncEventArgs
+            {
+                RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0)
+            };
+
+            args.SetBuffer(buffer, 0, BufferSize);
             args.Completed += IOCompleted;
 
             _receivePool.Add(args);
@@ -309,9 +430,14 @@ public static class UdpBatchIO_Windows
 
     private static void ProcessReceive(SocketAsyncEventArgs e)
     {
+        if(_socket == null)
+            return;
+
         if (e.SocketError == SocketError.Success && e.BytesTransferred > 0)
         {
             _callback?.Invoke(e.RemoteEndPoint, e.Buffer, e.BytesTransferred);
+
+            _callbackMemory?.Invoke(e.RemoteEndPoint, e.Buffer.AsMemory(0, e.BytesTransferred), e.BytesTransferred);
         }
 
         try
@@ -329,13 +455,67 @@ public static class UdpBatchIO_Windows
     {
         foreach (var packet in packets)
         {
-            var args = new SocketAsyncEventArgs
-            {
-                RemoteEndPoint = packet.addr
-            };
-
+            var args = RentSendArgs();
+            args.RemoteEndPoint = packet.addr;
             args.SetBuffer(packet.data, 0, packet.length);
-            args.Completed += IOCompleted;
+
+            if (!socket.SendToAsync(args))
+                ProcessSend(args);
+        }
+    }
+
+    public static void SendBatch(Socket socket, ReadOnlySpan<(EndPoint addr, byte[] data, int length)> packets)
+    {
+        foreach (var packet in packets)
+        {
+            var args = RentSendArgs();
+            args.RemoteEndPoint = packet.addr;
+            args.SetBuffer(packet.data, 0, packet.length);
+
+            if (!socket.SendToAsync(args))
+                ProcessSend(args);
+        }
+    }
+
+    public static unsafe void SendBatch(Socket socket, ReadOnlySpan<PacketPointer> packets)
+    {
+        foreach (var packet in packets)
+        {
+            byte[] tempBuffer = ArrayPool<byte>.Shared.Rent(packet.Length);
+
+            try
+            {
+                fixed (byte* dest = tempBuffer)
+                {
+                    Buffer.MemoryCopy((byte*)packet.DataPtr, dest, packet.Length, packet.Length);
+                }
+
+                var args = RentSendArgs();
+                args.RemoteEndPoint = packet.Addr;
+                args.SetBuffer(tempBuffer, 0, packet.Length);
+                args.UserToken = tempBuffer;
+
+                if (!socket.SendToAsync(args))
+                {
+                    ProcessSend(args);
+                }
+            }
+            catch
+            {
+                ArrayPool<byte>.Shared.Return(tempBuffer);
+                throw;
+            }
+        }
+    }
+
+    public static void SendBatch(Socket socket, ReadOnlySpan<PacketMemory> packets)
+    {
+        foreach (var packet in packets)
+        {
+            var args = RentSendArgs();
+            args.RemoteEndPoint = packet.Addr;
+
+            args.SetBuffer(packet.Buffer.Slice(0, packet.Length));
 
             if (!socket.SendToAsync(args))
                 ProcessSend(args);
@@ -344,7 +524,13 @@ public static class UdpBatchIO_Windows
 
     private static void ProcessSend(SocketAsyncEventArgs e)
     {
-        e.Dispose();
+        if (e.UserToken is byte[] buffer)
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+            e.UserToken = null;
+        }
+
+        ReturnSendArgs(e);
     }
 
     public static void Shutdown()
@@ -356,6 +542,9 @@ public static class UdpBatchIO_Windows
         }
 
         _receivePool.Clear();
+
+        while (_sendPool.TryPop(out var sendArgs))
+            sendArgs.Dispose();
     }
 }
 #endif

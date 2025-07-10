@@ -1,6 +1,4 @@
-using System.Diagnostics;
 using System.Reflection;
-
 
 class Program
 {
@@ -73,7 +71,7 @@ class Program
             SendBufferSize = 512 * 1024,
         });
 
-        //ServerMonitor.Start();
+        ServerMonitor.Start();
 
         while (true)
         {

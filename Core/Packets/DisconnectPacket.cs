@@ -2,17 +2,13 @@
 
 using System.Runtime.CompilerServices;
 
-public class DisconnectPacket: Packet
+public partial struct DisconnectPacket: INetworkPacket
 {
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override void Serialize(object? data = null)
-    {
-        Serialize();
-    }
+    public int Size => 1;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Serialize()
+    public void Serialize(ref FlatBuffer buffer)
     {
-        ByteBuffer.WritePacketType(_buffer, 0, PacketType.Disconnect);
+        buffer.Write(PacketType.Disconnect);
     }
 }
