@@ -1,5 +1,4 @@
 using Spectre.Console;
-using Spectre.Console.Rendering;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -98,6 +97,7 @@ public static class ServerMonitor
         long packetsReceived = UDPServer.PacketsReceived;
         long bytesSent = UDPServer.BytesSent;
         long bytesReceived = UDPServer.BytesReceived;
+        int tickRate = UDPServer.TickRate;
         var (created, pooled) = ByteBufferPool.GetStats();
 
         long managed = GC.GetTotalMemory(false);
@@ -106,7 +106,7 @@ public static class ServerMonitor
         table.AddRow("Connections", connections.ToString());
         table.AddRow("Packets Tx/Rx", $"{packetsSent} / {packetsReceived}");
         table.AddRow("Traffic Tx/Rx", $"{bytesSent / 1024} KB / {bytesReceived / 1024} KB");
-        table.AddRow("Buffers Created", $"{created} (In Use: {created - pooled})");
+        table.AddRow("Tick Rate", tickRate.ToString());
         table.AddRow("Managed Memory", $"{managed / (1024 * 1024)} MB");
         table.AddRow("Private Memory", $"{privateBytes / (1024 * 1024)} MB");
         table.AddRow("GC Collections", $"{GC.CollectionCount(0)} / {GC.CollectionCount(1)} / {GC.CollectionCount(2)}");

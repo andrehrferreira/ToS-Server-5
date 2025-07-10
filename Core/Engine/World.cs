@@ -14,7 +14,7 @@ public class AOIGridConfig
 
 public class World : IDisposable
 {
-    private uint Id;
+    public uint Id;
     private StructPool<Entity> _entityPool;
     private int _maxEntities;
     private Thread _worldThread;

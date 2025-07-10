@@ -2,15 +2,17 @@
 
 using System.Runtime.CompilerServices;
 
-public partial struct RemoveEntityPacket: INetworkPacket
+public partial struct DeltaSyncPacket: INetworkPacket
 {
-    public int Size => 7;
+    public int Size => 8;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
         buffer.Write(PacketType.Reliable);
-        buffer.Write((ushort)ServerPacket.RemoveEntity);
-        buffer.Write(EntityId);
+        buffer.Write((ushort)ServerPacket.DeltaSync);
+        buffer.Write(Index);
+        buffer.Write(EntitiesMask);
+    // Tipo não suportado: IntPtr
     }
 }

@@ -2,19 +2,17 @@
 
 using System.Runtime.CompilerServices;
 
-public partial struct UpdateEntityPacket: INetworkPacket
+public partial struct BenchmarkPacket: INetworkPacket
 {
-    public int Size => 37;
+    public int Size => 31;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
         buffer.Write(PacketType.Unreliable);
-        buffer.Write((ushort)ServerPacket.UpdateEntity);
-        buffer.Write(EntityId);
+        buffer.Write((ushort)ServerPacket.Benchmark);
+        buffer.Write(Id);
         buffer.Write(Positon);
         buffer.Write(Rotator);
-        buffer.Write(AnimationState);
-        buffer.Write(Flags);
     }
 }

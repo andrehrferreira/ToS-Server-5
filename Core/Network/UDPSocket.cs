@@ -74,20 +74,23 @@ public class UDPSocket
 
     public float TimeoutIntegrityCheck = 120f;
 
-    internal ConcurrentDictionary<short, ByteBuffer> ReliablePackets =
-        new ConcurrentDictionary<short, ByteBuffer>();
+    internal ConcurrentDictionary<short, FlatBuffer> ReliablePackets =
+        new ConcurrentDictionary<short, FlatBuffer>();
 
     private short Sequence = 1;
 
-    internal ByteBuffer ReliableBuffer;
-    internal ByteBuffer UnreliableBuffer;
-    internal ByteBuffer AckBuffer;
+    internal FlatBuffer ReliableBuffer;
+    internal FlatBuffer UnreliableBuffer;
+    internal FlatBuffer AckBuffer;
 
     public UDPSocket(Socket serverSocket)
     {
         State = ConnectionState.Disconnected;
         RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
         ServerSocket = serverSocket;
+        ReliableBuffer = new FlatBuffer(UDPServer.Mtu);
+        UnreliableBuffer = new FlatBuffer(UDPServer.Mtu);
+        AckBuffer = new FlatBuffer(UDPServer.Mtu);
     }
 
     public bool IsConnected
@@ -98,43 +101,23 @@ public class UDPSocket
         }
     }
 
-    public void Send(byte[] buffer)
+    public void Send(INetworkPacket networkPacket, bool reliable = false)
     {
-        if (ServerSocket == null || RemoteEndPoint == null)
-            throw new InvalidOperationException("Socket is not initialized or remote endpoint is not set.");
+        ref FlatBuffer buffer = ref (reliable ? ref ReliableBuffer : ref UnreliableBuffer);
 
-        UDPServer.Send(buffer, this);
+        if(buffer.Position + networkPacket.Size > buffer.Capacity)
+            Send(ref buffer);
+
+        networkPacket.Serialize(ref buffer);
+
+        if (buffer.Position > UDPServer.Mtu / 2)
+            Send(ref buffer);
     }
 
-    public unsafe void Send(NativeBuffer buffer)
+    public void Send(ref FlatBuffer buffer, bool flush = true)
     {
-        if (ServerSocket == null || RemoteEndPoint == null)
-            throw new InvalidOperationException("Socket is not initialized or remote endpoint is not set.");
-
-        byte[] managed = ArrayPool<byte>.Shared.Rent(buffer.Length);
-        Marshal.Copy((IntPtr)buffer.Data, managed, 0, buffer.Length);
-        UDPServer.Send(managed, this, pooled: true);
-        NativeMemory.Free(buffer.Data);
-    }
-
-    public void Send(ByteBuffer buffer)
-    {
-        if (ServerSocket == null || RemoteEndPoint == null)
-            throw new InvalidOperationException("Socket is not initialized or remote endpoint is not set.");
-
-        buffer.Connection = this;      
-
-        UDPServer.Send(buffer);
-    }
-
-    public void Send(ServerPacket packetType, ByteBuffer buffer)
-    {
-        if (ServerSocket == null || RemoteEndPoint == null)
-            throw new InvalidOperationException("Socket is not initialized or remote endpoint is not set.");
-
-        buffer.Connection = this;
-
-        UDPServer.Send(packetType, buffer);
+        if(buffer.Position > 0)
+            UDPServer.Send(ref buffer, buffer.Position, this, flush);
     }
 
     public bool Update(float delta)
@@ -163,29 +146,19 @@ public class UDPSocket
             }
         }
 
-        if (ReliableBuffer != null)
+        if (ReliableBuffer.Position > 0)
         {
-            ReliablePackets[ReliableBuffer.Sequence] = ReliableBuffer;
+            //ReliablePackets[ReliableBuffer.Sequence] = ReliableBuffer;
 
-            Send(ReliableBuffer);
-
-            ReliableBuffer = null;
+            Send(ref ReliableBuffer, true);
         }
 
-        if (UnreliableBuffer != null)
-        {
-            Send(UnreliableBuffer);
-
-            UnreliableBuffer = null;
-        }
-
-        if (AckBuffer != null)
-        {
-            Send(AckBuffer);
-
-            AckBuffer = null;
-        }
-
+        if (UnreliableBuffer.Position > 0)        
+            Send(ref UnreliableBuffer);
+              
+        if (AckBuffer.Position > 0)        
+            Send(ref AckBuffer);
+                      
         return true;
     }
 
@@ -195,108 +168,23 @@ public class UDPSocket
         {
             Reason = reason;
 
-            QueueBuffer.RemoveSocket(Id);
-
-            if (PacketManager.TryGet(PacketType.Disconnect, out var disconnectPacket))
-            {
-                disconnectPacket.Serialize();
-                Send(disconnectPacket.Buffer);
-            }                     
+            Send(new DisconnectPacket());                  
         }
     }
 
     internal void OnDisconnect()
     {
-        if (State != ConnectionState.Disconnected)
-        {
+        if (State != ConnectionState.Disconnected)        
             State = ConnectionState.Disconnected;
-        }
     }
 
-    public bool AddReliablePacket(short packetId, ByteBuffer buffer)
+    public bool AddReliablePacket(short packetId, FlatBuffer buffer)
     {
         return ReliablePackets.TryAdd(packetId, buffer);
     }
 
-    public void ProcessPacket(PacketType type, ByteBuffer buffer)
+    public void ProcessPacket(PacketType type, FlatBuffer buffer)
     {
 
-    }
-
-    public ByteBuffer BeginReliable()
-    {
-        if (ReliableBuffer == null)
-        {
-            ReliableBuffer = ByteBufferPool.Acquire();
-            ReliableBuffer.Connection = this;
-
-            Sequence = (short)((Sequence + 1) % 16384);
-
-            ReliableBuffer.Write(PacketType.Reliable);
-            ReliableBuffer.Write(Sequence);
-            //ReliableBuffer.Write(Manager.TickNumber);
-
-            ReliableBuffer.Sequence = Sequence;
-            ReliableBuffer.Reliable = true;
-        }
-
-        return ReliableBuffer;
-    }
-
-    public void EndReliable()
-    {
-        if (ReliableBuffer.Offset >= 1200)
-        {
-            ReliablePackets[ReliableBuffer.Sequence] = ReliableBuffer;
-
-            Send(ReliableBuffer);
-
-            ReliableBuffer = null;
-        }
-    }
-
-    public ByteBuffer BeginUnreliable()
-    {
-        if (UnreliableBuffer == null)
-        {
-            UnreliableBuffer = ByteBufferPool.Acquire();
-            UnreliableBuffer.Connection = this;
-
-            UnreliableBuffer.Write((byte)PacketType.Unreliable);
-            //UnreliableBuffer.Write(Manager.TickNumber);
-            UnreliableBuffer.Reliable = false;
-        }
-
-        return UnreliableBuffer;
-    }
-
-    public void EndUnreliable()
-    {
-        if (UnreliableBuffer.Length >= 1200)
-        {
-            Send(UnreliableBuffer);
-
-            UnreliableBuffer = null;
-        }
-    }
-
-    public void PushAck(short sequence)
-    {
-        if (AckBuffer == null)
-        {
-            AckBuffer = ByteBufferPool.Acquire();
-            AckBuffer.Connection = this;
-            AckBuffer.Reliable = false;
-            AckBuffer.Write(PacketType.Ack);
-        }
-
-        AckBuffer.Write(sequence);
-
-        if (AckBuffer.Offset > 1198)
-        {
-            Send(AckBuffer);
-
-            AckBuffer = null;
-        }
     }
 }

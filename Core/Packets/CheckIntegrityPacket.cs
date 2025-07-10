@@ -2,26 +2,15 @@
 
 using System.Runtime.CompilerServices;
 
-public class CheckIntegrityPacket: Packet
+public partial struct CheckIntegrityPacket: INetworkPacket
 {
-    public CheckIntegrityPacket()
-    {
-        _buffer = new byte[7];
-    }
+    public int Size => 7;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override void Serialize(object? data = null)
+    public void Serialize(ref FlatBuffer buffer)
     {
-        var typedData = data is CheckIntegrity p ? p : throw new InvalidCastException("Invalid data type.");
-        Serialize(typedData);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Serialize(CheckIntegrity data)
-    {
-        uint offset = 0;
-        offset = ByteBuffer.WritePacketType(_buffer, offset, PacketType.CheckIntegrity);
-        offset = ByteBuffer.WriteUShort(_buffer, offset, data.Index);
-        offset = ByteBuffer.WriteUInt(_buffer, offset, data.Version);
+        buffer.Write(PacketType.CheckIntegrity);
+        buffer.Write(Index);
+        buffer.Write(Version);
     }
 }

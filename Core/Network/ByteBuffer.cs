@@ -27,7 +27,7 @@ using System.Runtime.CompilerServices;
 
 public class ByteBuffer : IDisposable
 {
-    private static readonly ArrayPool<byte> FixedPool = ArrayPool<byte>.Create(4096, 1000);
+    private static readonly ArrayPool<byte> FixedPool = ArrayPool<byte>.Create(4096, 10000);
 
     private bool Disposed = false;
 
@@ -882,9 +882,9 @@ public class ByteBuffer : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static FVector ReadFVector(byte[] data, int offset, int len)
     {
-        float x = ReadFloat(data, offset, len);
-        float y = ReadFloat(data, offset + 4, len);
-        float z = ReadFloat(data, offset + 8, len);
+        float x = ReadInt(data, offset, len);
+        float y = ReadInt(data, offset + 4, len);
+        float z = ReadInt(data, offset + 8, len);
         return new FVector(x, y, z);
     }
 
@@ -900,9 +900,9 @@ public class ByteBuffer : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static FRotator ReadFRotator(byte[] data, int offset, int len)
     {
-        float pitch = ReadFloat(data, offset, len);
-        float yaw = ReadFloat(data, offset + 4, len);
-        float roll = ReadFloat(data, offset + 8, len);
+        float pitch = ReadInt(data, offset, len);
+        float yaw = ReadInt(data, offset + 4, len);
+        float roll = ReadInt(data, offset + 8, len);
         return new FRotator(pitch, yaw, roll);
     }
 
