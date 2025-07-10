@@ -22,6 +22,7 @@
 * SOFTWARE.
 */
 
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 public unsafe struct FlatBuffer : IDisposable
@@ -82,5 +83,27 @@ public unsafe struct FlatBuffer : IDisposable
         T val = *(T*)(_ptr + _offset);
         _offset += size;
         return val;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public uint GetHashFast()
+    {
+        uint hash = 0;
+
+        for (int i = 0; i < _offset; i++)
+            hash = (hash << 5) + hash + Data[i];
+
+        return hash;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public string ToHex()
+    {
+        uint hash = 0;
+
+        for (int i = 0; i < _offset; i++)
+            hash = (hash << 5) + hash + Data[i];
+
+        return hash.ToString("X8");
     }
 }

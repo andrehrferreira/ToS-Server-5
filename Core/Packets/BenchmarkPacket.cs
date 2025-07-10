@@ -9,7 +9,6 @@ public partial struct BenchmarkPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
-        buffer.Reset();
         buffer.Write(PacketType.Unreliable);
         buffer.Write((ushort)ServerPacket.Benchmark);
         buffer.Write(Id);

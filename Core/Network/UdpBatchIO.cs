@@ -1,17 +1,17 @@
 /*
 * UdpBatchIO
-* 
+*
 * Author: Andre Ferreira
-* 
+*
 * Copyright (c) Uzmi Games. Licensed under the MIT License.
-*    
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,6 +26,8 @@ using System.Net;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System;
+using System.Collections.Generic;
 
 public struct PacketPointer
 {
@@ -54,7 +56,8 @@ public static class UdpBatchIO
         int fd = (int)socket.Handle;
         return UdpBatchIO_Linux.ReceiveBatch(fd, maxMessages, (addr, data, len) =>
         {
-            callback(addr, data, len);
+            var endPoint = ConvertToEndPoint(addr);
+            callback(endPoint, data, len);
         });
 #elif WINDOWS
         if (!_initialized)
@@ -87,8 +90,9 @@ public static class UdpBatchIO
 
         foreach (var p in packets)
         {
-            if (p.addr is UdpBatchIO_Linux.sockaddr_in nativeAddr)
-                nativePackets.Add((nativeAddr, p.data, p.length));
+            var nativeAddr = FormatAddress(p.addr);
+            if (nativeAddr is UdpBatchIO_Linux.sockaddr_in sockAddr)
+                nativePackets.Add((sockAddr, p.data, p.length));
         }
 
         return UdpBatchIO_Linux.SendBatch(fd, nativePackets);
@@ -115,7 +119,25 @@ public static class UdpBatchIO
 #if WINDOWS
         UdpBatchIO_Windows.SendBatch(socket, packets);
 #elif LINUX
-        UdpBatchIO_Linux.SendBatch(socket, packets);
+        // Convert PacketPointer to the format expected by Linux implementation
+        var nativePackets = new List<(UdpBatchIO_Linux.sockaddr_in, byte[], int)>(packets.Length);
+
+        foreach (var packet in packets)
+        {
+            var nativeAddr = FormatAddress(packet.Addr);
+            if (nativeAddr is UdpBatchIO_Linux.sockaddr_in sockAddr)
+            {
+                byte[] data = new byte[packet.Length];
+                fixed (byte* dest = data)
+                {
+                    Buffer.MemoryCopy((byte*)packet.DataPtr, dest, packet.Length, packet.Length);
+                }
+                nativePackets.Add((sockAddr, data, packet.Length));
+            }
+        }
+
+        int fd = (int)socket.Handle;
+        UdpBatchIO_Linux.SendBatch(fd, nativePackets);
 #else
         // fallback implementation
 #endif
@@ -170,10 +192,6 @@ public static class UdpBatchIO
 }
 
 #if LINUX
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-
 public static unsafe class UdpBatchIO_Linux
 {
     private const int MaxDatagramSize = 65535;

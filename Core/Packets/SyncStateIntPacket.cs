@@ -9,7 +9,6 @@ public partial struct SyncStateIntPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
-        buffer.Reset();
         buffer.Write(PacketType.Reliable);
         buffer.Write((ushort)ServerPacket.SyncStateInt);
     }

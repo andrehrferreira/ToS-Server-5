@@ -173,7 +173,6 @@ public class ContractTraspiler : AbstractTranspiler
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
             writer.WriteLine($"    public void Serialize(ref FlatBuffer buffer)");
             writer.WriteLine("    {");
-            writer.WriteLine("        buffer.Reset();");
 
             if (contractAttribute.PacketType != PacketType.None)
                 writer.WriteLine($"        buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
@@ -236,7 +235,6 @@ public class ContractTraspiler : AbstractTranspiler
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
             writer.WriteLine($"    public void Serialize(ref FlatBuffer buffer)");
             writer.WriteLine("    {");
-            writer.WriteLine("        buffer.Reset();");
 
             if (contractAttribute.PacketType != PacketType.None)
                 writer.WriteLine($"        buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");

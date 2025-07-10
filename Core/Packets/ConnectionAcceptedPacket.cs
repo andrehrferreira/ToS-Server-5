@@ -9,7 +9,6 @@ public partial struct ConnectionAcceptedPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
-        buffer.Reset();
         buffer.Write(PacketType.ConnectionAccepted);
         buffer.Write(Id);
     }

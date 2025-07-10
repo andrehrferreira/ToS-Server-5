@@ -535,7 +535,7 @@ public sealed class UDPServer
                     try
                     {
                         var newLocation = ByteBuffer.ReadFVector(data, 1, len);
-                        var newRotato = ByteBuffer.ReadFRotator(data, 13, len);
+                        var newRotation = ByteBuffer.ReadFRotator(data, 13, len);
 
                         var count = Clients.Count;
                         if (count == 0)
@@ -552,11 +552,11 @@ public sealed class UDPServer
                             {
                                 Id = conn.Id,
                                 Positon = newLocation,
-                                Rotator = newRotato
+                                Rotator = newRotation
                             });
                         }
                     }
-                    catch { }
+                    catch { /*Console.WriteLine("Erro to parse packet");*/ }
                 }
             }
             break;
@@ -653,7 +653,7 @@ public sealed class UDPServer
         Send(packed);
     }
 
-    public static unsafe void Send(FlatBuffer buffer, int length, UDPSocket socket)
+    public static void Send(FlatBuffer buffer, int length, UDPSocket socket)
     {
         if (LocalSendQueue == null)
             LocalSendQueue = new QueueStructLinked<SendPacket>();
@@ -662,9 +662,12 @@ public sealed class UDPServer
         {
             byte[] managedBuffer = ArrayPool<byte>.Shared.Rent(length);
 
-            fixed (byte* dst = managedBuffer)
+            unsafe
             {
-                Buffer.MemoryCopy(buffer.Data, dst, length, length);
+                fixed (byte* dst = managedBuffer)
+                {
+                    Buffer.MemoryCopy(buffer.Data, dst, length, length);
+                }
             }
 
             var packet = new SendPacket
@@ -675,9 +678,10 @@ public sealed class UDPServer
                 Pooled = true
             };
 
+            LocalSendQueue.Add(packet);
+
             buffer.Free();
 
-            LocalSendQueue.Add(packet);
             Flush();
         }
     }
@@ -733,12 +737,6 @@ public sealed class UDPServer
                 MemoryUsageLogger.Log();
                 memLog.Restart();
             }
-
-            /*if (trimTimer.Elapsed >= TimeSpan.FromSeconds(60))
-            {
-                ByteBufferPool.TrimExcess(10);
-                trimTimer.Restart();
-            }*/
           
             double elapsed = sw.Elapsed.TotalMilliseconds - now;
             int sleep = (int)(targetFrameTime - elapsed);
