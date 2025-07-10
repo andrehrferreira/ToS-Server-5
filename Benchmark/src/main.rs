@@ -12,7 +12,7 @@ use rand::rngs::StdRng;
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     const SERVER_ADDR: &str = "127.0.0.1:3565";
-    const CLIENT_COUNT: usize = 10; // 10_000;
+    const CLIENT_COUNT: usize = 500; // 10_000;
     const TEST_DURATION: Duration = Duration::from_secs(60);
     const BATCH_SIZE: usize = 10000;
 
@@ -115,9 +115,9 @@ async fn main() -> std::io::Result<()> {
                                                 break;
                                             }
                                         }
-                                    }
 
-                                    packets_received.fetch_add(1, Ordering::Relaxed);
+                                        packets_received.fetch_add(1, Ordering::Relaxed);
+                                    }
                                 }
                                 Err(_) => { continue; }
                             }
@@ -142,7 +142,7 @@ async fn main() -> std::io::Result<()> {
         let sent = packets_sent.load(Ordering::Relaxed);
 
         println!(
-            "Time: {}s | Packets Received: {} (+{}) | Packets Sent: {} (+{})",
+            "Time: {}s | Received: {} (+{}) | Sent: {} (+{})",
             start.elapsed().as_secs(),
             recv,
             recv.saturating_sub(last_received),

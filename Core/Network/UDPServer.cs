@@ -79,6 +79,7 @@ public sealed class UDPServer
     private static long _bytesSent = 0;
     private static long _packetsReceived = 0;
     private static long _bytesReceived = 0;
+    private static int _tickRate = 0;
 
     private static Thread SendThread;
 
@@ -103,6 +104,7 @@ public sealed class UDPServer
     public static long PacketsReceived => Interlocked.Read(ref _packetsReceived);
     public static long BytesSent => Interlocked.Read(ref _bytesSent);
     public static long BytesReceived => Interlocked.Read(ref _bytesReceived);
+    public static int TickRate => _tickRate;
 
     public static uint GetRandomId() =>
         (uint)BitConverter.ToInt32(Guid.NewGuid().ToByteArray(), 0) & 0x7FFFFFFF;
@@ -686,7 +688,7 @@ public sealed class UDPServer
         }
     }
 
-    public static void Update(float delta)
+    public static async Task Update(float delta)
     {
         foreach (var kv in Clients.Values)
             kv.Update(delta);
@@ -694,13 +696,15 @@ public sealed class UDPServer
 
     public static void RunMainLoop()
     {
-        const int targetFps = 20;
+        const int targetFps = 60;
+        int fps = 0;
         const double targetFrameTime = 1000.0 / targetFps;
         Stopwatch sw = new Stopwatch();
         sw.Start();
         double lastTime = sw.Elapsed.TotalMilliseconds;
         Stopwatch memLog = Stopwatch.StartNew();
         Stopwatch trimTimer = Stopwatch.StartNew();
+        Stopwatch latence = Stopwatch.StartNew();
 
         while (Running)
         {
@@ -715,9 +719,17 @@ public sealed class UDPServer
                 MemoryUsageLogger.Log();
                 memLog.Restart();
             }
-          
+
+            if (latence.Elapsed >= TimeSpan.FromSeconds(1))
+            {
+                _tickRate = fps;
+                fps = 0;
+                latence.Restart();
+            }
+
             double elapsed = sw.Elapsed.TotalMilliseconds - now;
             int sleep = (int)(targetFrameTime - elapsed);
+            fps++;
 
             if (sleep > 0)
                 Thread.Sleep(sleep);
