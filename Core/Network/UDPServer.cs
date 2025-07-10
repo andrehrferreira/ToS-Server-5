@@ -21,14 +21,14 @@
 * SOFTWARE.
 */
 
+using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.WebSockets;
-
-using System.Linq;
 public unsafe struct NativeBuffer
 {
     public byte* Data;
@@ -49,7 +49,7 @@ public struct SendPacket
     public bool Pooled;
 }
 
-    public class UDPServerOptions
+public class UDPServerOptions
     {
     public uint Version { get; set; } = 1;
     public bool EnableWAF { get; set; } = true;
@@ -62,9 +62,9 @@ public struct SendPacket
     public byte[] EncryptionIV { get; set; } = null;
     public uint MaxConnections { get; set; } = 25000;
     public int ReceiveBufferSize { get; set; } = 512 * 1024;
-        public int SendBufferSize { get; set; } = 512 * 1024;
-        public int SendThreadCount { get; set; } = 1;
-    }
+    public int SendBufferSize { get; set; } = 512 * 1024;
+    public int SendThreadCount { get; set; } = 1;
+}
 
 public sealed class UDPServer
 {
@@ -98,6 +98,8 @@ public sealed class UDPServer
     private static AutoResetEvent[] SendEvents;
 
     public static TimeSpan ReliableTimeout = TimeSpan.FromMilliseconds(250f);
+
+    public static byte[] ReciveBuffer = new byte[4096];
 
     public delegate bool ConnectionHandler(UDPSocket socket, string token);
 
@@ -199,7 +201,14 @@ public sealed class UDPServer
                 {
                     Poll(100);
 
-                    if (pingTimer.Elapsed >= TimeSpan.FromSeconds(1))
+                    int packetCount = 0;
+
+                    while (Poll(0) && packetCount < 1000)
+                    {
+                        ++packetCount;
+                    }
+
+                    if (pingTimer.Elapsed >= TimeSpan.FromSeconds(10))
                     {
                         if(Clients.Count > 0)
                         {
@@ -306,6 +315,7 @@ public sealed class UDPServer
             SendThreads[i] = new Thread(() =>
             {
                 var batch = new List<SendPacket>();
+
                 while (Running)
                 {
                     SendEvents[idx].WaitOne(1);
@@ -324,13 +334,21 @@ public sealed class UDPServer
                         var packet = node.Value;
 
                         if (packet.Buffer != null && packet.Length > 0)
+                        {
+                            ServerSocket.SendTo(packet.Buffer, 0, packet.Length, SocketFlags.None, packet.Address);
+                            Interlocked.Increment(ref _packetsSent);
+                            Interlocked.Add(ref _bytesSent, packet.Length);
 
-                            batch.Add(packet);
+                            if (packet.Pooled)
+                                ArrayPool<byte>.Shared.Return(packet.Buffer);
+                        }
+
+                        //batch.Add(packet);
 
                         node = node.Next;
                     }
 
-                    if (chain != null)
+                    /*if (chain != null)
                         QueueStructLinked<SendPacket>.ReleaseChain(chain);
 
                     if (batch.Count > 0)
@@ -355,7 +373,8 @@ public sealed class UDPServer
 
                         batch.Clear();
                     }
-                    ByteBufferPool.Merge();
+
+                    ByteBufferPool.Merge();*/
                 }
             });
 
@@ -367,31 +386,36 @@ public sealed class UDPServer
 
     public static bool Poll(int timeout)
     {
-        bool received = false;
-
-        UdpBatchIO.ReceiveBatch(ServerSocket, 32, (address, data, len) =>
+        try
         {
-            if (_options.EnableWAF && !WAFRateLimiter.AllowPacket(address))
+            bool received = false;
+
+            EndPoint address = new IPEndPoint(IPAddress.Any, 0);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(3600);
+            var len = ServerSocket.ReceiveFrom(buffer, ref address);
+
+            if (len > 0)
             {
-#if DEBUG
-                ServerMonitor.Log($"[WAF] Packet dropped due to rate limit from {address}");
-#endif
-                return;
+                PacketType packetType = (PacketType)buffer[0];
+                HandlePacket(packetType, buffer, len, address);
+                Interlocked.Increment(ref _packetsReceived);
+                Interlocked.Add(ref _bytesReceived, len);
+                received = true;
+            }
+            else
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
             }
 
-            PacketType packetType = (PacketType)data[0];
-            HandlePacket(packetType, data, len, address);
-
-            Interlocked.Increment(ref _packetsReceived);
-            Interlocked.Add(ref _bytesReceived, len);
-
-            received = true;
-        });
-
-        return received;
+            return received;
+        }
+        catch (SocketException)
+        {
+            return true;
+        }
     }
 
-    private static void HandlePacket(PacketType type, byte[] data, int len, EndPoint address)
+    private static async Task HandlePacket(PacketType type, byte[] data, int len, EndPoint address)
     {
         UDPSocket conn;
 
@@ -538,22 +562,26 @@ public sealed class UDPServer
                         var newRotation = ByteBuffer.ReadFRotator(data, 13, len);
 
                         var count = Clients.Count;
+
                         if (count == 0)
                             break;
 
                         var rnd = Random.Shared;
                         int limit = Math.Min(250, count);
+                        var packet = new BenchmarkPacket
+                        {
+                            Id = conn.Id,
+                            Positon = newLocation,
+                            Rotator = newRotation
+                        };
 
                         for (int i = 0; i < limit; i++)
                         {
                             var randomValue = Clients.Values.ElementAt(rnd.Next(count));
+                            packet.Serialize(ref randomValue.UnreliableBuffer);
 
-                            randomValue.Send(new BenchmarkPacket
-                            {
-                                Id = conn.Id,
-                                Positon = newLocation,
-                                Rotator = newRotation
-                            });
+                            if (randomValue.UnreliableBuffer.Position > 3200)
+                                randomValue.Send(packet);
                         }
                     }
                     catch { /*Console.WriteLine("Erro to parse packet");*/ }
@@ -561,6 +589,8 @@ public sealed class UDPServer
             }
             break;
         }
+
+        ArrayPool<byte>.Shared.Return(data);
 
         MergeSendQueue();
     }
@@ -571,6 +601,7 @@ public sealed class UDPServer
             return data;
 
         PacketType t = (PacketType)data[0];
+
         if (t == PacketType.Reliable || t == PacketType.Unreliable || t == PacketType.Ack)
         {
             uint crc32c = CRC32C.Compute(data, length);
@@ -680,7 +711,7 @@ public sealed class UDPServer
 
             LocalSendQueue.Add(packet);
 
-            buffer.Free();
+            buffer.Reset();
 
             Flush();
         }

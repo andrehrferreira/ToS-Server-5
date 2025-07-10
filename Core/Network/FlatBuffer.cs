@@ -67,7 +67,7 @@ public unsafe struct FlatBuffer : IDisposable
         int size = sizeof(T);
 
         if (_offset + size > _capacity)
-            throw new IndexOutOfRangeException($"Write exceeds buffer size ({_capacity}) at {_offset} with size {size}");
+            return;
 
         *(T*)(_ptr + _offset) = value;
         _offset += size;

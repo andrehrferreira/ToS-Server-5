@@ -12,7 +12,7 @@ use rand::rngs::StdRng;
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     const SERVER_ADDR: &str = "127.0.0.1:3565";
-    const CLIENT_COUNT: usize = 2; // 10_000;
+    const CLIENT_COUNT: usize = 200; // 10_000;
     const TEST_DURATION: Duration = Duration::from_secs(60);
     const BATCH_SIZE: usize = 10000;
 

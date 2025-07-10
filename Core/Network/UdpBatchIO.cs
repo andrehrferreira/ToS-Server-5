@@ -355,6 +355,7 @@ public static class UdpBatchIO_Windows
             args = new SocketAsyncEventArgs();
             args.Completed += IOCompleted;
         }
+
         return args;
     }
 
@@ -365,9 +366,12 @@ public static class UdpBatchIO_Windows
         args.UserToken = null;
         _sendPool.Push(args);
     }
+
     public static void Initialize(Socket socket, Action<EndPoint, byte[], int> callback)
     {
         _socket = socket;
+        _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, 8 * 1024 * 1024);
+        _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, 8 * 1024 * 1024);
         _callback = callback;
 
         for (int i = 0; i < ConcurrentReceives; i++)

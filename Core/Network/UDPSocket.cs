@@ -104,7 +104,14 @@ public class UDPSocket
     public void Send(INetworkPacket networkPacket, bool reliable = false)
     {
         ref FlatBuffer buffer = ref (reliable ? ref ReliableBuffer : ref UnreliableBuffer);
+
+        if(buffer.Position + networkPacket.Size > buffer.Capacity)
+            Send(buffer);
+
         networkPacket.Serialize(ref buffer);
+
+        if (buffer.Position > 3200)
+            Send(buffer);
     }
 
     public void Send(FlatBuffer buffer, bool reliable = false)
@@ -142,26 +149,15 @@ public class UDPSocket
         {
             //ReliablePackets[ReliableBuffer.Sequence] = ReliableBuffer;
 
-            Send(ReliableBuffer);
-
-            ReliableBuffer = new FlatBuffer(3600);
+            Send(ReliableBuffer, true);
         }
 
-        if (UnreliableBuffer.Position > 0)
-        {
+        if (UnreliableBuffer.Position > 0)        
             Send(UnreliableBuffer);
-
-            UnreliableBuffer = new FlatBuffer(3600);
-        }        
-            
-
-        if (AckBuffer.Position > 0)
-        {
+              
+        if (AckBuffer.Position > 0)        
             Send(AckBuffer);
-
-            AckBuffer = new FlatBuffer(3600);
-        }        
-        
+                      
         return true;
     }
 
