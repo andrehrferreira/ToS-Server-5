@@ -52,7 +52,7 @@ public class UDPServerOptions
     public int ReceiveBufferSize { get; set; } = 512 * 1024;
     public int SendBufferSize { get; set; } = 512 * 1024;
     public int SendThreadCount { get; set; } = 1;
-    public int MTU = 1472;
+    public int MTU = 3600;
 }
 
 public sealed class UDPServer
@@ -200,7 +200,7 @@ public sealed class UDPServer
 
                     int packetCount = 0;
 
-                    while (Poll(0) && packetCount < 1000)
+                    while (Poll(0) && packetCount < 2000)
                     {
                         ++packetCount;
                     }
@@ -382,6 +382,11 @@ public sealed class UDPServer
         }
         catch (SocketException)
         {
+            return true;
+        }
+        catch
+        {
+            ServerMonitor.Log("Socket exception occurred while polling for packets.");
             return true;
         }
     }
@@ -696,7 +701,7 @@ public sealed class UDPServer
 
     public static void RunMainLoop()
     {
-        const int targetFps = 60;
+        const int targetFps = 20;
         int fps = 0;
         const double targetFrameTime = 1000.0 / targetFps;
         Stopwatch sw = new Stopwatch();
