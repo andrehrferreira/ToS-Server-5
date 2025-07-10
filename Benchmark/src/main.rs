@@ -1,5 +1,5 @@
 use tokio::net::UdpSocket;
-use tokio::sync::Semaphore;
+use tokio::sync::{Semaphore, Barrier};
 use std::sync::Arc;
 use std::time::{Instant, Duration};
 use std::net::SocketAddr;
@@ -19,9 +19,9 @@ async fn main() -> std::io::Result<()> {
     let packets_received = Arc::new(AtomicUsize::new(0));
     let packets_sent = Arc::new(AtomicUsize::new(0));
     let sem = Arc::new(Semaphore::new(30_000));
+    let barrier = Arc::new(Barrier::new(CLIENT_COUNT + 1));
 
     let server_addr: SocketAddr = SERVER_ADDR.parse().unwrap();
-    let start = Instant::now();
 
     for batch_start in (0..CLIENT_COUNT).step_by(BATCH_SIZE) {
         let batch_end = std::cmp::min(batch_start + BATCH_SIZE, CLIENT_COUNT);
@@ -31,7 +31,7 @@ async fn main() -> std::io::Result<()> {
             let packets_received = packets_received.clone();
             let packets_sent = packets_sent.clone();
             let server_addr = server_addr.clone();
-            let start = start.clone();
+            let barrier = barrier.clone();
 
             tokio::spawn(async move {
                 let socket = match UdpSocket::bind("0.0.0.0:0").await {
@@ -49,6 +49,21 @@ async fn main() -> std::io::Result<()> {
                 }
 
                 let mut buf = [0u8; 1024];
+
+                // Aguarda o ConnectionAccepted
+                loop {
+                    match socket.recv_from(&mut buf).await {
+                        Ok((size, _)) if size > 0 && buf[0] == 9 => {
+                            packets_received.fetch_add(1, Ordering::Relaxed);
+                            break;
+                        }
+                        Ok(_) => {}
+                        Err(_) => {}
+                    }
+                }
+
+                barrier.wait().await;
+                let start = Instant::now();
                 let mut update_interval = tokio::time::interval(Duration::from_millis(50));
                 let mut rng = StdRng::from_entropy(); // gerador thread-safe
 
@@ -112,6 +127,9 @@ async fn main() -> std::io::Result<()> {
 
         tokio::time::sleep(Duration::from_millis(1000)).await;
     }
+
+    barrier.wait().await;
+    let start = Instant::now();
 
     let report_interval = Duration::from_secs(1);
     let mut last_received = 0;
