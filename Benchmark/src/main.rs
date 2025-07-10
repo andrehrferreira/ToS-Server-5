@@ -83,23 +83,41 @@ async fn main() -> std::io::Result<()> {
                             match result {
                                 Ok((size, addr)) => {
                                     if size == 0 { continue; }
-                                    let packet_type = buf[0];
-                                    match packet_type {
-                                        1 => {
-                                            if size >= 9 {
-                                                let mut pong_packet = [0u8; 9];
-                                                pong_packet[0] = 2u8;
-                                                pong_packet[1..9].copy_from_slice(&buf[1..9]);
-                                                let _ = socket.send_to(&pong_packet, addr).await;
-                                                packets_sent.fetch_add(1, Ordering::Relaxed);
-                                            } else {
-                                                eprintln!("Received Ping with invalid size: {}", size);
+
+                                    let mut offset = 0;
+                                    while offset < size {
+                                        let packet_type = buf[offset];
+                                        match packet_type {
+                                            // Ping
+                                            1 => {
+                                                if size - offset >= 9 {
+                                                    let mut pong_packet = [0u8; 9];
+                                                    pong_packet[0] = 2u8;
+                                                    pong_packet[1..9].copy_from_slice(&buf[offset + 1..offset + 9]);
+                                                    let _ = socket.send_to(&pong_packet, addr).await;
+                                                    packets_sent.fetch_add(1, Ordering::Relaxed);
+                                                    offset += 9;
+                                                } else {
+                                                    break;
+                                                }
+                                            }
+                                            // ConnectionAccepted
+                                            9 => {
+                                                offset += 5;
+                                            }
+                                            // Benchmark packet
+                                            4 => {
+                                                // 31 bytes per packet
+                                                offset += 31;
+                                            }
+                                            _ => {
+                                                // Unknown packet type, stop processing
+                                                break;
                                             }
                                         }
-                                        9 => { /* ConnectionAccepted */ }
-                                        _ => { /* Ignored */ }
+
+                                        packets_received.fetch_add(1, Ordering::Relaxed);
                                     }
-                                    packets_received.fetch_add(1, Ordering::Relaxed);
                                 }
                                 Err(_) => { continue; }
                             }
