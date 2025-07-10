@@ -88,9 +88,9 @@ public class UDPSocket
         State = ConnectionState.Disconnected;
         RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
         ServerSocket = serverSocket;
-        ReliableBuffer = new FlatBuffer(3600);
-        UnreliableBuffer = new FlatBuffer(3600);
-        AckBuffer = new FlatBuffer(3600);
+        ReliableBuffer = new FlatBuffer(UDPServer.Mtu);
+        UnreliableBuffer = new FlatBuffer(UDPServer.Mtu);
+        AckBuffer = new FlatBuffer(UDPServer.Mtu);
     }
 
     public bool IsConnected
@@ -106,17 +106,18 @@ public class UDPSocket
         ref FlatBuffer buffer = ref (reliable ? ref ReliableBuffer : ref UnreliableBuffer);
 
         if(buffer.Position + networkPacket.Size > buffer.Capacity)
-            Send(buffer);
+            Send(ref buffer);
 
         networkPacket.Serialize(ref buffer);
 
-        if (buffer.Position > 3200)
-            Send(buffer);
+        if (buffer.Position > UDPServer.Mtu / 2)
+            Send(ref buffer);
     }
 
-    public void Send(FlatBuffer buffer, bool reliable = false)
+    public void Send(ref FlatBuffer buffer, bool flush = true)
     {
-        UDPServer.Send(buffer, buffer.Position, this);
+        if(buffer.Position > 0)
+            UDPServer.Send(ref buffer, buffer.Position, this, flush);
     }
 
     public bool Update(float delta)
@@ -149,14 +150,14 @@ public class UDPSocket
         {
             //ReliablePackets[ReliableBuffer.Sequence] = ReliableBuffer;
 
-            Send(ReliableBuffer, true);
+            Send(ref ReliableBuffer, true);
         }
 
         if (UnreliableBuffer.Position > 0)        
-            Send(UnreliableBuffer);
+            Send(ref UnreliableBuffer);
               
         if (AckBuffer.Position > 0)        
-            Send(AckBuffer);
+            Send(ref AckBuffer);
                       
         return true;
     }
