@@ -5,14 +5,14 @@ use std::time::{Instant, Duration};
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use rand::Rng; // <-- necessário para .gen_range()
+use rand::Rng;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     const SERVER_ADDR: &str = "127.0.0.1:3565";
-    const CLIENT_COUNT: usize = 500; // 10_000;
+    const CLIENT_COUNT: usize = 100; // 10_000;
     const TEST_DURATION: Duration = Duration::from_secs(60);
     const BATCH_SIZE: usize = 10000;
 
@@ -50,7 +50,7 @@ async fn main() -> std::io::Result<()> {
 
                 let mut buf = [0u8; 1024];
                 let mut update_interval = tokio::time::interval(Duration::from_millis(250));
-                let mut rng = StdRng::from_entropy(); // gerador thread-safe
+                let mut rng = StdRng::from_entropy();
 
                 while start.elapsed() < TEST_DURATION {
                     tokio::select! {

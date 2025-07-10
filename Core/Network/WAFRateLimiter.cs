@@ -1,17 +1,17 @@
 /*
 * WAFRateLimiter
-* 
+*
 * Author: Andre Ferreira
-* 
+*
 * Copyright (c) Uzmi Games. Licensed under the MIT License.
-*    
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,7 +23,8 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Net;
+using System.Text;
+using NanoSockets;
 
 public static class WAFRateLimiter
 {
@@ -32,21 +33,25 @@ public static class WAFRateLimiter
     private const int MaxPacketsPerSecond = 60;
     private const int BurstSize = 5;
 
-    public static bool AllowPacket(EndPoint endPoint)
+    public static bool AllowPacket(Address address)
     {
-        string ip = GetIPAddress(endPoint);
+        string ip = GetIPAddress(address);
 
         var bucket = Buckets.GetOrAdd(ip, _ => new TokenBucket(MaxPacketsPerSecond, BurstSize));
 
         return bucket.TryConsume();
     }
 
-    private static string GetIPAddress(EndPoint endPoint)
+    private static string GetIPAddress(Address address)
     {
-        if (endPoint is IPEndPoint ipEndPoint)
-            return ipEndPoint.Address.ToString();
+        StringBuilder ip = new StringBuilder(64);
 
-        return endPoint.ToString();
+        if (UDP.GetIP(ref address, ip, 64) == Status.OK)
+        {
+            return ip.ToString();
+        }
+
+        return address.ToString();
     }
 
     private class TokenBucket

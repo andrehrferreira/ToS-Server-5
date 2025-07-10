@@ -86,6 +86,24 @@ public unsafe struct FlatBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public FVector ReadFVector()
+    {
+        int x = Read<int>();
+        int y = Read<int>();
+        int z = Read<int>();
+        return new FVector(x, y, z);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public FRotator ReadFRotator()
+    {
+        int pitch = Read<int>();
+        int yaw = Read<int>();
+        int roll = Read<int>();
+        return new FRotator(pitch, yaw, roll);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public uint GetHashFast()
     {
         uint hash = 0;

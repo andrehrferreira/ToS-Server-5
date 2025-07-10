@@ -1,17 +1,17 @@
 /*
 * UDPSocket
-* 
+*
 * Author: Andre Ferreira
-* 
+*
 * Copyright (c) Uzmi Games. Licensed under the MIT License.
-*    
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,10 +22,9 @@
 */
 
 using System.Collections.Concurrent;
-using System.Net;
-using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Buffers;
+using NanoSockets;
 
 public enum ConnectionState
 {
@@ -50,9 +49,9 @@ public class UDPSocket
 
     public uint EntityId;
 
-    public EndPoint RemoteEndPoint;
+    public Address RemoteAddress;
 
-    private Socket ServerSocket;
+    private NanoSockets.Socket ServerSocket;
 
     public uint Ping = 0;
 
@@ -83,10 +82,10 @@ public class UDPSocket
     internal FlatBuffer UnreliableBuffer;
     internal FlatBuffer AckBuffer;
 
-    public UDPSocket(Socket serverSocket)
+    public UDPSocket(NanoSockets.Socket serverSocket)
     {
         State = ConnectionState.Disconnected;
-        RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        RemoteAddress = default;
         ServerSocket = serverSocket;
         ReliableBuffer = new FlatBuffer(UDPServer.Mtu);
         UnreliableBuffer = new FlatBuffer(UDPServer.Mtu);
@@ -153,12 +152,12 @@ public class UDPSocket
             Send(ref ReliableBuffer, true);
         }
 
-        if (UnreliableBuffer.Position > 0)        
+        if (UnreliableBuffer.Position > 0)
             Send(ref UnreliableBuffer);
-              
-        if (AckBuffer.Position > 0)        
+
+        if (AckBuffer.Position > 0)
             Send(ref AckBuffer);
-                      
+
         return true;
     }
 
@@ -168,13 +167,13 @@ public class UDPSocket
         {
             Reason = reason;
 
-            Send(new DisconnectPacket());                  
+            Send(new DisconnectPacket());
         }
     }
 
     internal void OnDisconnect()
     {
-        if (State != ConnectionState.Disconnected)        
+        if (State != ConnectionState.Disconnected)
             State = ConnectionState.Disconnected;
     }
 
