@@ -346,7 +346,6 @@ public static class UdpBatchIO_Windows
     private static Action<EndPoint, byte[], int> _callback;
     private static Action<EndPoint, ReadOnlyMemory<byte>, int> _callbackMemory;
     private static List<SocketAsyncEventArgs> _receivePool = new();
-    private static byte[] _bufferReceive = ArrayPool<byte>.Shared.Rent(BufferSize);
     private static ConcurrentStack<SocketAsyncEventArgs> _sendPool = new();
 
     private static SocketAsyncEventArgs RentSendArgs()
@@ -363,6 +362,7 @@ public static class UdpBatchIO_Windows
     {
         args.SetBuffer(null, 0, 0);
         args.RemoteEndPoint = null;
+        args.UserToken = null;
         _sendPool.Push(args);
     }
     public static void Initialize(Socket socket, Action<EndPoint, byte[], int> callback)
@@ -372,12 +372,13 @@ public static class UdpBatchIO_Windows
 
         for (int i = 0; i < ConcurrentReceives; i++)
         {
+            var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
             var args = new SocketAsyncEventArgs
             {
                 RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0)
             };
 
-            args.SetBuffer(_bufferReceive, 0, BufferSize);
+            args.SetBuffer(buffer, 0, BufferSize);
             args.Completed += IOCompleted;
 
             _receivePool.Add(args);
@@ -394,13 +395,13 @@ public static class UdpBatchIO_Windows
 
         for (int i = 0; i < ConcurrentReceives; i++)
         {
-            var buffer = new byte[BufferSize];
+            var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
             var args = new SocketAsyncEventArgs
             {
                 RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0)
             };
 
-            args.SetBuffer(new Memory<byte>(buffer));
+            args.SetBuffer(buffer, 0, BufferSize);
             args.Completed += IOCompleted;
 
             _receivePool.Add(args);
@@ -488,15 +489,10 @@ public static class UdpBatchIO_Windows
                 var args = RentSendArgs();
                 args.RemoteEndPoint = packet.Addr;
                 args.SetBuffer(tempBuffer, 0, packet.Length);
-                args.Completed += (s, e) =>
-                {
-                    ArrayPool<byte>.Shared.Return(tempBuffer);
-                    ProcessSend(e);
-                };
+                args.UserToken = tempBuffer;
 
                 if (!socket.SendToAsync(args))
                 {
-                    ArrayPool<byte>.Shared.Return(tempBuffer);
                     ProcessSend(args);
                 }
             }
@@ -524,6 +520,12 @@ public static class UdpBatchIO_Windows
 
     private static void ProcessSend(SocketAsyncEventArgs e)
     {
+        if (e.UserToken is byte[] buffer)
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+            e.UserToken = null;
+        }
+
         ReturnSendArgs(e);
     }
 
