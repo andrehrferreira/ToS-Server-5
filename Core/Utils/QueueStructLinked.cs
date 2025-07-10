@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Threading;
 
 public class QueueStructLinked<T>
 {
@@ -9,6 +10,8 @@ public class QueueStructLinked<T>
     }
 
     private static readonly ConcurrentStack<Node> Pool = new();
+    private const int MaxPoolSize = 1024;
+    private static int _poolCount = 0;
 
     public static void ReleaseChain(Node node)
     {
@@ -17,7 +20,14 @@ public class QueueStructLinked<T>
             var next = node.Next;
             node.Next = null;
             node.Value = default!;
-            Pool.Push(node);
+            if (Interlocked.Increment(ref _poolCount) <= MaxPoolSize)
+            {
+                Pool.Push(node);
+            }
+            else
+            {
+                Interlocked.Decrement(ref _poolCount);
+            }
             node = next;
         }
     }
@@ -25,7 +35,13 @@ public class QueueStructLinked<T>
     private static Node RentNode(T value)
     {
         if (!Pool.TryPop(out var node))
+        {
             node = new Node();
+        }
+        else
+        {
+            Interlocked.Decrement(ref _poolCount);
+        }
 
         node.Value = value;
         node.Next = null;
