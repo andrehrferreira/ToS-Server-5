@@ -62,6 +62,18 @@ public unsafe struct FlatBuffer : IDisposable
         }
     }
 
+    private static uint EncodeZigZag(int value)
+        => (uint)((value << 1) ^ (value >> 31));
+
+    private static int DecodeZigZag(uint value)
+        => (int)((value >> 1) ^ (-(int)(value & 1)));
+
+    private static ulong EncodeZigZag(long value)
+        => (ulong)((value << 1) ^ (value >> 63));
+
+    private static long DecodeZigZag(ulong value)
+        => (long)((value >> 1) ^ (-(long)(value & 1)));
+
     public void Write<T>(T value) where T : unmanaged
     {
         int size = sizeof(T);
@@ -75,6 +87,19 @@ public unsafe struct FlatBuffer : IDisposable
 
     public T Read<T>() where T : unmanaged
     {
+        if (typeof(T) == typeof(int))
+            return (T)(object)ReadInt();
+        if (typeof(T) == typeof(uint))
+            return (T)(object)ReadUInt();
+        if (typeof(T) == typeof(long))
+            return (T)(object)ReadLong();
+        if (typeof(T) == typeof(ulong))
+            return (T)(object)ReadULong();
+        if (typeof(T) == typeof(short))
+            return (T)(object)ReadShort();
+        if (typeof(T) == typeof(ushort))
+            return (T)(object)ReadUShort();
+
         int size = sizeof(T);
 
         if (_offset + size > _capacity)
@@ -85,21 +110,71 @@ public unsafe struct FlatBuffer : IDisposable
         return val;
     }
 
+    public void Write(int value)
+        => Write<uint>(EncodeZigZag(value));
+
+    public int ReadInt()
+        => DecodeZigZag(Read<uint>());
+
+    public void Write(uint value)
+        => Write<uint>(value);
+
+    public uint ReadUInt()
+        => Read<uint>();
+
+    public void Write(long value)
+        => Write<ulong>(EncodeZigZag(value));
+
+    public long ReadLong()
+        => DecodeZigZag(Read<ulong>());
+
+    public void Write(ulong value)
+        => Write<ulong>(value);
+
+    public ulong ReadULong()
+        => Read<ulong>();
+
+    public void Write(short value)
+        => Write<ushort>((ushort)EncodeZigZag(value));
+
+    public short ReadShort()
+        => (short)DecodeZigZag(Read<ushort>());
+
+    public void Write(ushort value)
+        => Write<ushort>(value);
+
+    public ushort ReadUShort()
+        => Read<ushort>();
+
+    public void Write(FVector value)
+    {
+        Write((int)value.X);
+        Write((int)value.Y);
+        Write((int)value.Z);
+    }
+
+    public void Write(FRotator value)
+    {
+        Write((int)value.Pitch);
+        Write((int)value.Yaw);
+        Write((int)value.Roll);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public FVector ReadFVector()
     {
-        int x = Read<int>();
-        int y = Read<int>();
-        int z = Read<int>();
+        int x = ReadInt();
+        int y = ReadInt();
+        int z = ReadInt();
         return new FVector(x, y, z);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public FRotator ReadFRotator()
     {
-        int pitch = Read<int>();
-        int yaw = Read<int>();
-        int roll = Read<int>();
+        int pitch = ReadInt();
+        int yaw = ReadInt();
+        int roll = ReadInt();
         return new FRotator(pitch, yaw, roll);
     }
 
