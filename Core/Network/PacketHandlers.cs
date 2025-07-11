@@ -1,12 +1,11 @@
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 public abstract class PacketHandler
 {
     static readonly PacketHandler[] Handlers = new PacketHandler[1024];
     public abstract ClientPacket Type { get; }
-    public abstract void Consume(PlayerController ctrl, ByteBuffer buffer);
+    public abstract void Consume(PlayerController ctrl, FlatBuffer buffer);
 
     static PacketHandler()
     {
@@ -22,7 +21,7 @@ public abstract class PacketHandler
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void HandlePacket(PlayerController ctrl, ByteBuffer buffer, ClientPacket type)
+    public static void HandlePacket(PlayerController ctrl, FlatBuffer buffer, ClientPacket type)
     {
         Handlers[(int)type]?.Consume(ctrl, buffer);
     }

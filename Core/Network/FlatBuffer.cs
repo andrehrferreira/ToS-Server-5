@@ -72,7 +72,7 @@ public unsafe struct FlatBuffer : IDisposable
         => (ulong)((value << 1) ^ (value >> 63));
 
     private static long DecodeZigZag(ulong value)
-        => (long)((value >> 1) ^ (-(long)(value & 1)));
+        => (long)((value >> 1) ^ (~(value & 1) + 1));
 
     public void Write<T>(T value) where T : unmanaged
     {

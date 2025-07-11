@@ -24,6 +24,7 @@
 	  <Folder Include="Core\Handlers\" />
 	  <Folder Include="Core\Packets\" />
 	  <Folder Include="Tables\" />
+	  <Folder Include="Tests\Network\" />
 	</ItemGroup>
 
 	<ItemGroup>

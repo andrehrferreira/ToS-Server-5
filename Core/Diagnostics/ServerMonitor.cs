@@ -98,7 +98,6 @@ public static class ServerMonitor
         long bytesSent = UDPServer.BytesSent;
         long bytesReceived = UDPServer.BytesReceived;
         int tickRate = UDPServer.TickRate;
-        var (created, pooled) = ByteBufferPool.GetStats();
 
         long managed = GC.GetTotalMemory(false);
         long privateBytes = Process.GetCurrentProcess().PrivateMemorySize64;

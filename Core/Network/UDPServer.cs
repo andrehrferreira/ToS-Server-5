@@ -303,8 +303,6 @@ public sealed class UDPServer
 
                     Flush();
 
-                    ByteBufferPool.Merge();
-
                     Thread.Sleep(1);
                 }
             }
@@ -537,7 +535,6 @@ public sealed class UDPServer
 
             Buffer.MemoryCopy(data, result, length + 4, length);
 
-            // Add signature at the end
             *(uint*)(result + length) = crc32c;
 
             newLength = length + 4;
@@ -545,31 +542,6 @@ public sealed class UDPServer
         }
 
         newLength = length;
-        return data;
-    }
-
-    private static byte[] AddSignature(byte[] data, int length)
-    {
-        if (data == null || length == 0)
-            return data;
-
-        PacketType t = (PacketType)data[0];
-
-        if (t == PacketType.Reliable || t == PacketType.Unreliable || t == PacketType.Ack)
-        {
-            uint crc32c = CRC32C.Compute(data, length);
-            if (data.Length >= length + 4)
-            {
-                ByteBuffer.WriteUInt(data, (uint)length, crc32c);
-                return data;
-            }
-
-            byte[] result = ArrayPool<byte>.Shared.Rent(length + 4);
-            Buffer.BlockCopy(data, 0, result, 0, length);
-            ByteBuffer.WriteUInt(result, (uint)length, crc32c);
-            return result;
-        }
-
         return data;
     }
 
@@ -648,7 +620,5 @@ public sealed class UDPServer
             if (sleep > 0)
                 Thread.Sleep(sleep);
         }
-
-        ByteBufferPool.Merge();
     }
 }

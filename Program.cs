@@ -38,8 +38,6 @@ class Program
         Console.WriteLine("Running in release mode. Tests and transpilers are skipped.");
 #endif
 
-        ByteBufferPool.PreAllocate(10); 
-
         World world = new World(100000);
 
         UDPServer.SetWorld(world);
