@@ -390,132 +390,133 @@ public sealed class UDPServer
         }
     }
 
-    private static unsafe Task HandlePacket(PacketType type, FlatBuffer data, int len, Address address)
+    private static unsafe void HandlePacket(PacketType type, FlatBuffer data, int len, Address address)
     {
         UDPSocket conn;
 
-        switch (type)
+        try
         {
-            case PacketType.Connect:
+            switch (type)
             {
-                string token = null;
-
-                if (!Clients.TryGetValue(address, out conn))
-                {
-                    var newSocket = new UDPSocket(ServerSocket)
+                case PacketType.Connect:
                     {
-                        Id = GetRandomId(),
-                        RemoteAddress = address,
-                        TimeoutLeft = 30f,
-                        State = ConnectionState.Connecting,
-                        Flags = _baseFlags,
-                        EnableIntegrityCheck = _options.EnableIntegrityCheck
-                    };
+                        string token = null;
 
-                    bool valid = _connectionHandler?.Invoke(newSocket, token) ?? true;
-
-                    if (Clients.TryAdd(address, newSocket))
-                    {
-                        uint ID = GetRandomId();
-
-                        newSocket.Send(new ConnectionAcceptedPacket { Id = ID });
-
-                        newSocket.State = ConnectionState.Connected;
-
-            #if DEBUG
-                        //ServerMonitor.Log($"Client connected: {address} ID:{ID}");
-            #endif
-                    }
-                }
-            }
-            break;
-            case PacketType.Pong:
-            {
-                if (Clients.TryGetValue(address, out conn))
-                {
-                    long sentTimestamp = data.Read<long>();
-                    long nowTimestamp = Stopwatch.GetTimestamp();
-                    long elapsedTicks = nowTimestamp - sentTimestamp;
-
-                    double rttMs = (elapsedTicks * 1000.0) / Stopwatch.Frequency;
-
-                    conn.Ping = (uint)rttMs;
-                    conn.TimeoutLeft = 30f;
-                }
-            }
-            break;
-            case PacketType.Disconnect:
-            {
-                if (Clients.TryRemove(address, out conn))
-                {
-                    conn.OnDisconnect();
-#if DEBUG
-                    ServerMonitor.Log($"Client disconnected: {address}");
-#endif
-                }
-            }
-            break;
-            case PacketType.Reliable:
-            case PacketType.Unreliable:
-            case PacketType.Ack:
-            {
-                /*if (Clients.TryGetValue(address, out conn))
-                {
-                    fixed (byte* dataPtr = data)
-                    {
-                        var crc32c = CRC32C.Compute(dataPtr, data.Length - 4);
-                        uint receivedCrc32c = ByteBuffer.ReadSign(data, len);
-
-                        if (receivedCrc32c == crc32c)
+                        if (!Clients.TryGetValue(address, out conn))
                         {
-                            if (conn.State == ConnectionState.Connecting)
-                                conn.State = ConnectionState.Connected;
+                            var newSocket = new UDPSocket(ServerSocket)
+                            {
+                                Id = GetRandomId(),
+                                RemoteAddress = address,
+                                TimeoutLeft = 30f,
+                                State = ConnectionState.Connecting,
+                                Flags = _baseFlags,
+                                EnableIntegrityCheck = _options.EnableIntegrityCheck
+                            };
 
-                            var buffer = ByteBufferPool.Acquire();
-                            buffer.Assign(data, len);
-                            buffer.Length -= 4;
+                            bool valid = _connectionHandler?.Invoke(newSocket, token) ?? true;
 
-                            buffer.Connection = conn;
+                            if (Clients.TryAdd(address, newSocket))
+                            {
+                                uint ID = GetRandomId();
 
-                            //conn.ProcessPacket(type, buffer);
+                                newSocket.Send(new ConnectionAcceptedPacket { Id = ID });
+
+                                newSocket.State = ConnectionState.Connected;
+                            }
                         }
                     }
-                }*/
-            }
-            break;
-            case PacketType.CheckIntegrity:
-            {
-                if (Clients.TryGetValue(address, out conn))
-                {
-                    ushort integrityKey = data.Read<ushort>();
-                    short key = _integrityKeyTable.Keys[conn.IntegrityCheck];
-
-                    if (integrityKey != key)
+                    break;
+                case PacketType.Pong:
                     {
-                        conn.Disconnect(DisconnectReason.InvalidIntegrity);
+                        if (Clients.TryGetValue(address, out conn))
+                        {
+                            long sentTimestamp = data.Read<long>();
+                            long nowTimestamp = Stopwatch.GetTimestamp();
+                            long elapsedTicks = nowTimestamp - sentTimestamp;
+
+                            double rttMs = (elapsedTicks * 1000.0) / Stopwatch.Frequency;
+
+                            conn.Ping = (uint)rttMs;
+                            conn.TimeoutLeft = 30f;
+                        }
+                    }
+                    break;
+                case PacketType.Disconnect:
+                    {
+                        if (Clients.TryRemove(address, out conn))
+                        {
+                            conn.OnDisconnect();
 #if DEBUG
-                        ServerMonitor.Log($"The Client did not respond to the key correctly {address}");
+                            ServerMonitor.Log($"Client disconnected: {address}");
 #endif
+                        }
                     }
-                    else
+                    break;
+                case PacketType.Reliable:
+                case PacketType.Unreliable:
+                case PacketType.Ack:
                     {
-                        conn.TimeoutIntegrityCheck = 120f;
-                    }
-                }
-            }
-            break;
-            case PacketType.BenckmarkTest:
-            {
-                if (Clients.TryGetValue(address, out conn))
-                {
-                    data.Reset();
-                    conn.EventQueue.Writer.TryWrite(data);
-                }
-            }
-            break;
-        }
+                        /*if (Clients.TryGetValue(address, out conn))
+                        {
+                            fixed (byte* dataPtr = data)
+                            {
+                                var crc32c = CRC32C.Compute(dataPtr, data.Length - 4);
+                                uint receivedCrc32c = ByteBuffer.ReadSign(data, len);
 
-        return Task.CompletedTask;
+                                if (receivedCrc32c == crc32c)
+                                {
+                                    if (conn.State == ConnectionState.Connecting)
+                                        conn.State = ConnectionState.Connected;
+
+                                    var buffer = ByteBufferPool.Acquire();
+                                    buffer.Assign(data, len);
+                                    buffer.Length -= 4;
+
+                                    buffer.Connection = conn;
+
+                                    //conn.ProcessPacket(type, buffer);
+                                }
+                            }
+                        }*/
+                    }
+                    break;
+                case PacketType.CheckIntegrity:
+                    {
+                        if (Clients.TryGetValue(address, out conn))
+                        {
+                            ushort integrityKey = data.Read<ushort>();
+                            short key = _integrityKeyTable.Keys[conn.IntegrityCheck];
+
+                            if (integrityKey != key)
+                            {
+                                conn.Disconnect(DisconnectReason.InvalidIntegrity);
+#if DEBUG
+                                ServerMonitor.Log($"The Client did not respond to the key correctly {address}");
+#endif
+                            }
+                            else
+                            {
+                                conn.TimeoutIntegrityCheck = 120f;
+                            }
+                        }
+                    }
+                    break;
+                case PacketType.BenckmarkTest:
+                    {
+                        if (Clients.TryGetValue(address, out conn))
+                        {
+                            data.Reset();
+                            conn.EventQueue.Writer.TryWrite(data);
+                        }
+                    }
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            ServerMonitor.Log($"Error handling packet: {ex.Message}");
+        }
     }
 
     private static unsafe byte* AddSignature(byte* data, int length, out int newLength)

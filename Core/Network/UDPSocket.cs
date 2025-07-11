@@ -195,46 +195,54 @@ public class UDPSocket
     {
         while (EventQueue.Reader.TryRead(out var buffer))
         {
-            PacketType packetType = (PacketType)buffer.Read<byte>();
-
-            switch (packetType)
+            try
             {
-                case PacketType.BenckmarkTest:
+                PacketType packetType = (PacketType)buffer.Read<byte>();
+
+                switch (packetType)
                 {
-                    try
-                    {
-                        var newLocation = buffer.ReadFVector();
-                        var newRotation = buffer.ReadFRotator();
-                        var count = UDPServer.Clients.Count;
-
-                        if (count == 0)
-                            break;
-
-                        var rnd = Random.Shared;
-                        int limit = Math.Min(100, count);
-                        var packet = new BenchmarkPacket
+                    case PacketType.BenckmarkTest:
                         {
-                            Id = Id,
-                            Positon = newLocation,
-                            Rotator = newRotation
-                        };
+                            try
+                            {
+                                var newLocation = buffer.ReadFVector();
+                                var newRotation = buffer.ReadFRotator();
+                                var count = UDPServer.Clients.Count;
 
-                        for (int i = 0; i < limit; i++)
-                        {
-                            var randomValue = UDPServer.Clients.Values.ElementAt(rnd.Next(count));
-                            packet.Serialize(ref randomValue.UnreliableBuffer);
+                                if (count == 0)
+                                    break;
 
-                            if (randomValue.UnreliableBuffer.Position > UDPServer.Mtu / 2)
-                                randomValue.Send(ref randomValue.UnreliableBuffer);
+                                var rnd = Random.Shared;
+                                int limit = Math.Min(100, count);
+                                var packet = new BenchmarkPacket
+                                {
+                                    Id = Id,
+                                    Positon = newLocation,
+                                    Rotator = newRotation
+                                };
 
-                            Interlocked.Increment(ref UDPServer._packetsSent);
-                            Interlocked.Add(ref UDPServer._bytesSent, packet.Size);
+                                for (int i = 0; i < limit; i++)
+                                {
+                                    var randomValue = UDPServer.Clients.Values.ElementAt(rnd.Next(count));
+                                    packet.Serialize(ref randomValue.UnreliableBuffer);
+
+                                    if (randomValue.UnreliableBuffer.Position > UDPServer.Mtu / 2)
+                                        randomValue.Send(ref randomValue.UnreliableBuffer);
+
+                                    Interlocked.Increment(ref UDPServer._packetsSent);
+                                    Interlocked.Add(ref UDPServer._bytesSent, packet.Size);
+                                }
+                            }
+                            catch
+                            { }
                         }
-                    }
-                    catch
-                    {  }
+                        break;
                 }
-                break;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing packet: {ex.Message}");
+                // Handle or log the error as needed
             }
         }
     }

@@ -69,10 +69,10 @@ public unsafe struct FlatBuffer : IDisposable
         => (int)((value >> 1) ^ (-(int)(value & 1)));
 
     private static ulong EncodeZigZag(long value)
-        => (ulong)((value << 1) ^ (value >> 63));
+        => ((ulong)value << 1) ^ ((ulong)(value >> 63));
 
     private static long DecodeZigZag(ulong value)
-        => (long)((value >> 1) ^ (~(value & 1) + 1));
+        => (long)(value >> 1) ^ -((long)(value & 1));
 
     public void Write<T>(T value) where T : unmanaged
     {
@@ -114,37 +114,73 @@ public unsafe struct FlatBuffer : IDisposable
         => Write<uint>(EncodeZigZag(value));
 
     public int ReadInt()
-        => DecodeZigZag(Read<uint>());
+    {
+        uint raw = ReadUInt();
+        return DecodeZigZag(raw);
+    }
 
     public void Write(uint value)
         => Write<uint>(value);
 
     public uint ReadUInt()
-        => Read<uint>();
+    {
+        int size = sizeof(uint);
+
+        if (_offset + size > _capacity)
+            throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {size}");
+
+        uint val = *(uint*)(_ptr + _offset);
+        _offset += size;
+        return val;
+    }
 
     public void Write(long value)
         => Write<ulong>(EncodeZigZag(value));
 
     public long ReadLong()
-        => DecodeZigZag(Read<ulong>());
+    {
+        ulong raw = ReadULong();
+        return DecodeZigZag(raw);
+    }
 
     public void Write(ulong value)
         => Write<ulong>(value);
 
     public ulong ReadULong()
-        => Read<ulong>();
+    {
+        int size = sizeof(ulong);
+
+        if (_offset + size > _capacity)
+            throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {size}");
+
+        ulong val = *(ulong*)(_ptr + _offset);
+        _offset += size;
+        return val;
+    }
 
     public void Write(short value)
         => Write<ushort>((ushort)EncodeZigZag(value));
 
     public short ReadShort()
-        => (short)DecodeZigZag(Read<ushort>());
+    {
+        ushort raw = ReadUShort();
+        return (short)DecodeZigZag(raw);
+    }
 
     public void Write(ushort value)
         => Write<ushort>(value);
 
     public ushort ReadUShort()
-        => Read<ushort>();
+    {
+        int size = sizeof(ushort);
+
+        if (_offset + size > _capacity)
+            throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {size}");
+
+        ushort val = *(ushort*)(_ptr + _offset);
+        _offset += size;
+        return val;
+    }
 
     public void Write(FVector value)
     {
