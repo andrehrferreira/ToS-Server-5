@@ -25,4 +25,16 @@
 	  <Folder Include="Core\Packets\" />
 	  <Folder Include="Tables\" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="libnanosockets.dylib">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="libnanosockets.so">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="nanosockets.dll">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
 </Project>

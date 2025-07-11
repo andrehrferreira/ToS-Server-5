@@ -85,35 +85,46 @@ The project is actively under development with multiple core systems being imple
 - **Unreal Plugin** - Native Unreal Engine integration
 - **Base Replication** - Entity synchronization system
 - **Network Event System** - Event-driven network communication
-- **UDP Server Enhancement** - Advanced UDP features and reliability
+- **Reliable Messaging** - Guaranteed delivery system with acknowledgments
+- **Packet Queue System** - Per-connection fixed buffer transmission queuing
 
 ### ✅ **Completed**
 - **Testing Framework** - Custom testing system with descriptive structure
 - **Base36 Utilities** - Integer encoding/decoding with full test coverage
-- **CRC32C Implementation** - Hardware-accelerated checksum computation
-- **ByteBuffer System** - High-performance binary serialization
-- **Buffer Pooling** - Efficient memory management system
+- **CRC32C Implementation** - Hardware-accelerated checksum computation with unsafe pointer support
+- **FlatBuffer System** - High-performance unsafe pointer-based binary serialization
+- **NanoSockets Integration** - Low-level UDP socket operations with unsafe pointers
+- **Buffer Management** - Zero-allocation buffer system using unsafe memory operations
 - **Integrity System** - Key table store with simplified client-side access
+- **Packet Reception Queue** - Efficient packet reception and processing system
 
 ## UDP Server Architecture
 
-The UDP server is designed with high performance and reliability in mind:
+The UDP server has been completely redesigned for maximum performance using unsafe pointers and zero-allocation principles:
 
 ### Core Components
-- **UDPServer**: Main server class handling connections and message routing
-- **UDPSocket**: Low-level UDP socket wrapper for network operations
-- **ByteBuffer**: High-performance binary serialization with read/write operations
-- **ByteBufferPool**: Object pooling system for efficient memory management
-- **ByteBufferLinked**: Linked buffer system for large data streaming
+- **UDPServer**: Main server class with NanoSockets integration and unsafe operations
+- **UDPSocket**: Enhanced socket wrapper with fixed transmission buffers per connection
+- **FlatBuffer**: High-performance unsafe pointer-based binary serialization (replaces ByteBuffer)
+- **NanoSockets**: Low-level UDP operations using unsafe pointers for maximum performance
+- **Packet Queue System**: Per-connection fixed buffers for efficient packet transmission
 - **IntegrityKeyTableStore**: Version-based key table management with simplified client access
 
+### Performance Optimizations
+- **Zero Allocation**: Unsafe pointer operations eliminate memory allocations
+- **Fixed Buffers**: Per-connection transmission buffers reduce memory fragmentation
+- **Direct Memory Access**: NanoSockets provides direct memory operations
+- **Packet Queuing**: Efficient reception and transmission packet queuing
+- **Hardware Acceleration**: CRC32C with SSE4.2 and ARM Crypto support
+
 ### Network Features
-- **Connection Management**: Basic UDP client connection handling ✅
-- **Buffer Management**: Efficient memory pooling and reuse ✅
-- **Packet Serialization**: Binary packet reading/writing ✅
+- **Connection Management**: NanoSockets-based UDP client connection handling ✅
+- **Buffer Management**: Zero-allocation unsafe pointer buffer system ✅
+- **Packet Serialization**: FlatBuffer unsafe pointer-based serialization ✅
 - **Integrity System**: Version-based key table management ✅
-- **Queue System**: Packet grouping and batching 🛠️
-- **Reliable Messaging**: Guaranteed delivery system ⏳
+- **Reception Queue**: Efficient packet reception queuing system ✅
+- **Transmission Queue**: Per-connection fixed buffer transmission system ✅
+- **Reliable Messaging**: Guaranteed delivery with acknowledgment system 🛠️
 - **Packet Validation**: Integrity checking and validation ⏳
 - **Encryption**: Secure packet transmission ⏳
 - **Heartbeat System**: Client connectivity monitoring ⏳
@@ -122,18 +133,62 @@ The UDP server is designed with high performance and reliability in mind:
 
 - **Automatic RPC generation** (in development)
 - **Unreal Engine plugin integration** (in development)
-- **UDP server with advanced features** (in development)
+- **High-performance UDP server with NanoSockets** ✅
+- **Zero-allocation packet processing** ✅
 - **C# packet creation system** (in development)
 - **Entity replication system** (in development)
 - **Network event system** (in development)
 - **WebSocket support** (planned)
-- **Automated testing framework**
-- **High-performance binary communication**
-- **Buffer pooling and management**
+- **Automated testing framework** ✅
+- **High-performance binary communication with FlatBuffer** ✅
+- **Unsafe pointer-based buffer management** ✅
 - **XOR encoding and ECC/AES encryption** (planned)
-- **Base36 encoding/decoding utilities**
-- **CRC32C checksum computation**
-- **Integrity key table system** with simplified client-side access
+- **Base36 encoding/decoding utilities** ✅
+- **Hardware-accelerated CRC32C checksum** ✅
+- **Integrity key table system** ✅
+
+## Changelog
+
+### Version 5.1.0 - Network Performance Overhaul (Current)
+
+#### 🚀 **Major Performance Improvements**
+- **Replaced ByteBuffer with FlatBuffer**: Implemented a simplified, optimized unsafe pointer-based serialization system
+- **NanoSockets Integration**: Complete migration from System.Net.Sockets to NanoSockets for maximum performance
+- **Zero-Allocation Architecture**: Eliminated memory allocations in packet processing using unsafe pointers
+- **Direct Memory Operations**: All buffer operations now use direct memory access via `byte*` pointers
+
+#### 🔄 **Buffer System Redesign**
+- **Fixed Connection Buffers**: Each connection now has dedicated fixed-size transmission buffers
+- **Packet Reception Queue**: Implemented efficient packet reception queuing system
+- **Transmission Queue Optimization**: Per-connection transmission queuing with fixed buffer allocation
+- **Memory Management**: Transitioned from ArrayPool to manual unsafe memory management
+
+#### ⚡ **Performance Optimizations**
+- **Unsafe Pointer Operations**: All critical paths now use unsafe `byte*` operations
+- **Hardware-Accelerated CRC32C**: Added unsafe pointer support to CRC32C with SSE4.2/ARM optimization
+- **Reduced Packet Limits**: Optimized packet processing limits from 2000 to 1000 per cycle for better throughput
+- **Direct Socket Operations**: Eliminated intermediate buffers using NanoSockets.UDP.Unsafe methods
+
+#### 🔧 **System Architecture Changes**
+- **SendPacket Structure**: Updated to use `byte*` instead of `byte[]` for zero-allocation sending
+- **Connection Management**: Enhanced with NanoSockets.Address instead of EndPoint
+- **Event-Driven Processing**: Added per-connection event queues for packet processing
+- **Benchmark Integration**: Simplified benchmark packet handling with direct event queuing
+
+#### 🛠️ **Infrastructure Updates**
+- **WAF Rate Limiter**: Updated to work with NanoSockets.Address
+- **Batch Operations**: Redesigned UdpBatchIO for unsafe pointer operations
+- **Testing Framework**: Enhanced testing support for new buffer systems
+- **Public Metrics**: Exposed connection and performance metrics for monitoring
+
+#### 📈 **Status Updates**
+- **Reliable Messaging**: Now in active development with acknowledgment system
+- **Packet Validation**: Moved to planned status for next phase
+- **Buffer Pooling**: Replaced with direct unsafe memory management
+
+### Previous Versions
+- **Version 5.0.0**: Initial release with basic UDP server and ByteBuffer system
+- **Version 4.x**: Legacy versions with different architecture
 
 ## Checklist
 
@@ -141,7 +196,7 @@ The UDP server is designed with high performance and reliability in mind:
 | Feature                             | Status            | Notes                                                       |
 |------------------------------------|-------------------|-------------------------------------------------------------|
 | Base36 Encoding/Decoding           | ✅ Implemented     | Base36 utility for encoding/decoding integers with tests.  |
-| CRC32C Checksum                    | ✅ Implemented     | High-performance CRC32C computation with hardware acceleration. |
+| CRC32C Checksum                    | ✅ Implemented     | Hardware-accelerated CRC32C with unsafe pointer support.   |
 | Testing Framework                  | ✅ Implemented     | Custom testing framework with descriptive test structure.   |
 | Integrity Key Table Store          | ✅ Implemented     | Version-based key table management with simple client access. |
 
@@ -158,12 +213,14 @@ The UDP server is designed with high performance and reliability in mind:
 #### UDP Server Implementation
 | Feature                             | Status            | Notes                                                       |
 |------------------------------------|-------------------|-------------------------------------------------------------|
-| Basic Connection                   | ✅ Implemented     | Basic UDP connection implemented and tested.               |
-| ByteBuffer (Read/Write)            | ✅ Implemented     | Binary buffer for packet reading/writing operations.       |
-| ByteBuffer Pool                    | ✅ Implemented     | Object pooling for efficient buffer management.            |
+| NanoSockets Integration            | ✅ Implemented     | Complete migration to NanoSockets for maximum performance. |
+| Basic Connection                   | ✅ Implemented     | Enhanced UDP connection with NanoSockets.Address support.  |
+| FlatBuffer System                  | ✅ Implemented     | Unsafe pointer-based binary serialization system.         |
+| Zero-Allocation Buffers            | ✅ Implemented     | Direct memory management without allocations or pooling.   |
+| Packet Reception Queue             | ✅ Implemented     | Efficient packet reception and processing queuing.         |
+| Per-Connection Buffers             | ✅ Implemented     | Fixed transmission buffers for each connection.            |
 | Integrity Key Table Store          | ✅ Implemented     | Version-based key management with simple client-side access. |
-| QueueBuffer                        | 🛠 In Progress     | Packet grouping class exists and tested, full implementation pending. |
-| Reliable Messaging                 | ⏳ Planned         | Reliable UDP messaging system to be implemented.           |
+| Reliable Messaging                 | 🛠 In Progress     | Guaranteed delivery system with acknowledgments in development. |
 | Packet Validation                  | ⏳ Planned         | Packet integrity and validation system to be implemented.  |
 | Packet Encryption                  | ⏳ Planned         | Packet encryption system to be implemented.                |
 | Client Heartbeat                   | ⏳ Planned         | Client validation heartbeat system to be implemented.      |
@@ -172,7 +229,7 @@ The UDP server is designed with high performance and reliability in mind:
 | Feature                             | Status            | Notes                                                       |
 |------------------------------------|-------------------|-------------------------------------------------------------|
 | Base Replication                   | 🛠 In Progress     | Base element replication system in development.             |
-| Network Event System               | 🛠 In Progress     | Network event system in development.                        |
+| Network Event System               | 🛠 In Progress     | Per-connection event queuing system implemented.            |
 | JWT Authentication                 | ⏳ Not Implemented | JWT authentication not implemented yet.                     |
 | Reactive System                    | ⏳ Not Implemented | Reactive system not implemented yet.                        |
 | Reactive Request Handlers          | ⏳ Not Implemented | Reactive request handlers not implemented yet.              |

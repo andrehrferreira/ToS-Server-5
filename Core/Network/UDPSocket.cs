@@ -1,17 +1,17 @@
 /*
 * UDPSocket
-* 
+*
 * Author: Andre Ferreira
-* 
+*
 * Copyright (c) Uzmi Games. Licensed under the MIT License.
-*    
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,11 +21,9 @@
 * SOFTWARE.
 */
 
+using NanoSockets;
 using System.Collections.Concurrent;
-using System.Net;
-using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Buffers;
+using System.Threading.Channels;
 
 public enum ConnectionState
 {
@@ -50,7 +48,7 @@ public class UDPSocket
 
     public uint EntityId;
 
-    public EndPoint RemoteEndPoint;
+    public Address RemoteAddress;
 
     private Socket ServerSocket;
 
@@ -77,6 +75,8 @@ public class UDPSocket
     internal ConcurrentDictionary<short, FlatBuffer> ReliablePackets =
         new ConcurrentDictionary<short, FlatBuffer>();
 
+    public Channel<FlatBuffer> EventQueue;
+
     private short Sequence = 1;
 
     internal FlatBuffer ReliableBuffer;
@@ -86,11 +86,17 @@ public class UDPSocket
     public UDPSocket(Socket serverSocket)
     {
         State = ConnectionState.Disconnected;
-        RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        RemoteAddress = default;
         ServerSocket = serverSocket;
         ReliableBuffer = new FlatBuffer(UDPServer.Mtu);
         UnreliableBuffer = new FlatBuffer(UDPServer.Mtu);
         AckBuffer = new FlatBuffer(UDPServer.Mtu);
+
+        EventQueue = Channel.CreateUnbounded<FlatBuffer>(new UnboundedChannelOptions
+        {
+            SingleReader = true,
+            SingleWriter = false
+        });
     }
 
     public bool IsConnected
@@ -153,12 +159,14 @@ public class UDPSocket
             Send(ref ReliableBuffer, true);
         }
 
-        if (UnreliableBuffer.Position > 0)        
+        if (UnreliableBuffer.Position > 0)
             Send(ref UnreliableBuffer);
-              
-        if (AckBuffer.Position > 0)        
+
+        if (AckBuffer.Position > 0)
             Send(ref AckBuffer);
-                      
+
+        ProcessPacket();
+
         return true;
     }
 
@@ -168,13 +176,13 @@ public class UDPSocket
         {
             Reason = reason;
 
-            Send(new DisconnectPacket());                  
+            Send(new DisconnectPacket());
         }
     }
 
     internal void OnDisconnect()
     {
-        if (State != ConnectionState.Disconnected)        
+        if (State != ConnectionState.Disconnected)
             State = ConnectionState.Disconnected;
     }
 
@@ -183,8 +191,51 @@ public class UDPSocket
         return ReliablePackets.TryAdd(packetId, buffer);
     }
 
-    public void ProcessPacket(PacketType type, FlatBuffer buffer)
+    public void ProcessPacket()
     {
+        while (EventQueue.Reader.TryRead(out var buffer))
+        {
+            PacketType packetType = (PacketType)buffer.Read<byte>();
 
+            switch (packetType)
+            {
+                case PacketType.BenckmarkTest:
+                {
+                    try
+                    {
+                        var newLocation = buffer.ReadFVector();
+                        var newRotation = buffer.ReadFRotator();
+                        var count = UDPServer.Clients.Count;
+
+                        if (count == 0)
+                            break;
+
+                        var rnd = Random.Shared;
+                        int limit = Math.Min(100, count);
+                        var packet = new BenchmarkPacket
+                        {
+                            Id = Id,
+                            Positon = newLocation,
+                            Rotator = newRotation
+                        };
+
+                        for (int i = 0; i < limit; i++)
+                        {
+                            var randomValue = UDPServer.Clients.Values.ElementAt(rnd.Next(count));
+                            packet.Serialize(ref randomValue.UnreliableBuffer);
+
+                            if (randomValue.UnreliableBuffer.Position > UDPServer.Mtu / 2)
+                                randomValue.Send(ref randomValue.UnreliableBuffer);
+
+                            Interlocked.Increment(ref UDPServer._packetsSent);
+                            Interlocked.Add(ref UDPServer._bytesSent, packet.Size);
+                        }
+                    }
+                    catch
+                    {  }
+                }
+                break;
+            }
+        }
     }
 }
