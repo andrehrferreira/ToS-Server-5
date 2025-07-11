@@ -182,6 +182,48 @@ public unsafe struct FlatBuffer : IDisposable
         return val;
     }
 
+    public void WriteQuantized(float value, float min, float max)
+    {
+        short quantized = Quantization.ToShort(value, min, max);
+        Write(quantized);
+    }
+
+    public float ReadQuantizedFloat(float min, float max)
+    {
+        short quantized = ReadShort();
+        return Quantization.ToFloat(quantized, min, max);
+    }
+
+    public void WriteQuantized(FVector value, float min, float max)
+    {
+        WriteQuantized(value.X, min, max);
+        WriteQuantized(value.Y, min, max);
+        WriteQuantized(value.Z, min, max);
+    }
+
+    public FVector ReadQuantizedFVector(float min, float max)
+    {
+        float x = ReadQuantizedFloat(min, max);
+        float y = ReadQuantizedFloat(min, max);
+        float z = ReadQuantizedFloat(min, max);
+        return new FVector(x, y, z);
+    }
+
+    public void WriteQuantized(FRotator value, float min, float max)
+    {
+        WriteQuantized(value.Pitch, min, max);
+        WriteQuantized(value.Yaw, min, max);
+        WriteQuantized(value.Roll, min, max);
+    }
+
+    public FRotator ReadQuantizedFRotator(float min, float max)
+    {
+        float pitch = ReadQuantizedFloat(min, max);
+        float yaw = ReadQuantizedFloat(min, max);
+        float roll = ReadQuantizedFloat(min, max);
+        return new FRotator(pitch, yaw, roll);
+    }
+
     public void Write(FVector value)
     {
         Write((int)value.X);
