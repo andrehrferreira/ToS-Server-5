@@ -21,10 +21,9 @@
 * SOFTWARE.
 */
 
-using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
-using System.Buffers;
 using NanoSockets;
+using System.Collections.Concurrent;
+using System.Threading.Channels;
 
 public enum ConnectionState
 {
@@ -51,7 +50,7 @@ public class UDPSocket
 
     public Address RemoteAddress;
 
-    private NanoSockets.Socket ServerSocket;
+    private Socket ServerSocket;
 
     public uint Ping = 0;
 
@@ -76,13 +75,15 @@ public class UDPSocket
     internal ConcurrentDictionary<short, FlatBuffer> ReliablePackets =
         new ConcurrentDictionary<short, FlatBuffer>();
 
+    public Channel<FlatBuffer> EventQueue;
+
     private short Sequence = 1;
 
     internal FlatBuffer ReliableBuffer;
     internal FlatBuffer UnreliableBuffer;
     internal FlatBuffer AckBuffer;
 
-    public UDPSocket(NanoSockets.Socket serverSocket)
+    public UDPSocket(Socket serverSocket)
     {
         State = ConnectionState.Disconnected;
         RemoteAddress = default;
@@ -90,6 +91,12 @@ public class UDPSocket
         ReliableBuffer = new FlatBuffer(UDPServer.Mtu);
         UnreliableBuffer = new FlatBuffer(UDPServer.Mtu);
         AckBuffer = new FlatBuffer(UDPServer.Mtu);
+
+        EventQueue = Channel.CreateUnbounded<FlatBuffer>(new UnboundedChannelOptions
+        {
+            SingleReader = true,
+            SingleWriter = false
+        });
     }
 
     public bool IsConnected
@@ -158,6 +165,8 @@ public class UDPSocket
         if (AckBuffer.Position > 0)
             Send(ref AckBuffer);
 
+        ProcessPacket();
+
         return true;
     }
 
@@ -182,8 +191,51 @@ public class UDPSocket
         return ReliablePackets.TryAdd(packetId, buffer);
     }
 
-    public void ProcessPacket(PacketType type, FlatBuffer buffer)
+    public void ProcessPacket()
     {
+        while (EventQueue.Reader.TryRead(out var buffer))
+        {
+            PacketType packetType = (PacketType)buffer.Read<byte>();
 
+            switch (packetType)
+            {
+                case PacketType.BenckmarkTest:
+                {
+                    try
+                    {
+                        var newLocation = buffer.ReadFVector();
+                        var newRotation = buffer.ReadFRotator();
+                        var count = UDPServer.Clients.Count;
+
+                        if (count == 0)
+                            break;
+
+                        var rnd = Random.Shared;
+                        int limit = Math.Min(100, count);
+                        var packet = new BenchmarkPacket
+                        {
+                            Id = Id,
+                            Positon = newLocation,
+                            Rotator = newRotation
+                        };
+
+                        for (int i = 0; i < limit; i++)
+                        {
+                            var randomValue = UDPServer.Clients.Values.ElementAt(rnd.Next(count));
+                            packet.Serialize(ref randomValue.UnreliableBuffer);
+
+                            if (randomValue.UnreliableBuffer.Position > UDPServer.Mtu / 2)
+                                randomValue.Send(ref randomValue.UnreliableBuffer);
+
+                            Interlocked.Increment(ref UDPServer._packetsSent);
+                            Interlocked.Add(ref UDPServer._bytesSent, packet.Size);
+                        }
+                    }
+                    catch
+                    {  }
+                }
+                break;
+            }
+        }
     }
 }

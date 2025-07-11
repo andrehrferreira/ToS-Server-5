@@ -21,12 +21,13 @@
 * SOFTWARE.
 */
 
+using NanoSockets;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Threading.Channels;
-using NanoSockets;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Threading.Channels;
 
 public unsafe struct SendPacket
 {
@@ -66,7 +67,7 @@ public sealed class UDPServer
 
     private static bool Running = true;
 
-    private static ConcurrentDictionary<Address, UDPSocket> Clients =
+    public static ConcurrentDictionary<Address, UDPSocket> Clients =
         new ConcurrentDictionary<Address, UDPSocket>();
 
     private static Channel<SendPacket> GlobalSendChannel;
@@ -74,11 +75,11 @@ public sealed class UDPServer
     [ThreadStatic]
     static Channel<SendPacket> LocalSendChannel;
 
-    private static long _packetsSent = 0;
-    private static long _bytesSent = 0;
-    private static long _packetsReceived = 0;
-    private static long _bytesReceived = 0;
-    private static int _tickRate = 0;
+    public static long _packetsSent = 0;
+    public static long _bytesSent = 0;
+    public static long _packetsReceived = 0;
+    public static long _bytesReceived = 0;
+    public static int _tickRate = 0;
 
     private static Thread SendThread;
 
@@ -137,9 +138,16 @@ public sealed class UDPServer
             {
                 _integrityKeyTable = table;
 
-                if (UDP.Initialize() != Status.OK)                
-                    return false;                
+                // Initialize NanoSockets
+                if (UDP.Initialize() != Status.OK)
+                {
+#if DEBUG
+                    ServerMonitor.Log("Failed to initialize NanoSockets");
+#endif
+                    return false;
+                }
 
+                // Create NanoSockets socket
                 ServerSocket = UDP.Create(_options.SendBufferSize, _options.ReceiveBufferSize);
 
                 if (!ServerSocket.IsCreated)
@@ -150,22 +158,19 @@ public sealed class UDPServer
                     return false;
                 }
 
+                // Create address and bind
                 var bindAddress = Address.CreateFromIpPort("0.0.0.0", (ushort)port);
-
-                while (UDP.SetIP(ref bindAddress, "::0") != 0)
-                {
-                    Thread.Sleep(1000);
-                }
 
                 if (UDP.Bind(ServerSocket, ref bindAddress) != 0)
                 {
-                    Thread.Sleep(1000);
-
+#if DEBUG
+                    ServerMonitor.Log($"Failed to bind to port {port}");
+#endif
                     return false;
                 }
 
                 // Set socket to non-blocking
-                //UDP.SetNonBlocking(ServerSocket, false);
+                UDP.SetNonBlocking(ServerSocket, false);
 
                 Running = true;
 
@@ -225,12 +230,12 @@ public sealed class UDPServer
 
                     int packetCount = 0;
 
-                    while (Poll(0) && packetCount < 100)
+                    while (Poll(0) && packetCount < 1000)
                     {
                         ++packetCount;
                     }
 
-                    if (pingTimer.Elapsed >= TimeSpan.FromSeconds(1))
+                    if (pingTimer.Elapsed >= TimeSpan.FromSeconds(5))
                     {
                         if(Clients.Count > 0)
                         {
@@ -245,6 +250,8 @@ public sealed class UDPServer
                                 kv.Value.Send(ref buffer, false);
 
                                 Interlocked.Increment(ref _packetsSent);
+
+                                Interlocked.Add(ref UDPServer._bytesSent, pingPacket.Size);
                             }
 
                             buffer.Free();
@@ -340,11 +347,6 @@ public sealed class UDPServer
                             Interlocked.Increment(ref _packetsSent);
                             Interlocked.Add(ref _bytesSent, sent);
                         }
-
-                        if (packet.Pooled)
-                        {
-                            Marshal.FreeHGlobal((IntPtr)packet.Buffer);
-                        }
                     }
                 }
 
@@ -359,32 +361,35 @@ public sealed class UDPServer
 
     public static unsafe bool Poll(int timeout)
     {
-        if (UDP.Poll(ServerSocket, timeout) > 0)
+        try
         {
-            try
+            int pollResult = UDP.Poll(ServerSocket, timeout);
+
+            if (pollResult <= 0)
+                return false;
+
+            bool received = false;
+            Address address = default;
+            FlatBuffer buffer = new FlatBuffer(Mtu);
+
+            int len = UDP.Unsafe.Receive(ServerSocket, &address, buffer.Data, buffer.Capacity);
+
+            if (len > 0)
             {
-                Address address = default;
-                FlatBuffer buffer = new FlatBuffer(Mtu);
-
-                int len = UDP.Unsafe.Receive(ServerSocket, &address, buffer._ptr, buffer.Capacity);
-
-                if (len > 0)
-                {
-                    PacketType packetType = (PacketType)buffer.Read<byte>();
-                    HandlePacket(packetType, buffer, len, address);
-                    Interlocked.Increment(ref _packetsReceived);
-                    Interlocked.Add(ref _bytesReceived, len);
-                }                
-            }
-            catch (Exception ex)
-            {
-                ServerMonitor.Log($"Socket exception occurred while polling for packets: {ex.Message}");
+                PacketType packetType = (PacketType)buffer.Data[0];
+                HandlePacket(packetType, buffer, len, address);
+                Interlocked.Increment(ref _packetsReceived);
+                Interlocked.Add(ref _bytesReceived, len);
+                received = true;
             }
 
-            return true;
+            return received;
         }
-
-        return false;
+        catch (Exception ex)
+        {
+            ServerMonitor.Log($"Socket exception occurred while polling for packets: {ex.Message}");
+            return false;
+        }
     }
 
     private static unsafe Task HandlePacket(PacketType type, FlatBuffer data, int len, Address address)
@@ -430,7 +435,7 @@ public sealed class UDPServer
             {
                 if (Clients.TryGetValue(address, out conn))
                 {
-                    long sentTimestamp = data.Read<long>(); //ByteBuffer.ReadLong(data, 1, len);
+                    long sentTimestamp = data.Read<long>();
                     long nowTimestamp = Stopwatch.GetTimestamp();
                     long elapsedTicks = nowTimestamp - sentTimestamp;
 
@@ -456,11 +461,11 @@ public sealed class UDPServer
             case PacketType.Unreliable:
             case PacketType.Ack:
             {
-                if (Clients.TryGetValue(address, out conn))
+                /*if (Clients.TryGetValue(address, out conn))
                 {
-                    /*fixed (byte* dataPtr = data)
+                    fixed (byte* dataPtr = data)
                     {
-                        var crc32c = CRC32C.Compute(data._ptr, data.Position - 4);
+                        var crc32c = CRC32C.Compute(dataPtr, data.Length - 4);
                         uint receivedCrc32c = ByteBuffer.ReadSign(data, len);
 
                         if (receivedCrc32c == crc32c)
@@ -476,15 +481,15 @@ public sealed class UDPServer
 
                             //conn.ProcessPacket(type, buffer);
                         }
-                    }*/
-                }
+                    }
+                }*/
             }
             break;
             case PacketType.CheckIntegrity:
             {
                 if (Clients.TryGetValue(address, out conn))
                 {
-                    ushort integrityKey = data.Read<ushort>();// ByteBuffer.ReadUShort(data, 1, len);
+                    ushort integrityKey = data.Read<ushort>();
                     short key = _integrityKeyTable.Keys[conn.IntegrityCheck];
 
                     if (integrityKey != key)
@@ -505,34 +510,8 @@ public sealed class UDPServer
             {
                 if (Clients.TryGetValue(address, out conn))
                 {
-                    try
-                    {
-                        var newLocation = data.ReadFVector();
-                        var newRotation = data.ReadFRotator();
-                        var count = Clients.Count;
-
-                        if (count == 0)
-                            break;
-
-                        var rnd = Random.Shared;
-                        int limit = Math.Min(250, count);
-                        var packet = new BenchmarkPacket
-                        {
-                            Id = conn.Id,
-                            Positon = newLocation,
-                            Rotator = newRotation
-                        };
-
-                        for (int i = 0; i < limit; i++)
-                        {
-                            var randomValue = Clients.Values.ElementAt(rnd.Next(count));
-                            packet.Serialize(ref randomValue.UnreliableBuffer);
-
-                            if (randomValue.UnreliableBuffer.Position > Mtu / 2)
-                                randomValue.Send(ref randomValue.UnreliableBuffer);
-                        }
-                    }
-                    catch { /*Console.WriteLine("Erro to parse packet");*/ }
+                    data.Reset();
+                    conn.EventQueue.Writer.TryWrite(data);
                 }
             }
             break;
@@ -555,7 +534,10 @@ public sealed class UDPServer
         {
             uint crc32c = CRC32C.Compute(data, length);
             byte* result = (byte*)Marshal.AllocHGlobal(length + 4);
+
             Buffer.MemoryCopy(data, result, length + 4, length);
+
+            // Add signature at the end
             *(uint*)(result + length) = crc32c;
 
             newLength = length + 4;
@@ -590,8 +572,6 @@ public sealed class UDPServer
 
         return data;
     }
-
-
 
     public static unsafe void Send(ref FlatBuffer buffer, int length, UDPSocket socket, bool flush = true)
     {
