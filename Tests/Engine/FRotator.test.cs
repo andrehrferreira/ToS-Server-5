@@ -328,7 +328,7 @@ namespace Tests
 
                     string result = rotator.ToString();
 
-                    Expect(result).ToBe("Pitch=45.50 Yaw=90.25 Roll=135.75");
+                    Expect(result).ToBe("Pitch=45,50 Yaw=90,25 Roll=135,75");
                 });
 
                 It("should handle zero rotator string", () =>
@@ -337,7 +337,7 @@ namespace Tests
 
                     string result = rotator.ToString();
 
-                    Expect(result).ToBe("Pitch=0.00 Yaw=0.00 Roll=0.00");
+                    Expect(result).ToBe("Pitch=0,00 Yaw=0,00 Roll=0,00");
                 });
 
                 It("should handle negative values in string", () =>
@@ -346,7 +346,7 @@ namespace Tests
 
                     string result = rotator.ToString();
 
-                    Expect(result).ToBe("Pitch=-45.50 Yaw=-90.25 Roll=-135.75");
+                    Expect(result).ToBe("Pitch=-45,50 Yaw=-90,25 Roll=-135,75");
                 });
 
                 It("should handle large angles in string", () =>
@@ -355,7 +355,7 @@ namespace Tests
 
                     string result = rotator.ToString();
 
-                    Expect(result).ToBe("Pitch=450.00 Yaw=720.00 Roll=900.00");
+                    Expect(result).ToBe("Pitch=450,00 Yaw=720,00 Roll=900,00");
                 });
             });
 

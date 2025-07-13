@@ -372,7 +372,7 @@ namespace Tests
 
                     string result = vector.ToString();
 
-                    Expect(result).ToBe("X=1.50 Y=2.75 Z=3.25");
+                    Expect(result).ToBe("X=1,50 Y=2,75 Z=3,25");
                 });
 
                 It("should handle zero vector string", () =>
@@ -381,7 +381,7 @@ namespace Tests
 
                     string result = vector.ToString();
 
-                    Expect(result).ToBe("X=0.00 Y=0.00 Z=0.00");
+                    Expect(result).ToBe("X=0,00 Y=0,00 Z=0,00");
                 });
 
                 It("should handle negative values in string", () =>
@@ -390,7 +390,7 @@ namespace Tests
 
                     string result = vector.ToString();
 
-                    Expect(result).ToBe("X=-1.50 Y=-2.25 Z=-3.75");
+                    Expect(result).ToBe("X=-1,50 Y=-2,25 Z=-3,75");
                 });
             });
 
