@@ -56,6 +56,11 @@ public unsafe struct FlatBuffer : IDisposable
 
     public void Free() => Dispose();
 
+    public int LengthBits => (_offset * 8) + _writeBitIndex;
+
+    public int SavePosition() => _offset;
+    public void RestorePosition(int position) => _offset = position;
+
     public void Reset()
     {
         _offset = 0;
