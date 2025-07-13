@@ -207,6 +207,48 @@ void UFlatBuffer::WriteBool(bool Value)
     Write<uint8>(Value ? 1 : 0);
 }
 
+void UFlatBuffer::WriteBit(bool Value)
+{
+    if (WriteBitIndex == 0)
+    {
+        if (Position >= Capacity)
+            return;
+        Data[Position] = 0;
+    }
+
+    if (Value)
+        Data[Position] |= 1 << WriteBitIndex;
+
+    WriteBitIndex++;
+    if (WriteBitIndex == 8)
+    {
+        WriteBitIndex = 0;
+        Position++;
+    }
+}
+
+void UFlatBuffer::WriteAsciiString(const FString& Value)
+{
+    FTCHARToANSI Converter(*Value);
+    int32 StringLength = Converter.Length();
+    Write<int32>(StringLength);
+    if (StringLength > 0)
+    {
+        if (Position + StringLength > Capacity)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("UFlatBuffer::WriteAsciiString - Buffer overflow. String length: %d"), StringLength);
+            return;
+        }
+        FMemory::Memcpy(Data + Position, (ANSICHAR*)Converter.Get(), StringLength);
+        Position += StringLength;
+    }
+}
+
+void UFlatBuffer::WriteUtf8String(const FString& Value)
+{
+    WriteString(Value);
+}
+
 void UFlatBuffer::WriteString(const FString& Value)
 {
     FTCHARToUTF8 Converter(*Value);
@@ -375,6 +417,18 @@ bool UFlatBuffer::ReadBool()
     return Read<uint8>() != 0;
 }
 
+bool UFlatBuffer::ReadBit()
+{
+    if (ReadBitIndex == 0)
+        ReadBits = Read<uint8>();
+
+    bool b = (ReadBits & (1 << ReadBitIndex)) != 0;
+    ReadBitIndex++;
+    if (ReadBitIndex == 8)
+        ReadBitIndex = 0;
+    return b;
+}
+
 FString UFlatBuffer::ReadString()
 {
     int32 StringLength = Read<int32>();
@@ -399,6 +453,47 @@ FString UFlatBuffer::ReadString()
     Position += StringLength;
 
     return FString(UTF8_TO_TCHAR(TempBuffer.GetData()));
+}
+
+FString UFlatBuffer::ReadAsciiString()
+{
+    int32 StringLength = Read<int32>();
+
+    if (StringLength <= 0)
+    {
+        return FString();
+    }
+
+    if (Position + StringLength > Capacity)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UFlatBuffer::ReadAsciiString - Buffer underflow. String length: %d"), StringLength);
+        return FString();
+    }
+
+    TArray<ANSICHAR> Temp;
+    Temp.SetNumUninitialized(StringLength + 1);
+    FMemory::Memcpy(Temp.GetData(), Data + Position, StringLength);
+    Temp[StringLength] = '\0';
+
+    Position += StringLength;
+
+    return FString(ANSI_TO_TCHAR(Temp.GetData()));
+}
+
+FString UFlatBuffer::ReadUtf8String()
+{
+    return ReadString();
+}
+
+void UFlatBuffer::AlignBits()
+{
+    if (WriteBitIndex > 0)
+    {
+        WriteBitIndex = 0;
+        Position++;
+    }
+    if (ReadBitIndex > 0)
+        ReadBitIndex = 0;
 }
 
 FVector UFlatBuffer::ReadFVector()

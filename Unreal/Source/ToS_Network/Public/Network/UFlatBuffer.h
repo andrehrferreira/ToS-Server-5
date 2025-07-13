@@ -35,7 +35,7 @@ class TOS_NETWORK_API UFlatBuffer : public UObject
 
 public:
 	UFUNCTION(BlueprintPure, Category = "FlatBuffer")
-	static UFlatBuffer* CreateFlatBuffer(int32 Capacity = 3600);
+        static UFlatBuffer* CreateFlatBuffer(int32 Capacity = 1500);
 
 	UFUNCTION(BlueprintPure, Category = "FlatBuffer")
 	static UFlatBuffer* CreateFromData(const TArray<uint8>& Data);
@@ -108,8 +108,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void WriteFloat(float Value);
 
-	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-	void WriteBool(bool Value);
+        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+        void WriteBool(bool Value);
+
+        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+        void WriteBit(bool Value);
+
+        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+        void WriteAsciiString(const FString& Value);
+
+        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+        void WriteUtf8String(const FString& Value);
 
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void WriteString(const FString& Value);
@@ -149,8 +158,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	float ReadFloat();
 
-	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-	bool ReadBool();
+        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+        bool ReadBool();
+
+        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+        bool ReadBit();
+
+        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+        FString ReadAsciiString();
+
+        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+        FString ReadUtf8String();
+
+        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+        void AlignBits();
 
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	FString ReadString();
@@ -194,18 +215,37 @@ public:
 	uint8* GetRawBuffer() { return Data; }
 	int32 GetLength() const { return Position; }
 	int32 GetOffset() const { return Position; }
-	void SetOffset(int32 NewOffset) { SetPosition(NewOffset); }
+        void SetOffset(int32 NewOffset) { SetPosition(NewOffset); }
+
+        template<typename T>
+        FORCEINLINE T Peek() const
+        {
+                static_assert(std::is_trivial_v<T>, "Type must be trivial");
+                int32 Size = sizeof(T);
+                if (Position + Size > Capacity)
+                {
+                        UE_LOG(LogTemp, Error, TEXT("UFlatBuffer::Peek - Buffer underflow."));
+                        return T{};
+                }
+                T Value;
+                FMemory::Memcpy(&Value, Data + Position, Size);
+                return Value;
+        }
 
 protected:
 	virtual void BeginDestroy() override;
 
 private:
-	uint8* Data;
-	int32 Capacity;
-	int32 Position;
-	bool bDisposed;
+        uint8* Data;
+        int32 Capacity;
+        int32 Position;
+        bool bDisposed;
+        uint8 WriteBits = 0;
+        uint8 WriteBitIndex = 0;
+        uint8 ReadBits = 0;
+        uint8 ReadBitIndex = 0;
 
-	void EnsureCapacity(int32 RequiredSize);
+        void EnsureCapacity(int32 RequiredSize);
 };
 
 // Template specializations for common Unreal types
