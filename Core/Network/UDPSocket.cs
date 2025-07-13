@@ -242,7 +242,6 @@ public class UDPSocket
             catch (Exception ex)
             {
                 Console.WriteLine($"Error processing packet: {ex.Message}");
-                // Handle or log the error as needed
             }
         }
     }

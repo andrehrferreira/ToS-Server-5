@@ -427,6 +427,7 @@ public unsafe struct FlatBuffer : IDisposable
             _ptr[_offset] |= (byte)(1 << _writeBitIndex);
 
         _writeBitIndex++;
+
         if (_writeBitIndex == 8)
         {
             _writeBitIndex = 0;
@@ -442,8 +443,10 @@ public unsafe struct FlatBuffer : IDisposable
 
         bool result = (_readBits & (1 << _readBitIndex)) != 0;
         _readBitIndex++;
+
         if (_readBitIndex == 8)
             _readBitIndex = 0;
+
         return result;
     }
 
@@ -455,6 +458,7 @@ public unsafe struct FlatBuffer : IDisposable
             _writeBitIndex = 0;
             _offset++;
         }
+
         if (_readBitIndex > 0)
             _readBitIndex = 0;
     }
@@ -463,8 +467,10 @@ public unsafe struct FlatBuffer : IDisposable
     public T Peek<T>() where T : unmanaged
     {
         int size = sizeof(T);
+
         if (_offset + size > _capacity)
             throw new IndexOutOfRangeException($"Peek exceeds buffer size ({_capacity}) at {_offset} with size {size}");
+
         return *(T*)(_ptr + _offset);
     }
 
@@ -473,10 +479,13 @@ public unsafe struct FlatBuffer : IDisposable
     {
         var bytes = Encoding.ASCII.GetBytes(value);
         Write(bytes.Length);
+
         if (_offset + bytes.Length > _capacity)
             return;
+
         fixed (byte* ptr = bytes)
             Buffer.MemoryCopy(ptr, _ptr + _offset, _capacity - _offset, bytes.Length);
+
         _offset += bytes.Length;
     }
 
@@ -484,8 +493,10 @@ public unsafe struct FlatBuffer : IDisposable
     public string ReadAsciiString()
     {
         int length = ReadInt();
+
         if (_offset + length > _capacity)
             throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {length}");
+
         string result = Encoding.ASCII.GetString(new ReadOnlySpan<byte>(_ptr + _offset, length));
         _offset += length;
         return result;
@@ -496,10 +507,13 @@ public unsafe struct FlatBuffer : IDisposable
     {
         var bytes = Encoding.UTF8.GetBytes(value);
         Write(bytes.Length);
+
         if (_offset + bytes.Length > _capacity)
             return;
+
         fixed (byte* ptr = bytes)
             Buffer.MemoryCopy(ptr, _ptr + _offset, _capacity - _offset, bytes.Length);
+
         _offset += bytes.Length;
     }
 
@@ -507,8 +521,10 @@ public unsafe struct FlatBuffer : IDisposable
     public string ReadUtf8String()
     {
         int length = ReadInt();
+
         if (_offset + length > _capacity)
             throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {length}");
+
         string result = Encoding.UTF8.GetString(new ReadOnlySpan<byte>(_ptr + _offset, length));
         _offset += length;
         return result;
