@@ -92,8 +92,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void WriteUInt32(uint32 Value);
 
-	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-	void WriteInt64(int64 Value);
+        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+        void WriteInt64(int64 Value);
+
+        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+        void WriteVarInt(int32 Value);
+
+        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+        void WriteVarLong(int64 Value);
+
+        void WriteVarUInt(uint32 Value);
+
+        void WriteVarULong(uint64 Value);
 
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void WriteFloat(float Value);
@@ -123,8 +133,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	uint32 ReadUInt32();
 
-	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-	int64 ReadInt64();
+        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+        int64 ReadInt64();
+
+        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+        int32 ReadVarInt();
+
+        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+        int64 ReadVarLong();
+
+        uint32 ReadVarUInt();
+
+        uint64 ReadVarULong();
 
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	float ReadFloat();
@@ -209,16 +229,64 @@ inline FVector UFlatBuffer::Read<FVector>()
 template<>
 inline void UFlatBuffer::Write<FRotator>(const FRotator& Value)
 {
-	Write<int32>(static_cast<int32>(Value.Pitch));
-	Write<int32>(static_cast<int32>(Value.Yaw));
-	Write<int32>(static_cast<int32>(Value.Roll));
+        Write<int32>(static_cast<int32>(Value.Pitch));
+        Write<int32>(static_cast<int32>(Value.Yaw));
+        Write<int32>(static_cast<int32>(Value.Roll));
 }
 
 template<>
 inline FRotator UFlatBuffer::Read<FRotator>()
 {
-	int32 Pitch = Read<int32>();
-	int32 Yaw = Read<int32>();
-	int32 Roll = Read<int32>();
-	return FRotator(static_cast<float>(Pitch), static_cast<float>(Yaw), static_cast<float>(Roll));
+        int32 Pitch = Read<int32>();
+        int32 Yaw = Read<int32>();
+        int32 Roll = Read<int32>();
+        return FRotator(static_cast<float>(Pitch), static_cast<float>(Yaw), static_cast<float>(Roll));
+}
+
+template<>
+inline void UFlatBuffer::Write<int32>(const int32& Value)
+{
+        WriteVarInt(Value);
+}
+
+template<>
+inline int32 UFlatBuffer::Read<int32>()
+{
+        return ReadVarInt();
+}
+
+template<>
+inline void UFlatBuffer::Write<uint32>(const uint32& Value)
+{
+        WriteVarUInt(Value);
+}
+
+template<>
+inline uint32 UFlatBuffer::Read<uint32>()
+{
+        return ReadVarUInt();
+}
+
+template<>
+inline void UFlatBuffer::Write<int64>(const int64& Value)
+{
+        WriteVarLong(Value);
+}
+
+template<>
+inline int64 UFlatBuffer::Read<int64>()
+{
+        return ReadVarLong();
+}
+
+template<>
+inline void UFlatBuffer::Write<uint64>(const uint64& Value)
+{
+        WriteVarULong(Value);
+}
+
+template<>
+inline uint64 UFlatBuffer::Read<uint64>()
+{
+        return ReadVarULong();
 }

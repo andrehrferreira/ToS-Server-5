@@ -1,6 +1,26 @@
 #include "Network/UFlatBuffer.h"
 #include "Utils/CRC32C.h"
 
+static uint32 EncodeZigZag32(int32 Value)
+{
+    return static_cast<uint32>((Value << 1) ^ (Value >> 31));
+}
+
+static int32 DecodeZigZag32(uint32 Value)
+{
+    return static_cast<int32>((Value >> 1) ^ -static_cast<int32>(Value & 1));
+}
+
+static uint64 EncodeZigZag64(int64 Value)
+{
+    return (static_cast<uint64>(Value) << 1) ^ static_cast<uint64>(Value >> 63);
+}
+
+static int64 DecodeZigZag64(uint64 Value)
+{
+    return static_cast<int64>((Value >> 1) ^ -static_cast<int64>(Value & 1));
+}
+
 UFlatBuffer* UFlatBuffer::CreateFlatBuffer(int32 Capacity)
 {
     UFlatBuffer* FlatBuffer = NewObject<UFlatBuffer>();
@@ -120,17 +140,61 @@ void UFlatBuffer::WriteUInt16(uint16 Value)
 
 void UFlatBuffer::WriteInt32(int32 Value)
 {
-    Write<int32>(Value);
+    WriteVarInt(Value);
 }
 
 void UFlatBuffer::WriteUInt32(uint32 Value)
 {
-    Write<uint32>(Value);
+    WriteVarUInt(Value);
 }
 
 void UFlatBuffer::WriteInt64(int64 Value)
 {
-    Write<int64>(Value);
+    WriteVarLong(Value);
+}
+
+void UFlatBuffer::WriteVarInt(int32 Value)
+{
+    uint32 V = EncodeZigZag32(Value);
+    while (V >= 0x80)
+    {
+        Write<uint8>(static_cast<uint8>(V | 0x80));
+        V >>= 7;
+    }
+    Write<uint8>(static_cast<uint8>(V));
+}
+
+void UFlatBuffer::WriteVarLong(int64 Value)
+{
+    uint64 V = EncodeZigZag64(Value);
+    while (V >= 0x80)
+    {
+        Write<uint8>(static_cast<uint8>(V | 0x80));
+        V >>= 7;
+    }
+    Write<uint8>(static_cast<uint8>(V));
+}
+
+void UFlatBuffer::WriteVarUInt(uint32 Value)
+{
+    uint32 V = Value;
+    while (V >= 0x80)
+    {
+        Write<uint8>(static_cast<uint8>(V | 0x80));
+        V >>= 7;
+    }
+    Write<uint8>(static_cast<uint8>(V));
+}
+
+void UFlatBuffer::WriteVarULong(uint64 Value)
+{
+    uint64 V = Value;
+    while (V >= 0x80)
+    {
+        Write<uint8>(static_cast<uint8>(V | 0x80));
+        V >>= 7;
+    }
+    Write<uint8>(static_cast<uint8>(V));
 }
 
 void UFlatBuffer::WriteFloat(float Value)
@@ -188,17 +252,117 @@ uint16 UFlatBuffer::ReadUInt16()
 
 int32 UFlatBuffer::ReadInt32()
 {
-    return Read<int32>();
+    return ReadVarInt();
 }
 
 uint32 UFlatBuffer::ReadUInt32()
 {
-    return Read<uint32>();
+    return ReadVarUInt();
 }
 
 int64 UFlatBuffer::ReadInt64()
 {
-    return Read<int64>();
+    return ReadVarLong();
+}
+
+int32 UFlatBuffer::ReadVarInt()
+{
+    int32 Shift = 0;
+    uint32 Result = 0;
+
+    while (true)
+    {
+        uint8 B = Read<uint8>();
+        Result |= static_cast<uint32>(B & 0x7F) << Shift;
+
+        if ((B & 0x80) == 0)
+            break;
+
+        Shift += 7;
+
+        if (Shift > 35)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("UFlatBuffer::ReadVarInt - VarInt too long"));
+            break;
+        }
+    }
+
+    return DecodeZigZag32(Result);
+}
+
+int64 UFlatBuffer::ReadVarLong()
+{
+    int32 Shift = 0;
+    uint64 Result = 0;
+
+    while (true)
+    {
+        uint8 B = Read<uint8>();
+        Result |= static_cast<uint64>(B & 0x7F) << Shift;
+
+        if ((B & 0x80) == 0)
+            break;
+
+        Shift += 7;
+
+        if (Shift > 70)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("UFlatBuffer::ReadVarLong - VarLong too long"));
+            break;
+        }
+    }
+
+    return DecodeZigZag64(Result);
+}
+
+uint32 UFlatBuffer::ReadVarUInt()
+{
+    int32 Shift = 0;
+    uint32 Result = 0;
+
+    while (true)
+    {
+        uint8 B = Read<uint8>();
+        Result |= static_cast<uint32>(B & 0x7F) << Shift;
+
+        if ((B & 0x80) == 0)
+            break;
+
+        Shift += 7;
+
+        if (Shift > 35)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("UFlatBuffer::ReadVarUInt - VarUInt too long"));
+            break;
+        }
+    }
+
+    return Result;
+}
+
+uint64 UFlatBuffer::ReadVarULong()
+{
+    int32 Shift = 0;
+    uint64 Result = 0;
+
+    while (true)
+    {
+        uint8 B = Read<uint8>();
+        Result |= static_cast<uint64>(B & 0x7F) << Shift;
+
+        if ((B & 0x80) == 0)
+            break;
+
+        Shift += 7;
+
+        if (Shift > 70)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("UFlatBuffer::ReadVarULong - VarULong too long"));
+            break;
+        }
+    }
+
+    return Result;
 }
 
 float UFlatBuffer::ReadFloat()
