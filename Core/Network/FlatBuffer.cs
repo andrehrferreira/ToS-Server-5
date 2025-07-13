@@ -544,6 +544,19 @@ public unsafe struct FlatBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteBytes(byte* src, int length)
+    {
+        if (src == null || length <= 0)
+            return;
+
+        if (_offset + length > _capacity)
+            return;
+
+        Buffer.MemoryCopy(src, _ptr + _offset, _capacity - _offset, length);
+        _offset += length;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteUtf8String(string value)
     {
         var bytes = Encoding.UTF8.GetBytes(value);

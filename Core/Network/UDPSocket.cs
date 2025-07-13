@@ -72,8 +72,14 @@ public class UDPSocket
 
     public float TimeoutIntegrityCheck = 120f;
 
-    internal ConcurrentDictionary<short, FlatBuffer> ReliablePackets =
-        new ConcurrentDictionary<short, FlatBuffer>();
+    internal class ReliablePacketInfo
+    {
+        public FlatBuffer Buffer;
+        public DateTime SentAt;
+    }
+
+    internal ConcurrentDictionary<short, ReliablePacketInfo> ReliablePackets =
+        new ConcurrentDictionary<short, ReliablePacketInfo>();
 
     public Channel<FlatBuffer> EventQueue;
 
@@ -109,15 +115,39 @@ public class UDPSocket
 
     public void Send(INetworkPacket networkPacket, bool reliable = false)
     {
-        ref FlatBuffer buffer = ref (reliable ? ref ReliableBuffer : ref UnreliableBuffer);
+        if (reliable)
+        {
+            var tmp = new FlatBuffer(networkPacket.Size);
+            networkPacket.Serialize(ref tmp);
 
-        if(buffer.Position + networkPacket.Size > buffer.Capacity)
-            Send(ref buffer);
+            short seq = Sequence++;
+            if (Sequence == short.MaxValue)
+                Sequence = 1;
 
-        networkPacket.Serialize(ref buffer);
+            var packet = new FlatBuffer(tmp.Position + 2);
+            packet.Write(PacketType.Reliable);
+            packet.Write(seq);
 
-        if (buffer.Position > UDPServer.Mtu / 2)
-            Send(ref buffer);
+            if (tmp.Position > 1)
+                packet.WriteBytes(tmp.Data + 1, tmp.Position - 1);
+
+            AddReliablePacket(seq, packet);
+            UDPServer.Send(ref packet, packet.Position, this, false);
+
+            tmp.Free();
+        }
+        else
+        {
+            ref FlatBuffer buffer = ref UnreliableBuffer;
+
+            if (buffer.Position + networkPacket.Size > buffer.Capacity)
+                Send(ref buffer);
+
+            networkPacket.Serialize(ref buffer);
+
+            if (buffer.Position > UDPServer.Mtu / 2)
+                Send(ref buffer);
+        }
     }
 
     public bool Send(ref FlatBuffer buffer, bool flush = true)
@@ -154,11 +184,15 @@ public class UDPSocket
             }
         }
 
-        if (ReliableBuffer.Position > 0)
-        {
-            //ReliablePackets[ReliableBuffer.Sequence] = ReliableBuffer;
+        float resendMs = Math.Max(Ping, (uint)UDPServer.ReliableTimeout.TotalMilliseconds);
 
-            Send(ref ReliableBuffer, true);
+        foreach (var kv in ReliablePackets)
+        {
+            if ((DateTime.UtcNow - kv.Value.SentAt).TotalMilliseconds >= resendMs)
+            {
+                UDPServer.Send(ref kv.Value.Buffer, kv.Value.Buffer.Position, this, false);
+                kv.Value.SentAt = DateTime.UtcNow;
+            }
         }
 
         if (UnreliableBuffer.Position > 0)
@@ -190,7 +224,21 @@ public class UDPSocket
 
     public bool AddReliablePacket(short packetId, FlatBuffer buffer)
     {
-        return ReliablePackets.TryAdd(packetId, buffer);
+        var info = new ReliablePacketInfo
+        {
+            Buffer = buffer,
+            SentAt = DateTime.UtcNow
+        };
+
+        return ReliablePackets.TryAdd(packetId, info);
+    }
+
+    internal void Acknowledge(short sequence)
+    {
+        if (ReliablePackets.TryRemove(sequence, out var info))
+        {
+            info.Buffer.Free();
+        }
     }
 
     public void ProcessPacket()

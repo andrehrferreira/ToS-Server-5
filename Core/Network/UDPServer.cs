@@ -477,46 +477,22 @@ public sealed class UDPServer
                     break;
                 case PacketType.Reliable:
                 case PacketType.Unreliable:
-                case PacketType.Ack:
                     {
                         if (Clients.TryGetValue(address, out conn))
                         {
                             conn.TimeoutLeft = 30f;
-
                             ClientPacket clientPacket = (ClientPacket)data.Read<byte>();
-
-                            var crc32c = CRC32C.Compute(data._ptr, data.Position - 4);
-                            /*uint receivedCrc32c = ByteBuffer.ReadSign(data, len);
-
-                            if (receivedCrc32c == crc32c)
-                            { 
-                            }*/
                         }
-                            /*if (Clients.TryGetValue(address, out conn))
-                            {
-                                conn.TimeoutLeft = 30f;
-
-                                fixed (byte* dataPtr = data)
-                                {
-                                    var crc32c = CRC32C.Compute(dataPtr, data.Length - 4);
-                                    uint receivedCrc32c = ByteBuffer.ReadSign(data, len);
-
-                                    if (receivedCrc32c == crc32c)
-                                    {
-                                        if (conn.State == ConnectionState.Connecting)
-                                            conn.State = ConnectionState.Connected;
-
-                                        var buffer = ByteBufferPool.Acquire();
-                                        buffer.Assign(data, len);
-                                        buffer.Length -= 4;
-
-                                        buffer.Connection = conn;
-
-                                        //conn.ProcessPacket(type, buffer);
-                                    }
-                                }
-                            }*/
+                    }
+                    break;
+                case PacketType.Ack:
+                    {
+                        if (Clients.TryGetValue(address, out conn))
+                        {
+                            short seq = data.Read<short>();
+                            conn.Acknowledge(seq);
                         }
+                    }
                     break;
                 case PacketType.CheckIntegrity:
                     {

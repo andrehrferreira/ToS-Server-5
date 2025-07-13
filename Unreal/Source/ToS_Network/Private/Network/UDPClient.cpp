@@ -130,6 +130,18 @@ void UDPClient::SendPong(int64 PingTime)
     }
 }
 
+void UDPClient::SendAck(uint16 Sequence)
+{
+    if (Socket && RemoteEndpoint.IsValid())
+    {
+        UByteBuffer* Buffer = UByteBuffer::CreateEmptyByteBuffer(3);
+        Buffer->WriteByte(static_cast<uint8>(EPacketType::Ack));
+        Buffer->WriteUInt16(Sequence);
+        int32 BytesSent = 0;
+        Socket->SendTo(Buffer->GetRawBuffer(), Buffer->GetLength(), BytesSent, *RemoteEndpoint);
+    }
+}
+
 void UDPClient::SendIntegrity(uint16 Code)
 {
     if (Socket && RemoteEndpoint.IsValid())
@@ -189,6 +201,12 @@ void UDPClient::PollIncomingPackets()
                         int64 PingTime = Buffer->ReadInt64();
                         LastPingTime = FPlatformTime::Seconds();
                         SendPong(PingTime);
+                        break;
+                    }
+                    case EPacketType::Reliable:
+                    {
+                        uint16 Seq = Buffer->ReadUInt16();
+                        SendAck(Seq);
                         break;
                     }
                     case EPacketType::ConnectionAccepted:
