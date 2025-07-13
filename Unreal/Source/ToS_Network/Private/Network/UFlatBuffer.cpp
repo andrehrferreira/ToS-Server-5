@@ -244,6 +244,18 @@ void UFlatBuffer::WriteAsciiString(const FString& Value)
     }
 }
 
+void UFlatBuffer::WriteBytes(const uint8* Source, int32 Length)
+{
+    if (!Source || Length <= 0)
+        return;
+
+    if (Position + Length > Capacity)
+        return;
+
+    FMemory::Memcpy(Data + Position, Source, Length);
+    Position += Length;
+}
+
 void UFlatBuffer::WriteUtf8String(const FString& Value)
 {
     WriteString(Value);

@@ -25,6 +25,7 @@
 
 #include "CoreMinimal.h"
 #include "Network/UDPClient.h"
+#include "Network/UFlatBuffer.h"
 #include "UObject/Object.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Containers/Ticker.h"
@@ -45,7 +46,7 @@ public:
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDisconnected);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUDPConnectionError);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDataReceived, UByteBuffer*, Buffer);
+        DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDataReceived, UFlatBuffer*, Buffer);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConnect, const int32&, ClientID);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnConnectDenied);
 

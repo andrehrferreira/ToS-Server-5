@@ -1,6 +1,6 @@
 #include "Network/ENetSubsystem.h"
 #include "Network/UDPClient.h"
-#include "Network/UByteBuffer.h"
+#include "Network/UFlatBuffer.h"
 #include "Misc/ScopeLock.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
@@ -11,7 +11,7 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     UdpClient = MakeUnique<UDPClient>();
 
-    UdpClient->OnDataReceive = [this](UByteBuffer* Buffer)
+    UdpClient->OnDataReceive = [this](UFlatBuffer* Buffer)
     {
         if (Buffer)
         {
