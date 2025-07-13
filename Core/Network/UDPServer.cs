@@ -22,10 +22,8 @@
 */
 
 using NanoSockets;
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
 
@@ -222,15 +220,13 @@ public sealed class UDPServer
     {
         Running = false;
 
-        if (ServerSocket.IsCreated)
-        {
+        if (ServerSocket.IsCreated)        
             UDP.Destroy(ref ServerSocket);
-        }
-
+        
         UDP.Deinitialize();
     }
 
-    public unsafe static void ReceiveOnBackgroundThread(int numThreads = 4)
+    public unsafe static void ReceiveOnBackgroundThread()
     {
         if (ReceiveThread != null) return;
 
@@ -593,7 +589,7 @@ public sealed class UDPServer
         }
     }
 
-    public static async Task Update(float delta)
+    public static void Update(float delta)
     {
         foreach (var kv in Clients.Values)
             kv.Update(delta);

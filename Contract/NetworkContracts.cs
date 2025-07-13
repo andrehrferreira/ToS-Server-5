@@ -22,7 +22,7 @@ public partial struct ConnectionAcceptedPacket
 [Contract("ConnectionDenied", PacketLayerType.Server, ContractPacketFlags.ToEntity, PacketType.ConnectionDenied)]
 public partial struct ConnectionDeniedPacket { }
 
-[Contract("Disconnect",PacketLayerType.Server,ContractPacketFlags.ToEntity,PacketType.Disconnect)]
+[Contract("Disconnect",PacketLayerType.Server, ContractPacketFlags.ToEntity, PacketType.Disconnect)]
 public partial struct DisconnectPacket { }
 
 [Contract("CheckIntegrity", PacketLayerType.Server, ContractPacketFlags.Reliable_ToEntity, PacketType.CheckIntegrity)]
@@ -33,4 +33,11 @@ public partial struct CheckIntegrityPacket
 
     [ContractField("uint")]
     public uint Version;
+}
+
+[Contract("Ack", PacketLayerType.Server, ContractPacketFlags.ToEntity, PacketType.Ack)]
+public partial struct AckPacket
+{
+    [ContractField("short")]
+    public short Sequence;
 }

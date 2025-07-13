@@ -21,11 +21,6 @@
 * SOFTWARE.
 */
 
-using System.Buffers;
-using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
-using System;
-using System.Collections.Generic;
 using NanoSockets;
 
 public unsafe struct PacketPointer
@@ -44,13 +39,12 @@ public struct PacketMemory
 
 public static class UdpBatchIO
 {
-    public static unsafe int ReceiveBatch(NanoSockets.Socket socket, int maxMessages, Action<Address, byte[], int> callback)
+    public static unsafe int ReceiveBatch(Socket socket, int maxMessages, Action<Address, byte[], int> callback)
     {
         int received = 0;
 
         for (int i = 0; i < maxMessages; i++)
         {
-            // Poll for data availability
             int pollResult = UDP.Poll(socket, 0);
             if (pollResult <= 0)
                 break;
@@ -77,7 +71,7 @@ public static class UdpBatchIO
         return received;
     }
 
-    public static unsafe int SendBatch(NanoSockets.Socket socket, ReadOnlySpan<(Address addr, byte[] data, int length)> packets)
+    public static unsafe int SendBatch(Socket socket, ReadOnlySpan<(Address addr, byte[] data, int length)> packets)
     {
         int sent = 0;
 
@@ -96,7 +90,7 @@ public static class UdpBatchIO
         return sent;
     }
 
-    public static unsafe void SendBatch(NanoSockets.Socket socket, ReadOnlySpan<PacketPointer> packets)
+    public static unsafe void SendBatch(Socket socket, ReadOnlySpan<PacketPointer> packets)
     {
         foreach (var packet in packets)
         {
@@ -105,7 +99,7 @@ public static class UdpBatchIO
         }
     }
 
-    public static unsafe int SendBatch(NanoSockets.Socket socket, List<(Address addr, byte[] data, int length)> packets)
+    public static unsafe int SendBatch(Socket socket, List<(Address addr, byte[] data, int length)> packets)
     {
         int sent = 0;
 
@@ -124,7 +118,7 @@ public static class UdpBatchIO
         return sent;
     }
 
-    public static unsafe void SendBatch(NanoSockets.Socket socket, ReadOnlySpan<PacketMemory> packets)
+    public static unsafe void SendBatch(Socket socket, ReadOnlySpan<PacketMemory> packets)
     {
         foreach (var packet in packets)
         {

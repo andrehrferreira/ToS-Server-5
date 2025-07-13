@@ -11,6 +11,7 @@ public enum ServerPacket: ushort
     ConnectionDenied = 6,
     Disconnect = 7,
     CheckIntegrity = 8,
-    DeltaSync = 9,
-    SyncStateInt = 10,
+    Ack = 9,
+    DeltaSync = 10,
+    SyncStateInt = 11,
 }

@@ -2,11 +2,9 @@
 
 using System.Runtime.CompilerServices;
 
-public partial struct AckPacket : INetworkPacket
+public partial struct AckPacket: INetworkPacket
 {
     public int Size => 3;
-
-    public short Sequence;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
