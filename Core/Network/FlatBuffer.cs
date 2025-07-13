@@ -361,34 +361,38 @@ public unsafe struct FlatBuffer : IDisposable
 
     public void Write(FVector value)
     {
-        Write((int)value.X);
-        Write((int)value.Y);
-        Write((int)value.Z);
+        const float factor = 0.1f;
+        Write((short)MathF.Round(value.X / factor));
+        Write((short)MathF.Round(value.Y / factor));
+        Write((short)MathF.Round(value.Z / factor));
     }
 
     public void Write(FRotator value)
     {
-        Write((int)value.Pitch);
-        Write((int)value.Yaw);
-        Write((int)value.Roll);
+        const float factor = 0.1f;
+        Write((short)MathF.Round(value.Pitch / factor));
+        Write((short)MathF.Round(value.Yaw / factor));
+        Write((short)MathF.Round(value.Roll / factor));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public FVector ReadFVector()
     {
-        int x = ReadInt();
-        int y = ReadInt();
-        int z = ReadInt();
-        return new FVector(x, y, z);
+        const float factor = 0.1f;
+        short x = ReadShort();
+        short y = ReadShort();
+        short z = ReadShort();
+        return new FVector(x * factor, y * factor, z * factor);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public FRotator ReadFRotator()
     {
-        int pitch = ReadInt();
-        int yaw = ReadInt();
-        int roll = ReadInt();
-        return new FRotator(pitch, yaw, roll);
+        const float factor = 0.1f;
+        short pitch = ReadShort();
+        short yaw = ReadShort();
+        short roll = ReadShort();
+        return new FRotator(pitch * factor, yaw * factor, roll * factor);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

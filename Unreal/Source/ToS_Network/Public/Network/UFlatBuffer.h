@@ -252,35 +252,39 @@ private:
 template<>
 inline void UFlatBuffer::Write<FVector>(const FVector& Value)
 {
-	Write<int32>(static_cast<int32>(Value.X));
-	Write<int32>(static_cast<int32>(Value.Y));
-	Write<int32>(static_cast<int32>(Value.Z));
+        constexpr float Factor = 0.1f;
+        Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.X / Factor)));
+        Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Y / Factor)));
+        Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Z / Factor)));
 }
 
 template<>
 inline FVector UFlatBuffer::Read<FVector>()
 {
-	int32 X = Read<int32>();
-	int32 Y = Read<int32>();
-	int32 Z = Read<int32>();
-	return FVector(static_cast<float>(X), static_cast<float>(Y), static_cast<float>(Z));
+        constexpr float Factor = 0.1f;
+        int16 X = Read<int16>();
+        int16 Y = Read<int16>();
+        int16 Z = Read<int16>();
+        return FVector(static_cast<float>(X) * Factor, static_cast<float>(Y) * Factor, static_cast<float>(Z) * Factor);
 }
 
 template<>
 inline void UFlatBuffer::Write<FRotator>(const FRotator& Value)
 {
-        Write<int32>(static_cast<int32>(Value.Pitch));
-        Write<int32>(static_cast<int32>(Value.Yaw));
-        Write<int32>(static_cast<int32>(Value.Roll));
+        constexpr float Factor = 0.1f;
+        Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Pitch / Factor)));
+        Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Yaw / Factor)));
+        Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Roll / Factor)));
 }
 
 template<>
 inline FRotator UFlatBuffer::Read<FRotator>()
 {
-        int32 Pitch = Read<int32>();
-        int32 Yaw = Read<int32>();
-        int32 Roll = Read<int32>();
-        return FRotator(static_cast<float>(Pitch), static_cast<float>(Yaw), static_cast<float>(Roll));
+        constexpr float Factor = 0.1f;
+        int16 Pitch = Read<int16>();
+        int16 Yaw = Read<int16>();
+        int16 Roll = Read<int16>();
+        return FRotator(static_cast<float>(Pitch) * Factor, static_cast<float>(Yaw) * Factor, static_cast<float>(Roll) * Factor);
 }
 
 template<>
@@ -329,4 +333,17 @@ template<>
 inline uint64 UFlatBuffer::Read<uint64>()
 {
         return ReadVarULong();
+}
+
+template<>
+inline void UFlatBuffer::Write<int16>(const int16& Value)
+{
+        Write<uint16>(static_cast<uint16>((Value << 1) ^ (Value >> 15)));
+}
+
+template<>
+inline int16 UFlatBuffer::Read<int16>()
+{
+        uint16 Enc = Read<uint16>();
+        return static_cast<int16>((Enc >> 1) ^ -static_cast<int16>(Enc & 1));
 }
