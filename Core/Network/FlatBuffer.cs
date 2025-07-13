@@ -111,52 +111,166 @@ public unsafe struct FlatBuffer : IDisposable
     }
 
     public void Write(int value)
-        => Write<uint>(EncodeZigZag(value));
+        => WriteVarUInt(EncodeZigZag(value));
 
     public int ReadInt()
     {
-        uint raw = ReadUInt();
+        uint raw = ReadVarUInt();
         return DecodeZigZag(raw);
     }
 
     public void Write(uint value)
-        => Write<uint>(value);
+        => WriteVarUInt(value);
 
     public uint ReadUInt()
-    {
-        int size = sizeof(uint);
-
-        if (_offset + size > _capacity)
-            throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {size}");
-
-        uint val = *(uint*)(_ptr + _offset);
-        _offset += size;
-        return val;
-    }
+        => ReadVarUInt();
 
     public void Write(long value)
-        => Write<ulong>(EncodeZigZag(value));
+        => WriteVarULong(EncodeZigZag(value));
 
     public long ReadLong()
     {
-        ulong raw = ReadULong();
+        ulong raw = ReadVarULong();
         return DecodeZigZag(raw);
     }
 
+    public void WriteVarInt(int value)
+    {
+        uint v = EncodeZigZag(value);
+        while (v >= 0x80)
+        {
+            Write<byte>((byte)(v | 0x80));
+            v >>= 7;
+        }
+        Write<byte>((byte)v);
+    }
+
+    private void WriteVarUInt(uint value)
+    {
+        uint v = value;
+        while (v >= 0x80)
+        {
+            Write<byte>((byte)(v | 0x80));
+            v >>= 7;
+        }
+        Write<byte>((byte)v);
+    }
+
+    public int ReadVarInt()
+    {
+        int shift = 0;
+        uint result = 0;
+
+        while (true)
+        {
+            byte b = Read<byte>();
+            result |= (uint)(b & 0x7F) << shift;
+
+            if ((b & 0x80) == 0)
+                break;
+
+            shift += 7;
+
+            if (shift > 35)
+                throw new OverflowException("VarInt too long");
+        }
+
+        return DecodeZigZag(result);
+    }
+
+    private uint ReadVarUInt()
+    {
+        int shift = 0;
+        uint result = 0;
+
+        while (true)
+        {
+            byte b = Read<byte>();
+            result |= (uint)(b & 0x7F) << shift;
+
+            if ((b & 0x80) == 0)
+                break;
+
+            shift += 7;
+
+            if (shift > 35)
+                throw new OverflowException("VarUInt too long");
+        }
+
+        return result;
+    }
+
+    public void WriteVarLong(long value)
+    {
+        ulong v = EncodeZigZag(value);
+        while (v >= 0x80)
+        {
+            Write<byte>((byte)(v | 0x80));
+            v >>= 7;
+        }
+        Write<byte>((byte)v);
+    }
+
+    public long ReadVarLong()
+    {
+        int shift = 0;
+        ulong result = 0;
+
+        while (true)
+        {
+            byte b = Read<byte>();
+            result |= (ulong)(b & 0x7F) << shift;
+
+            if ((b & 0x80) == 0)
+                break;
+
+            shift += 7;
+
+            if (shift > 70)
+                throw new OverflowException("VarLong too long");
+        }
+
+        return DecodeZigZag(result);
+    }
+
+    private void WriteVarULong(ulong value)
+    {
+        ulong v = value;
+        while (v >= 0x80)
+        {
+            Write<byte>((byte)(v | 0x80));
+            v >>= 7;
+        }
+        Write<byte>((byte)v);
+    }
+
+    private ulong ReadVarULong()
+    {
+        int shift = 0;
+        ulong result = 0;
+
+        while (true)
+        {
+            byte b = Read<byte>();
+            result |= (ulong)(b & 0x7F) << shift;
+
+            if ((b & 0x80) == 0)
+                break;
+
+            shift += 7;
+
+            if (shift > 70)
+                throw new OverflowException("VarULong too long");
+        }
+
+        return result;
+    }
+
     public void Write(ulong value)
-        => Write<ulong>(value);
+        => WriteVarULong(value);
 
     public ulong ReadULong()
-    {
-        int size = sizeof(ulong);
-
-        if (_offset + size > _capacity)
-            throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {size}");
-
-        ulong val = *(ulong*)(_ptr + _offset);
-        _offset += size;
-        return val;
-    }
+        => ReadVarULong();
 
     public void Write(short value)
         => Write<ushort>((ushort)EncodeZigZag(value));
