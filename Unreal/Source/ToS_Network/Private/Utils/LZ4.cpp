@@ -47,6 +47,7 @@ int32 FLZ4::Compress(const uint8* Src, int32 SrcSize, uint8* Dst, int32 DstCapac
         {
             uint8* Token = Op++;
             int LiteralLength = (int)(Ip - Anchor);
+
             if (Op + LiteralLength + 8 > Oend)
                 return 0;
 
@@ -54,11 +55,13 @@ int32 FLZ4::Compress(const uint8* Src, int32 SrcSize, uint8* Dst, int32 DstCapac
             {
                 *Token = 15 << 4;
                 int Len = LiteralLength - 15;
+
                 while (Len >= 255)
                 {
                     *Op++ = 255;
                     Len -= 255;
                 }
+
                 *Op++ = (uint8)Len;
             }
             else
@@ -77,12 +80,14 @@ int32 FLZ4::Compress(const uint8* Src, int32 SrcSize, uint8* Dst, int32 DstCapac
             Ref += MINMATCH;
 
             int MatchLength = 0;
+
             while (Ip < Mflimit && *(const uint32*)Ip == *(const uint32*)Ref)
             {
                 Ip += 4;
                 Ref += 4;
                 MatchLength += 4;
             }
+
             while (Ip < Iend && *Ip == *Ref)
             {
                 ++Ip;
@@ -107,14 +112,17 @@ int32 FLZ4::Compress(const uint8* Src, int32 SrcSize, uint8* Dst, int32 DstCapac
             }
 
             Anchor = Ip;
+
             if (Op > Oend - 5)
                 return 0;
+
             continue;
         }
         ++Ip;
     }
 
     int LastLit = (int)(Iend - Anchor);
+
     if (Op + LastLit + (LastLit / 255) + 1 > Oend)
         return 0;
 
@@ -122,11 +130,13 @@ int32 FLZ4::Compress(const uint8* Src, int32 SrcSize, uint8* Dst, int32 DstCapac
     {
         *Op++ = 15 << 4;
         int Len = LastLit - 15;
+
         while (Len >= 255)
         {
             *Op++ = 255;
             Len -= 255;
         }
+
         *Op++ = (uint8)Len;
     }
     else
@@ -151,6 +161,7 @@ int32 FLZ4::Decompress(const uint8* Src, int32 SrcSize, uint8* Dst, int32 DstCap
     {
         uint8 Token = *Ip++;
         int LiteralLength = Token >> 4;
+
         if (LiteralLength == 15)
         {
             uint8 S;
@@ -161,6 +172,7 @@ int32 FLZ4::Decompress(const uint8* Src, int32 SrcSize, uint8* Dst, int32 DstCap
 
         if (Op + LiteralLength > Oend || Ip + LiteralLength > Iend)
             return 0;
+
         FMemory::Memcpy(Op, Ip, LiteralLength);
         Ip += LiteralLength;
         Op += LiteralLength;
@@ -173,6 +185,7 @@ int32 FLZ4::Decompress(const uint8* Src, int32 SrcSize, uint8* Dst, int32 DstCap
         uint8* Match = Op - Offset;
 
         int MatchLength = Token & 0x0F;
+
         if (MatchLength == 15)
         {
             uint8 S;
@@ -180,10 +193,12 @@ int32 FLZ4::Decompress(const uint8* Src, int32 SrcSize, uint8* Dst, int32 DstCap
                 MatchLength += 255;
             MatchLength += S;
         }
+
         MatchLength += 4;
 
         if (Op + MatchLength > Oend)
             return 0;
+
         while (MatchLength--)
         {
             *Op++ = *Match++;

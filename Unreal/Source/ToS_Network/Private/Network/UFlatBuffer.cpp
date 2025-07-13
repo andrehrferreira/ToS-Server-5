@@ -253,11 +253,8 @@ void UFlatBuffer::WriteString(const FString& Value)
 {
     FTCHARToUTF8 Converter(*Value);
     int32 StringLength = Converter.Length();
-
-    // Write string length first
     Write<int32>(StringLength);
 
-    // Write string data
     if (StringLength > 0)
     {
         if (Position + StringLength > Capacity)
@@ -281,7 +278,6 @@ void UFlatBuffer::WriteFRotator(const FRotator& Value)
     Write<FRotator>(Value);
 }
 
-// Specialized Read methods for Blueprint compatibility
 uint8 UFlatBuffer::ReadByte()
 {
     return Read<uint8>();
@@ -424,8 +420,10 @@ bool UFlatBuffer::ReadBit()
 
     bool b = (ReadBits & (1 << ReadBitIndex)) != 0;
     ReadBitIndex++;
+
     if (ReadBitIndex == 8)
         ReadBitIndex = 0;
+
     return b;
 }
 
@@ -444,12 +442,10 @@ FString UFlatBuffer::ReadString()
         return FString();
     }
 
-    // Create a temporary null-terminated string
     TArray<UTF8CHAR> TempBuffer;
     TempBuffer.SetNumUninitialized(StringLength + 1);
     FMemory::Memcpy(TempBuffer.GetData(), Data + Position, StringLength);
     TempBuffer[StringLength] = '\0';
-
     Position += StringLength;
 
     return FString(UTF8_TO_TCHAR(TempBuffer.GetData()));
@@ -474,7 +470,6 @@ FString UFlatBuffer::ReadAsciiString()
     Temp.SetNumUninitialized(StringLength + 1);
     FMemory::Memcpy(Temp.GetData(), Data + Position, StringLength);
     Temp[StringLength] = '\0';
-
     Position += StringLength;
 
     return FString(ANSI_TO_TCHAR(Temp.GetData()));
@@ -492,6 +487,7 @@ void UFlatBuffer::AlignBits()
         WriteBitIndex = 0;
         Position++;
     }
+
     if (ReadBitIndex > 0)
         ReadBitIndex = 0;
 }

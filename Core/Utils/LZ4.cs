@@ -21,7 +21,6 @@
  * SOFTWARE.
  */
 
-using System;
 using System.Runtime.CompilerServices;
 
 public static class LZ4
@@ -37,9 +36,11 @@ public static class LZ4
         return (int)((value * HashMultiplier) >> ((MinMatch * 8) - HashLog));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe int Compress(byte* src, int srcLength, byte* dst, int dstCapacity)
     {
         uint* hashTable = stackalloc uint[HashSize];
+
         for (int i = 0; i < HashSize; i++)
             hashTable[i] = 0;
 
@@ -61,6 +62,7 @@ public static class LZ4
             {
                 byte* token = op++;
                 int literalLength = (int)(ip - anchor);
+
                 if (op + literalLength + 8 > oend)
                     return 0;
 
@@ -68,11 +70,13 @@ public static class LZ4
                 {
                     *token = 15 << 4;
                     int len = literalLength - 15;
+
                     while (len >= 255)
                     {
                         *op++ = 255;
                         len -= 255;
                     }
+
                     *op++ = (byte)len;
                 }
                 else
@@ -91,12 +95,14 @@ public static class LZ4
                 refp += MinMatch;
 
                 int matchLength = 0;
+
                 while (ip < mflimit && *(uint*)ip == *(uint*)refp)
                 {
                     ip += 4;
                     refp += 4;
                     matchLength += 4;
                 }
+
                 while (ip < iend && *ip == *refp)
                 {
                     ip++;
@@ -108,11 +114,13 @@ public static class LZ4
                 {
                     *token |= 15;
                     int len = matchLength - 15;
+
                     while (len >= 255)
                     {
                         *op++ = 255;
                         len -= 255;
                     }
+
                     *op++ = (byte)len;
                 }
                 else
@@ -121,6 +129,7 @@ public static class LZ4
                 }
 
                 anchor = ip;
+
                 if (op > oend - 5)
                     return 0;
 
@@ -138,11 +147,13 @@ public static class LZ4
         {
             *op++ = 15 << 4;
             int len = lastLit - 15;
+
             while (len >= 255)
             {
                 *op++ = 255;
                 len -= 255;
             }
+
             *op++ = (byte)len;
         }
         else
@@ -156,6 +167,7 @@ public static class LZ4
         return (int)(op - dst);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe int Decompress(byte* src, int srcLength, byte* dst, int dstCapacity)
     {
         byte* ip = src;
@@ -167,11 +179,14 @@ public static class LZ4
         {
             byte token = *ip++;
             int literalLength = token >> 4;
+
             if (literalLength == 15)
             {
                 byte s;
+
                 while (((s = *ip++) == 255) && ip < iend)
                     literalLength += 255;
+
                 literalLength += s;
             }
 
@@ -189,13 +204,17 @@ public static class LZ4
             byte* match = op - offset;
 
             int matchLength = token & 0x0F;
+
             if (matchLength == 15)
             {
                 byte s;
+
                 while (((s = *ip++) == 255) && ip < iend)
                     matchLength += 255;
+
                 matchLength += s;
             }
+
             matchLength += 4;
 
             if (op + matchLength > oend)

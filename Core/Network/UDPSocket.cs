@@ -121,6 +121,7 @@ public class UDPSocket
             networkPacket.Serialize(ref tmp);
 
             short seq = Sequence++;
+
             if (Sequence == short.MaxValue)
                 Sequence = 1;
 
@@ -129,8 +130,13 @@ public class UDPSocket
             packet.Write(seq);
 
             if (tmp.Position > 1)
-                packet.WriteBytes(tmp.Data + 1, tmp.Position - 1);
-
+            {
+                unsafe
+                {
+                    packet.WriteBytes(tmp.Data + 1, tmp.Position - 1);
+                }
+            }
+                
             AddReliablePacket(seq, packet);
             UDPServer.Send(ref packet, packet.Position, this, false);
 
