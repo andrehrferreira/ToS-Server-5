@@ -12,17 +12,17 @@ public partial struct CreateEntityPacket: INetworkPacket
         buffer.Write(PacketType.Reliable);
         buffer.Write((ushort)ServerPacket.CreateEntity);
         buffer.Write(EntityId);
-        buffer.Write(Positon);
-        buffer.Write(Rotator);
+        buffer.Write(Positon, 0.1f);
+        buffer.Write(Rotator, 0.1f);
         buffer.Write(Flags);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deserialize(ref FlatBuffer buffer)
     {
-        EntityId = buffer.Read<uint>();
-        Positon = buffer.Read<FVector>();
-        Rotator = buffer.Read<FRotator>();
-        Flags = buffer.Read<uint>();
+        EntityId = buffer.ReadUInt();
+        Positon = buffer.ReadFVector(0.1f);
+        Rotator = buffer.ReadFRotator(0.1f);
+        Flags = buffer.ReadUInt();
     }
 }

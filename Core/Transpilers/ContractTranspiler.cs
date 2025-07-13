@@ -204,12 +204,16 @@ public class ContractTraspiler : AbstractTranspiler
                     case "byte":
                     case "float":
                     case "long":
+                    case "decimal":
+                        writer.WriteLine($"        buffer.Write({fieldName});");
+                        break;
                     case "bool":
                     case "boolean":
-                    case "decimal":
+                        writer.WriteLine($"        buffer.WriteBit({fieldName});");
+                        break;                   
                     case "FVector":
-                    case "FRotator":
-                        writer.WriteLine($"        buffer.Write({fieldName});");
+                    case "FRotator":                    
+                        writer.WriteLine($"        buffer.Write({fieldName}, 0.1f);");
                         break;
                     case "id":
                         writer.WriteLine($"        buffer.Write(Base36.ToInt({fieldName}));");
@@ -240,16 +244,16 @@ public class ContractTraspiler : AbstractTranspiler
                     case "integer":
                     case "int":
                     case "int32":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<int>();");
+                        writer.WriteLine($"        {fieldName} = buffer.ReadInt();");
                         break;
                     case "uint":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<uint>();");
+                        writer.WriteLine($"        {fieldName} = buffer.ReadUInt();");
                         break;
                     case "ushort":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<ushort>();");
+                        writer.WriteLine($"        {fieldName} = buffer.ReadUShort();");
                         break;
                     case "short":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<short>();");
+                        writer.WriteLine($"        {fieldName} = buffer.ReadShort();");
                         break;
                     case "byte":
                         writer.WriteLine($"        {fieldName} = buffer.Read<byte>();");
@@ -258,20 +262,23 @@ public class ContractTraspiler : AbstractTranspiler
                         writer.WriteLine($"        {fieldName} = buffer.Read<float>();");
                         break;
                     case "long":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<long>();");
+                        writer.WriteLine($"        {fieldName} = buffer.ReadLong();");
+                        break;
+                    case "ulong":
+                        writer.WriteLine($"        {fieldName} = buffer.ReadULong();");
                         break;
                     case "bool":
                     case "boolean":
-                        writer.WriteLine($"        {fieldName} = (buffer.Read<byte>() == 1);");
+                        writer.WriteLine($"        {fieldName} = buffer.ReadBit();");
                         break;
                     case "decimal":
                         writer.WriteLine($"        {fieldName} = (decimal)buffer.Read<float>();");
                         break;
                     case "FVector":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<FVector>();");
+                        writer.WriteLine($"        {fieldName} = buffer.ReadFVector(0.1f);");
                         break;
                     case "FRotator":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<FRotator>();");
+                        writer.WriteLine($"        {fieldName} = buffer.ReadFRotator(0.1f);");
                         break;
                     case "id":
                         writer.WriteLine($"        {fieldName} = Base36.ToString(buffer.Read<int>());");
@@ -309,8 +316,7 @@ public class ContractTraspiler : AbstractTranspiler
 
                 writer.WriteLine($"        buffer.Write((ushort)ServerPacket.{rawName});");
             }
-                
-            
+                            
             writer.WriteLine("    }");
         }
     }

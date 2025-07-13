@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 public partial struct PingPacket: INetworkPacket
 {
-    public int Size => 9;
+    public int Size => 3;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
@@ -16,6 +16,6 @@ public partial struct PingPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deserialize(ref FlatBuffer buffer)
     {
-        SentTimestamp = buffer.Read<long>();
+        SentTimestamp = buffer.ReadUShort();
     }
 }

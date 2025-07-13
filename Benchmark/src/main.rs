@@ -1,7 +1,7 @@
 use tokio::net::UdpSocket;
 use tokio::sync::Semaphore;
 use std::sync::Arc;
-use std::time::{Instant, Duration};
+use std::time::{Instant, Duration, SystemTime, UNIX_EPOCH};
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -9,8 +9,75 @@ use rand::Rng;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 
+// ZigZag encoding/decoding functions (same as C# FlatBuffer)
+fn zigzag_encode_i64(value: i64) -> u64 {
+    ((value as u64) << 1) ^ ((value >> 63) as u64)
+}
+
+fn zigzag_decode_u64(value: u64) -> i64 {
+    ((value >> 1) as i64) ^ (-((value & 1) as i64))
+}
+
+// VarLong encoding/decoding functions
+fn encode_varint_u64(mut value: u64) -> Vec<u8> {
+    let mut result = Vec::new();
+
+    while value >= 0x80 {
+        result.push((value as u8) | 0x80);
+        value >>= 7;
+    }
+    result.push(value as u8);
+
+    result
+}
+
+fn decode_varint_u64(bytes: &[u8]) -> Result<(u64, usize), &'static str> {
+    let mut result = 0u64;
+    let mut shift = 0;
+    let mut bytes_read = 0;
+
+    for &byte in bytes {
+        result |= ((byte & 0x7F) as u64) << shift;
+        bytes_read += 1;
+
+        if (byte & 0x80) == 0 {
+            return Ok((result, bytes_read));
+        }
+
+        shift += 7;
+        if shift > 70 {
+            return Err("VarLong too long");
+        }
+    }
+
+    Err("Incomplete VarLong")
+}
+
+// Helper function to encode a timestamp for ping packet
+fn encode_ping_timestamp(timestamp: i64) -> Vec<u8> {
+    let zigzag_encoded = zigzag_encode_i64(timestamp);
+    encode_varint_u64(zigzag_encoded)
+}
+
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
+    // Test ZigZag and VarLong encoding/decoding
+    let test_timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_millis() as i64;
+
+    let encoded = encode_ping_timestamp(test_timestamp);
+    if let Ok((decoded_value, _)) = decode_varint_u64(&encoded) {
+        let decoded_timestamp = zigzag_decode_u64(decoded_value);
+        println!("ZigZag+VarLong test: {} -> {} bytes -> {}",
+                 test_timestamp, encoded.len(), decoded_timestamp);
+        assert_eq!(test_timestamp, decoded_timestamp);
+    } else {
+        eprintln!("Failed to decode test timestamp");
+    }
+
+    println!("Starting benchmark with {} clients...", CLIENT_COUNT);
     const SERVER_ADDR: &str = "127.0.0.1:3565";
     const CLIENT_COUNT: usize = 500; // 10_000;
     const TEST_DURATION: Duration = Duration::from_secs(60);
@@ -49,31 +116,44 @@ async fn main() -> std::io::Result<()> {
                 }
 
                 let mut buf = [0u8; 1024];
-                let mut update_interval = tokio::time::interval(Duration::from_millis(250));
+                let mut update_interval = tokio::time::interval(Duration::from_millis(200));
                 let mut rng = StdRng::from_entropy();
 
                 while start.elapsed() < TEST_DURATION {
                     tokio::select! {
                         _ = update_interval.tick() => {
                             let position = (
-                                rng.gen_range(1..=1000),
-                                rng.gen_range(1..=1000),
-                                rng.gen_range(1..=1000),
-                            );
-                            let rotation = (
-                                rng.gen_range(1..=1000),
-                                rng.gen_range(1..=1000),
-                                rng.gen_range(1..=1000),
+                                rng.gen_range(-1000.0..=1000.0f32),
+                                rng.gen_range(-1000.0..=1000.0f32),
+                                rng.gen_range(-1000.0..=1000.0f32),
                             );
 
-                            let mut packet = [0u8; 25];
+                            let rotation = (
+                                rng.gen_range(-180.0..=180.0f32), // Pitch
+                                rng.gen_range(-180.0..=180.0f32), // Yaw
+                                rng.gen_range(-180.0..=180.0f32), // Roll
+                            );
+
+                            let quantized_pos = (
+                                (position.0 / 0.1f32).round() as i16,
+                                (position.1 / 0.1f32).round() as i16,
+                                (position.2 / 0.1f32).round() as i16,
+                            );
+
+                            let quantized_rot = (
+                                (rotation.0 / 0.1f32).round() as i16,
+                                (rotation.1 / 0.1f32).round() as i16,
+                                (rotation.2 / 0.1f32).round() as i16,
+                            );
+
+                            let mut packet = [0u8; 13];
                             packet[0] = 11u8;
-                            packet[1..5].copy_from_slice(&(position.0 as i32).to_le_bytes());
-                            packet[5..9].copy_from_slice(&(position.1 as i32).to_le_bytes());
-                            packet[9..13].copy_from_slice(&(position.2 as i32).to_le_bytes());
-                            packet[13..17].copy_from_slice(&(rotation.0 as i32).to_le_bytes());
-                            packet[17..21].copy_from_slice(&(rotation.1 as i32).to_le_bytes());
-                            packet[21..25].copy_from_slice(&(rotation.2 as i32).to_le_bytes());
+                            packet[1..3].copy_from_slice(&quantized_pos.0.to_le_bytes());
+                            packet[3..5].copy_from_slice(&quantized_pos.1.to_le_bytes());
+                            packet[5..7].copy_from_slice(&quantized_pos.2.to_le_bytes());
+                            packet[7..9].copy_from_slice(&quantized_rot.0.to_le_bytes());
+                            packet[9..11].copy_from_slice(&quantized_rot.1.to_le_bytes());
+                            packet[11..13].copy_from_slice(&quantized_rot.2.to_le_bytes());
 
                             if let Ok(_) = socket.send_to(&packet, &server_addr).await {
                                 packets_sent.fetch_add(1, Ordering::Relaxed);
@@ -90,16 +170,19 @@ async fn main() -> std::io::Result<()> {
                                         match packet_type {
                                             // Ping
                                             1 => {
-                                                if size - offset >= 9 {
-                                                    let mut pong_packet = [0u8; 9];
-                                                    pong_packet[0] = 2u8;
-                                                    pong_packet[1..9].copy_from_slice(&buf[offset + 1..offset + 9]);
-                                                    let _ = socket.send_to(&pong_packet, addr).await;
-                                                    packets_sent.fetch_add(1, Ordering::Relaxed);
-                                                    offset += 9;
-                                                } else {
+                                                if offset + 3 > size {
                                                     break;
                                                 }
+
+                                                let sent_timestamp_ms = u16::from_le_bytes([buf[offset + 1], buf[offset + 2]]);
+
+                                                let mut pong_packet = [0u8; 3];
+                                                pong_packet[0] = 2;
+                                                pong_packet[1..3].copy_from_slice(&buf[offset + 1..offset + 3]);
+
+                                                let _ = socket.send_to(&pong_packet, addr).await;
+                                                packets_sent.fetch_add(1, Ordering::Relaxed);
+                                                offset += 3;
                                             }
                                             // ConnectionAccepted
                                             9 => {
@@ -107,10 +190,23 @@ async fn main() -> std::io::Result<()> {
                                             }
                                             // Benchmark packet
                                             4 => {
-                                                // 31 bytes per packet
-                                                offset += 31;
+                                                if offset + 19 > size {
+                                                    break;
+                                                }
+
+                                                if offset + 20 <= size {
+                                                    let possible_extra = size - (offset + 19);
+                                                    if possible_extra >= 1 {
+                                                        offset += 20;
+                                                    } else {
+                                                        offset += 19;
+                                                    }
+                                                } else {
+                                                    offset += 19;
+                                                }
                                             }
                                             _ => {
+                                                //println!("Unknown packet type: {}", packet_type);
                                                 // Unknown packet type, stop processing
                                                 break;
                                             }

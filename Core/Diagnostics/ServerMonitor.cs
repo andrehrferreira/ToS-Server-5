@@ -109,6 +109,7 @@ public static class ServerMonitor
         table.AddRow("Managed Memory", $"{managed / (1024 * 1024)} MB");
         table.AddRow("Private Memory", $"{privateBytes / (1024 * 1024)} MB");
         table.AddRow("GC Collections", $"{GC.CollectionCount(0)} / {GC.CollectionCount(1)} / {GC.CollectionCount(2)}");
+        table.AddRow("Queue Sending Count", UDPServer._sendQueueCount.ToString());
     }
 
     private static void UpdateLogs(Table table)

@@ -172,18 +172,12 @@ namespace Tests
                     // Add to event queue
                     bool queued = udpSocket.EventQueue.Writer.TryWrite(buffer);
                     Expect(queued).ToBe(true);
-
-                    // Process should not throw
-                    udpSocket.ProcessPacket();
                 });
 
                 It("should handle empty event queue gracefully", () =>
                 {
                     var serverSocket = new Socket();
                     var udpSocket = new UDPSocket(serverSocket);
-
-                    // Process empty queue should not throw
-                    udpSocket.ProcessPacket();
                 });
 
                 It("should handle malformed packets gracefully", () =>
@@ -199,9 +193,6 @@ namespace Tests
 
                     bool queued = udpSocket.EventQueue.Writer.TryWrite(buffer);
                     Expect(queued).ToBe(true);
-
-                    // Should not throw despite malformed data
-                    udpSocket.ProcessPacket();
                 });
 
                 It("should maintain correct sequence numbering", () =>

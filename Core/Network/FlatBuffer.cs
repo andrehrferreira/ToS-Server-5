@@ -129,12 +129,12 @@ public unsafe struct FlatBuffer : IDisposable
         }
         if (typeof(T) == typeof(FVector))
         {
-            Write((FVector)(object)value);
+            Write((FVector)(object)value, 0.1f);
             return;
         }
         if (typeof(T) == typeof(FRotator))
         {
-            Write((FRotator)(object)value);
+            Write((FRotator)(object)value, 0.1f);
             return;
         }
 
@@ -162,9 +162,9 @@ public unsafe struct FlatBuffer : IDisposable
         if (typeof(T) == typeof(ushort))
             return (T)(object)ReadUShort();
         if (typeof(T) == typeof(FVector))
-            return (T)(object)ReadFVector();
+            return (T)(object)ReadFVector(0.1f);
         if (typeof(T) == typeof(FRotator))
-            return (T)(object)ReadFRotator();
+            return (T)(object)ReadFRotator(0.1f);
 
         int size = sizeof(T);
 
@@ -172,6 +172,7 @@ public unsafe struct FlatBuffer : IDisposable
             throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {size}");
 
         T val = *(T*)(_ptr + _offset);
+        //Console.WriteLine($"[DEBUG] Read<byte> = {val:X2} at offset {_offset}");
         _offset += size;
         return val;
     }
@@ -200,26 +201,40 @@ public unsafe struct FlatBuffer : IDisposable
         return DecodeZigZag(raw);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteByteDirect(byte value)
+    {
+        if (_offset >= _capacity)
+            return;
+
+        *(_ptr + _offset) = value;
+        _offset++;
+    }
+
     public void WriteVarInt(int value)
     {
         uint v = EncodeZigZag(value);
+
         while (v >= 0x80)
         {
-            Write<byte>((byte)(v | 0x80));
+            WriteByteDirect((byte)(v | 0x80));
             v >>= 7;
         }
-        Write<byte>((byte)v);
+
+        WriteByteDirect((byte)v);
     }
 
     private void WriteVarUInt(uint value)
     {
         uint v = value;
+
         while (v >= 0x80)
         {
-            Write<byte>((byte)(v | 0x80));
+            WriteByteDirect((byte)(v | 0x80));
             v >>= 7;
         }
-        Write<byte>((byte)v);
+
+        WriteByteDirect((byte)v);
     }
 
     public int ReadVarInt()
@@ -307,11 +322,11 @@ public unsafe struct FlatBuffer : IDisposable
 
         while (v >= 0x80)
         {
-            Write<byte>((byte)(v | 0x80));
+            WriteByteDirect((byte)(v | 0x80));
             v >>= 7;
         }
 
-        Write<byte>((byte)v);
+        WriteByteDirect((byte)v);
     }
 
     private ulong ReadVarULong()
@@ -343,7 +358,16 @@ public unsafe struct FlatBuffer : IDisposable
         => ReadVarULong();
 
     public void Write(short value)
-        => Write<ushort>((ushort)EncodeZigZag(value));
+    {
+        ushort encoded = (ushort)EncodeZigZag(value);
+        int size = sizeof(ushort);
+
+        if (_offset + size > _capacity)
+            return;
+
+        *(ushort*)(_ptr + _offset) = encoded;
+        _offset += size;
+    }
 
     public short ReadShort()
     {
@@ -352,7 +376,15 @@ public unsafe struct FlatBuffer : IDisposable
     }
 
     public void Write(ushort value)
-        => Write<ushort>(value);
+    {
+        int size = sizeof(ushort);
+
+        if (_offset + size > _capacity)
+            return;
+
+        *(ushort*)(_ptr + _offset) = value;
+        _offset += size;
+    }
 
     public ushort ReadUShort()
     {

@@ -19,7 +19,7 @@ public partial struct DeltaSyncPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deserialize(ref FlatBuffer buffer)
     {
-        Index = buffer.Read<uint>();
+        Index = buffer.ReadUInt();
         EntitiesMask = buffer.Read<byte>();
     // Unsupported type: IntPtr
     }

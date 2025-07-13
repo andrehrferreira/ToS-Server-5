@@ -120,10 +120,12 @@ public class UDPSocket
             Send(ref buffer);
     }
 
-    public void Send(ref FlatBuffer buffer, bool flush = true)
+    public bool Send(ref FlatBuffer buffer, bool flush = true)
     {
         if(buffer.Position > 0)
-            UDPServer.Send(ref buffer, buffer.Position, this, flush);
+            return UDPServer.Send(ref buffer, buffer.Position, this, flush);
+        else
+            return false;
     }
 
     public bool Update(float delta)
@@ -224,17 +226,22 @@ public class UDPSocket
                                 for (int i = 0; i < limit; i++)
                                 {
                                     var randomValue = UDPServer.Clients.Values.ElementAt(rnd.Next(count));
-                                    packet.Serialize(ref randomValue.UnreliableBuffer);
+                                    FlatBuffer bufferSent = new FlatBuffer(20);
+                                    packet.Serialize(ref bufferSent);
 
-                                    if (randomValue.UnreliableBuffer.Position > UDPServer.Mtu / 2)
-                                        randomValue.Send(ref randomValue.UnreliableBuffer);
+                                    if(randomValue.Send(ref bufferSent))
+                                    {
+                                        Interlocked.Increment(ref UDPServer._packetsSent);
+                                        Interlocked.Add(ref UDPServer._bytesSent, packet.Size);
+                                    }
 
-                                    Interlocked.Increment(ref UDPServer._packetsSent);
-                                    Interlocked.Add(ref UDPServer._bytesSent, packet.Size);
+                                    bufferSent.Free();
                                 }
                             }
-                            catch
-                            { }
+                            catch(Exception ex)
+                            {
+                                ServerMonitor.Log($"Error processing BenchmarkTest packet: {ex.Message}");
+                            }
                         }
                         break;
                 }

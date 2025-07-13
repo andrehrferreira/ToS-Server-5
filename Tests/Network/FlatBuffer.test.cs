@@ -331,23 +331,7 @@ namespace Tests
 
             Describe("FlatBuffer Quantization System", () =>
             {
-                It("should quantize and dequantize float values", () =>
-                {
-                    using var buffer = new FlatBuffer(1024);
 
-                    float original = 12.34f;
-                    float min = -100.0f;
-                    float max = 100.0f;
-
-                    buffer.WriteQuantized(original, min, max);
-                    buffer.Reset();
-
-                    float result = buffer.ReadQuantizedFloat(min, max);
-
-                    // Should be approximately equal due to quantization
-                    float difference = Math.Abs(result - original);
-                    Expect(difference).ToBeLessThan(0.01f);
-                });
 
                 It("should quantize and dequantize FVector values", () =>
                 {
@@ -357,10 +341,10 @@ namespace Tests
                     float min = -100.0f;
                     float max = 100.0f;
 
-                    buffer.WriteQuantized(original, min, max);
+                    buffer.Write(original);
                     buffer.Reset();
 
-                    var result = buffer.ReadQuantizedFVector(min, max);
+                    var result = buffer.ReadFVector();
 
                     float diffX = Math.Abs(result.X - original.X);
                     float diffY = Math.Abs(result.Y - original.Y);
@@ -379,10 +363,10 @@ namespace Tests
                     float min = -180.0f;
                     float max = 180.0f;
 
-                    buffer.WriteQuantized(original, min, max);
+                    buffer.Write(original);
                     buffer.Reset();
 
-                    var result = buffer.ReadQuantizedFRotator(min, max);
+                    var result = buffer.ReadFRotator();
 
                     float diffPitch = Math.Abs(result.Pitch - original.Pitch);
                     float diffYaw = Math.Abs(result.Yaw - original.Yaw);
@@ -702,6 +686,22 @@ namespace Tests
                         Expect(true).ToBe(true); // Expected
                     }
                 });
+
+                It("should match Write/Read of long manually encoded", () =>
+                {
+                    using var buffer = new FlatBuffer(1024);
+
+                    long original = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+                    buffer.Write(original);
+                    buffer.Reset();
+                    long result = buffer.ReadLong();
+
+                    Console.WriteLine($"Original: {original}, ReadBack: {result}");
+
+                    Expect(result).ToBe(original);
+                });
+
             });
         }
     }

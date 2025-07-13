@@ -17,6 +17,6 @@ public partial struct RemoveEntityPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deserialize(ref FlatBuffer buffer)
     {
-        EntityId = buffer.Read<uint>();
+        EntityId = buffer.ReadUInt();
     }
 }

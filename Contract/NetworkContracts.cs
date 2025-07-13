@@ -1,15 +1,15 @@
 [Contract("Ping", PacketLayerType.Server, ContractPacketFlags.Queue_ToEntity, PacketType.Ping)]
 public partial struct PingPacket 
 {
-    [ContractField("long")]
-    public long SentTimestamp;
+    [ContractField("ushort")]
+    public ushort SentTimestamp;
 }
 
 [Contract("Pong", PacketLayerType.Client, ContractPacketFlags.None, PacketType.Pong)]
 public partial struct PongPacket
 {
-    [ContractField("long")]
-    public long SentTimestamp;
+    [ContractField("ushort")]
+    public ushort SentTimestamp;
 }
 
 [Contract("ConnectionAccepted", PacketLayerType.Server, ContractPacketFlags.ToEntity, PacketType.ConnectionAccepted)]
