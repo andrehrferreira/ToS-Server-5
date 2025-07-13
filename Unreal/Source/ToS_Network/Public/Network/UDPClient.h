@@ -89,6 +89,7 @@ public:
     bool Connect(const FString& Host, int32 Port);
     void Disconnect();
     void SendPong(int64 PingTime);
+    void SendAck(uint16 Sequence);
     void SendIntegrity(uint16 Code);
     void PollIncomingPackets();
     void SetConnectTimeout(float Seconds) { ConnectTimeout = Seconds; }
