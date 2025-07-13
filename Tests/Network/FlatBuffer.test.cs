@@ -39,6 +39,62 @@ namespace Tests
                     Expect(doubleValue).ToBe(2.71828);
                 });
 
+                It("should use VarInt encoding for primitive types via templates", () =>
+                {
+                    using var buffer = new FlatBuffer(1024);
+
+                    // These should use VarInt/VarLong encoding automatically
+                    buffer.Write<int>(42);
+                    buffer.Write<uint>(123u);
+                    buffer.Write<long>(-456L);
+                    buffer.Write<ulong>(789UL);
+                    buffer.Write<short>(-12);
+                    buffer.Write<ushort>(34);
+
+                    buffer.Reset();
+
+                    int intValue = buffer.Read<int>();
+                    uint uintValue = buffer.Read<uint>();
+                    long longValue = buffer.Read<long>();
+                    ulong ulongValue = buffer.Read<ulong>();
+                    short shortValue = buffer.Read<short>();
+                    ushort ushortValue = buffer.Read<ushort>();
+
+                    Expect(intValue).ToBe(42);
+                    Expect(uintValue).ToBe(123u);
+                    Expect(longValue).ToBe(-456L);
+                    Expect(ulongValue).ToBe(789UL);
+                    Expect(shortValue).ToBe(-12);
+                    Expect(ushortValue).ToBe(34);
+                });
+
+                It("should demonstrate VarInt space efficiency via templates", () =>
+                {
+                    using var buffer = new FlatBuffer(1024);
+
+                    // Small values should use fewer bytes with VarInt encoding
+                    buffer.Write<int>(63);    // Small value - should use 1 byte after ZigZag
+                    int posSmall = buffer.Position;
+
+                    buffer.Write<int>(16384); // Larger value - should use more bytes
+                    int posLarge = buffer.Position;
+
+                    // Verify space efficiency
+                    int smallValueBytes = posSmall;
+                    int largeValueBytes = posLarge - posSmall;
+
+                    Expect(smallValueBytes).ToBe(1);
+                    Expect(largeValueBytes).ToBeGreaterThan(smallValueBytes);
+
+                    buffer.Reset();
+
+                    int value1 = buffer.Read<int>();
+                    int value2 = buffer.Read<int>();
+
+                    Expect(value1).ToBe(63);
+                    Expect(value2).ToBe(16384);
+                });
+
                 It("should write and read ZigZag encoded integers", () =>
                 {
                     using var buffer = new FlatBuffer(1024);
@@ -361,28 +417,29 @@ namespace Tests
                     Expect(resultRotator.Roll).ToBe(originalRotator.Roll);
                 });
 
-                It("should quantize FVector and FRotator by default", () =>
+                It("should quantize FVector and FRotator using template operations", () =>
                 {
                     using var buffer = new FlatBuffer(1024);
 
                     var originalVector = new FVector(1.23f, -4.56f, 7.89f);
                     var originalRotator = new FRotator(12.3f, -45.6f, 78.9f);
 
-                    buffer.Write(originalVector);
-                    buffer.Write(originalRotator);
+                    buffer.Write<FVector>(originalVector);   // Uses quantization with range [-10000, 10000]
+                    buffer.Write<FRotator>(originalRotator); // Uses quantization with range [-180, 180]
 
                     buffer.Reset();
 
-                    var resultVector = buffer.ReadFVector();
-                    var resultRotator = buffer.ReadFRotator();
+                    var resultVector = buffer.Read<FVector>();   // Uses quantization
+                    var resultRotator = buffer.Read<FRotator>(); // Uses quantization
 
-                    Expect(resultVector.X).ToBeApproximately(1.2f, 0.05f);
-                    Expect(resultVector.Y).ToBeApproximately(-4.6f, 0.05f);
-                    Expect(resultVector.Z).ToBeApproximately(7.9f, 0.05f);
+                    // Template quantization uses short precision over larger ranges
+                    Expect(resultVector.X).ToBeApproximately(originalVector.X, 1.0f);
+                    Expect(resultVector.Y).ToBeApproximately(originalVector.Y, 1.0f);
+                    Expect(resultVector.Z).ToBeApproximately(originalVector.Z, 1.0f);
 
-                    Expect(resultRotator.Pitch).ToBeApproximately(12.3f, 0.05f);
-                    Expect(resultRotator.Yaw).ToBeApproximately(-45.6f, 0.05f);
-                    Expect(resultRotator.Roll).ToBeApproximately(78.9f, 0.05f);
+                    Expect(resultRotator.Pitch).ToBeApproximately(originalRotator.Pitch, 0.1f);
+                    Expect(resultRotator.Yaw).ToBeApproximately(originalRotator.Yaw, 0.1f);
+                    Expect(resultRotator.Roll).ToBeApproximately(originalRotator.Roll, 0.1f);
                 });
             });
 

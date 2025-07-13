@@ -97,6 +97,47 @@ public unsafe struct FlatBuffer : IDisposable
 
     public void Write<T>(T value) where T : unmanaged
     {
+        if (typeof(T) == typeof(int))
+        {
+            Write((int)(object)value);
+            return;
+        }
+        if (typeof(T) == typeof(uint))
+        {
+            Write((uint)(object)value);
+            return;
+        }
+        if (typeof(T) == typeof(long))
+        {
+            Write((long)(object)value);
+            return;
+        }
+        if (typeof(T) == typeof(ulong))
+        {
+            Write((ulong)(object)value);
+            return;
+        }
+        if (typeof(T) == typeof(short))
+        {
+            Write((short)(object)value);
+            return;
+        }
+        if (typeof(T) == typeof(ushort))
+        {
+            Write((ushort)(object)value);
+            return;
+        }
+        if (typeof(T) == typeof(FVector))
+        {
+            Write((FVector)(object)value);
+            return;
+        }
+        if (typeof(T) == typeof(FRotator))
+        {
+            Write((FRotator)(object)value);
+            return;
+        }
+
         int size = sizeof(T);
 
         if (_offset + size > _capacity)
@@ -120,6 +161,10 @@ public unsafe struct FlatBuffer : IDisposable
             return (T)(object)ReadShort();
         if (typeof(T) == typeof(ushort))
             return (T)(object)ReadUShort();
+        if (typeof(T) == typeof(FVector))
+            return (T)(object)ReadFVector();
+        if (typeof(T) == typeof(FRotator))
+            return (T)(object)ReadFRotator();
 
         int size = sizeof(T);
 
@@ -224,11 +269,13 @@ public unsafe struct FlatBuffer : IDisposable
     public void WriteVarLong(long value)
     {
         ulong v = EncodeZigZag(value);
+
         while (v >= 0x80)
         {
             Write<byte>((byte)(v | 0x80));
             v >>= 7;
         }
+
         Write<byte>((byte)v);
     }
 
@@ -257,11 +304,13 @@ public unsafe struct FlatBuffer : IDisposable
     private void WriteVarULong(ulong value)
     {
         ulong v = value;
+
         while (v >= 0x80)
         {
             Write<byte>((byte)(v | 0x80));
             v >>= 7;
         }
+
         Write<byte>((byte)v);
     }
 
@@ -314,71 +363,27 @@ public unsafe struct FlatBuffer : IDisposable
 
         ushort val = *(ushort*)(_ptr + _offset);
         _offset += size;
+
         return val;
     }
 
-    public void WriteQuantized(float value, float min, float max)
+    public void Write(FVector value, float factor = 0.1f)
     {
-        short quantized = Quantization.ToShort(value, min, max);
-        Write(quantized);
-    }
-
-    public float ReadQuantizedFloat(float min, float max)
-    {
-        short quantized = ReadShort();
-        return Quantization.ToFloat(quantized, min, max);
-    }
-
-    public void WriteQuantized(FVector value, float min, float max)
-    {
-        WriteQuantized(value.X, min, max);
-        WriteQuantized(value.Y, min, max);
-        WriteQuantized(value.Z, min, max);
-    }
-
-    public FVector ReadQuantizedFVector(float min, float max)
-    {
-        float x = ReadQuantizedFloat(min, max);
-        float y = ReadQuantizedFloat(min, max);
-        float z = ReadQuantizedFloat(min, max);
-        return new FVector(x, y, z);
-    }
-
-    public void WriteQuantized(FRotator value, float min, float max)
-    {
-        WriteQuantized(value.Pitch, min, max);
-        WriteQuantized(value.Yaw, min, max);
-        WriteQuantized(value.Roll, min, max);
-    }
-
-    public FRotator ReadQuantizedFRotator(float min, float max)
-    {
-        float pitch = ReadQuantizedFloat(min, max);
-        float yaw = ReadQuantizedFloat(min, max);
-        float roll = ReadQuantizedFloat(min, max);
-        return new FRotator(pitch, yaw, roll);
-    }
-
-    public void Write(FVector value)
-    {
-        const float factor = 0.1f;
         Write((short)MathF.Round(value.X / factor));
         Write((short)MathF.Round(value.Y / factor));
         Write((short)MathF.Round(value.Z / factor));
     }
 
-    public void Write(FRotator value)
+    public void Write(FRotator value, float factor = 0.1f)
     {
-        const float factor = 0.1f;
         Write((short)MathF.Round(value.Pitch / factor));
         Write((short)MathF.Round(value.Yaw / factor));
         Write((short)MathF.Round(value.Roll / factor));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FVector ReadFVector()
+    public FVector ReadFVector(float factor = 0.1f)
     {
-        const float factor = 0.1f;
         short x = ReadShort();
         short y = ReadShort();
         short z = ReadShort();
@@ -386,9 +391,8 @@ public unsafe struct FlatBuffer : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public FRotator ReadFRotator()
+    public FRotator ReadFRotator(float factor = 0.1f)
     {
-        const float factor = 0.1f;
         short pitch = ReadShort();
         short yaw = ReadShort();
         short roll = ReadShort();
@@ -503,6 +507,7 @@ public unsafe struct FlatBuffer : IDisposable
 
         string result = Encoding.ASCII.GetString(new ReadOnlySpan<byte>(_ptr + _offset, length));
         _offset += length;
+
         return result;
     }
 
@@ -531,6 +536,7 @@ public unsafe struct FlatBuffer : IDisposable
 
         string result = Encoding.UTF8.GetString(new ReadOnlySpan<byte>(_ptr + _offset, length));
         _offset += length;
+
         return result;
     }
 }
