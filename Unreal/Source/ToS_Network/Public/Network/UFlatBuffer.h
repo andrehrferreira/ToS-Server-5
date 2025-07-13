@@ -43,13 +43,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void Initialize(int32 Capacity);
 
-	// Template-based Write operations
 	template<typename T>
 	void Write(const T& Value)
 	{
 		static_assert(std::is_trivial_v<T>, "Type must be trivial for unsafe operations");
 
 		int32 Size = sizeof(T);
+
 		if (Position + Size > Capacity)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("UFlatBuffer::Write - Buffer overflow. Cannot write value of size %d"), Size);
@@ -60,13 +60,13 @@ public:
 		Position += Size;
 	}
 
-	// Template-based Read operations
 	template<typename T>
 	T Read()
 	{
 		static_assert(std::is_trivial_v<T>, "Type must be trivial for unsafe operations");
 
 		int32 Size = sizeof(T);
+
 		if (Position + Size > Capacity)
 		{
 			UE_LOG(LogTemp, Error, TEXT("UFlatBuffer::Read - Buffer underflow. Cannot read value of size %d"), Size);
@@ -79,7 +79,6 @@ public:
 		return Value;
 	}
 
-	// Specialized Write methods for Blueprint compatibility
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void WriteByte(uint8 Value);
 
@@ -92,33 +91,33 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void WriteUInt32(uint32 Value);
 
-        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-        void WriteInt64(int64 Value);
+    UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+    void WriteInt64(int64 Value);
 
-        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-        void WriteVarInt(int32 Value);
+    UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+    void WriteVarInt(int32 Value);
 
-        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-        void WriteVarLong(int64 Value);
+    UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+    void WriteVarLong(int64 Value);
 
-        void WriteVarUInt(uint32 Value);
+    void WriteVarUInt(uint32 Value);
 
-        void WriteVarULong(uint64 Value);
+    void WriteVarULong(uint64 Value);
 
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void WriteFloat(float Value);
 
-        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-        void WriteBool(bool Value);
+    UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+    void WriteBool(bool Value);
 
-        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-        void WriteBit(bool Value);
+    UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+    void WriteBit(bool Value);
 
-        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-        void WriteAsciiString(const FString& Value);
+    UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+    void WriteAsciiString(const FString& Value);
 
-        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-        void WriteUtf8String(const FString& Value);
+    UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+    void WriteUtf8String(const FString& Value);
 
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void WriteString(const FString& Value);
@@ -129,7 +128,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void WriteFRotator(const FRotator& Value);
 
-	// Specialized Read methods for Blueprint compatibility
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	uint8 ReadByte();
 
@@ -142,36 +140,36 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	uint32 ReadUInt32();
 
-        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-        int64 ReadInt64();
+    UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+    int64 ReadInt64();
 
-        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-        int32 ReadVarInt();
+    UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+    int32 ReadVarInt();
 
-        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-        int64 ReadVarLong();
+    UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+    int64 ReadVarLong();
 
-        uint32 ReadVarUInt();
+    uint32 ReadVarUInt();
 
-        uint64 ReadVarULong();
+    uint64 ReadVarULong();
 
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	float ReadFloat();
 
-        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-        bool ReadBool();
+    UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+    bool ReadBool();
 
-        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-        bool ReadBit();
+    UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+    bool ReadBit();
 
-        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-        FString ReadAsciiString();
+    UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+    FString ReadAsciiString();
 
-        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-        FString ReadUtf8String();
+    UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+    FString ReadUtf8String();
 
-        UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
-        void AlignBits();
+    UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
+    void AlignBits();
 
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	FString ReadString();
@@ -182,7 +180,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	FRotator ReadFRotator();
 
-	// Utility methods
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void Reset();
 
@@ -195,17 +192,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	uint32 GetHashFast() const;
 
-	// Direct memory access methods
 	void CopyFromMemory(const uint8* SourceData, int32 Length);
-        void CopyToMemory(uint8* DestData, int32 Length) const;
+    void CopyToMemory(uint8* DestData, int32 Length) const;
 
-        // Additional helpers to match C# implementation
-        FORCEINLINE int32 SavePosition() const { return Position; }
-        FORCEINLINE void RestorePosition(int32 NewPos) { SetPosition(NewPos); }
-        FORCEINLINE int32 GetLengthBits() const { return (Position * 8) + WriteBitIndex; }
-        void WriteBytes(const uint8* Source, int32 Length);
+    FORCEINLINE int32 SavePosition() const { return Position; }
+    FORCEINLINE void RestorePosition(int32 NewPos) { SetPosition(NewPos); }
+    FORCEINLINE int32 GetLengthBits() const { return (Position * 8) + WriteBitIndex; }
+    void WriteBytes(const uint8* Source, int32 Length);
 
-	// Accessors
 	FORCEINLINE uint8* GetData() { return Data; }
 	FORCEINLINE const uint8* GetData() const { return Data; }
 	FORCEINLINE int32 GetPosition() const { return Position; }
@@ -217,139 +211,137 @@ public:
 		Position = FMath::Clamp(NewPosition, 0, Capacity);
 	}
 
-	// Raw buffer access for compatibility
 	uint8* GetRawBuffer() { return Data; }
 	int32 GetLength() const { return Position; }
 	int32 GetOffset() const { return Position; }
-        void SetOffset(int32 NewOffset) { SetPosition(NewOffset); }
+    void SetOffset(int32 NewOffset) { SetPosition(NewOffset); }
 
-        template<typename T>
-        FORCEINLINE T Peek() const
+    template<typename T>
+    FORCEINLINE T Peek() const
+    {
+        static_assert(std::is_trivial_v<T>, "Type must be trivial");
+        int32 Size = sizeof(T);
+        if (Position + Size > Capacity)
         {
-                static_assert(std::is_trivial_v<T>, "Type must be trivial");
-                int32 Size = sizeof(T);
-                if (Position + Size > Capacity)
-                {
-                        UE_LOG(LogTemp, Error, TEXT("UFlatBuffer::Peek - Buffer underflow."));
-                        return T{};
-                }
-                T Value;
-                FMemory::Memcpy(&Value, Data + Position, Size);
-                return Value;
+                UE_LOG(LogTemp, Error, TEXT("UFlatBuffer::Peek - Buffer underflow."));
+                return T{};
         }
+        T Value;
+        FMemory::Memcpy(&Value, Data + Position, Size);
+        return Value;
+    }
 
 protected:
 	virtual void BeginDestroy() override;
 
 private:
-        uint8* Data;
-        int32 Capacity;
-        int32 Position;
-        bool bDisposed;
-        uint8 WriteBits = 0;
-        uint8 WriteBitIndex = 0;
-        uint8 ReadBits = 0;
-        uint8 ReadBitIndex = 0;
+    uint8* Data;
+    int32 Capacity;
+    int32 Position;
+    bool bDisposed;
+    uint8 WriteBits = 0;
+    uint8 WriteBitIndex = 0;
+    uint8 ReadBits = 0;
+    uint8 ReadBitIndex = 0;
 
-        void EnsureCapacity(int32 RequiredSize);
+    void EnsureCapacity(int32 RequiredSize);
 };
 
-// Template specializations for common Unreal types
 template<>
 inline void UFlatBuffer::Write<FVector>(const FVector& Value)
 {
-        constexpr float Factor = 0.1f;
-        Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.X / Factor)));
-        Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Y / Factor)));
-        Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Z / Factor)));
+    constexpr float Factor = 0.1f;
+    Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.X / Factor)));
+    Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Y / Factor)));
+    Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Z / Factor)));
 }
 
 template<>
 inline FVector UFlatBuffer::Read<FVector>()
 {
-        constexpr float Factor = 0.1f;
-        int16 X = Read<int16>();
-        int16 Y = Read<int16>();
-        int16 Z = Read<int16>();
-        return FVector(static_cast<float>(X) * Factor, static_cast<float>(Y) * Factor, static_cast<float>(Z) * Factor);
+    constexpr float Factor = 0.1f;
+    int16 X = Read<int16>();
+    int16 Y = Read<int16>();
+    int16 Z = Read<int16>();
+    return FVector(static_cast<float>(X) * Factor, static_cast<float>(Y) * Factor, static_cast<float>(Z) * Factor);
 }
 
 template<>
 inline void UFlatBuffer::Write<FRotator>(const FRotator& Value)
 {
-        constexpr float Factor = 0.1f;
-        Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Pitch / Factor)));
-        Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Yaw / Factor)));
-        Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Roll / Factor)));
+    constexpr float Factor = 0.1f;
+    Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Pitch / Factor)));
+    Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Yaw / Factor)));
+    Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Roll / Factor)));
 }
 
 template<>
 inline FRotator UFlatBuffer::Read<FRotator>()
 {
-        constexpr float Factor = 0.1f;
-        int16 Pitch = Read<int16>();
-        int16 Yaw = Read<int16>();
-        int16 Roll = Read<int16>();
-        return FRotator(static_cast<float>(Pitch) * Factor, static_cast<float>(Yaw) * Factor, static_cast<float>(Roll) * Factor);
+    constexpr float Factor = 0.1f;
+    int16 Pitch = Read<int16>();
+    int16 Yaw = Read<int16>();
+    int16 Roll = Read<int16>();
+    return FRotator(static_cast<float>(Pitch) * Factor, static_cast<float>(Yaw) * Factor, static_cast<float>(Roll) * Factor);
 }
 
 template<>
 inline void UFlatBuffer::Write<int32>(const int32& Value)
 {
-        WriteVarInt(Value);
+    WriteVarInt(Value);
 }
 
 template<>
 inline int32 UFlatBuffer::Read<int32>()
 {
-        return ReadVarInt();
+    return ReadVarInt();
 }
 
 template<>
 inline void UFlatBuffer::Write<uint32>(const uint32& Value)
 {
-        WriteVarUInt(Value);
+    WriteVarUInt(Value);
 }
 
 template<>
 inline uint32 UFlatBuffer::Read<uint32>()
 {
-        return ReadVarUInt();
+    return ReadVarUInt();
 }
 
 template<>
 inline void UFlatBuffer::Write<int64>(const int64& Value)
 {
-        WriteVarLong(Value);
+    WriteVarLong(Value);
 }
 
 template<>
 inline int64 UFlatBuffer::Read<int64>()
 {
-        return ReadVarLong();
+    return ReadVarLong();
 }
 
 template<>
 inline void UFlatBuffer::Write<uint64>(const uint64& Value)
 {
-        WriteVarULong(Value);
+    WriteVarULong(Value);
 }
 
 template<>
 inline uint64 UFlatBuffer::Read<uint64>()
 {
-        return ReadVarULong();
+    return ReadVarULong();
 }
 
 template<>
 inline void UFlatBuffer::Write<int16>(const int16& Value)
 {
-        Write<uint16>(static_cast<uint16>((Value << 1) ^ (Value >> 15)));
+    Write<uint16>(static_cast<uint16>((Value << 1) ^ (Value >> 15)));
 }
 
 template<>
 inline int16 UFlatBuffer::Read<int16>()
 {
-        uint16 Enc = Read<uint16>();
-        return static_cast<int16>((Enc >> 1) ^ -static_cast<int16>(Enc & 1));
+    uint16 Enc = Read<uint16>();
+    return static_cast<int16>((Enc >> 1) ^ -static_cast<int16>(Enc & 1));
 }
