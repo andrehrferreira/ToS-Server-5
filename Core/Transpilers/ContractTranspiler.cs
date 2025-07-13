@@ -170,6 +170,7 @@ public class ContractTraspiler : AbstractTranspiler
             writer.WriteLine($"    public int Size => {totalBytes};");
             writer.WriteLine();
 
+            //Serialize
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
             writer.WriteLine($"    public void Serialize(ref FlatBuffer buffer)");
             writer.WriteLine("    {");
@@ -186,7 +187,6 @@ public class ContractTraspiler : AbstractTranspiler
                 writer.WriteLine($"        buffer.Write((ushort)ServerPacket.{rawName});");
             }
                 
-
             foreach (var field in fields)
             {
                 var attribute = field.GetCustomAttribute<ContractFieldAttribute>();
@@ -215,11 +215,73 @@ public class ContractTraspiler : AbstractTranspiler
                         writer.WriteLine($"        buffer.Write(Base36.ToInt({fieldName}));");
                         break;
                     default:
-                        writer.WriteLine($"    // Tipo não suportado: {fieldType}");
+                        writer.WriteLine($"    // Unsupported type: {fieldType}");
                         break;
                 }
-
             }
+
+            writer.WriteLine("    }");
+
+            //Deserialize
+
+            writer.WriteLine();
+            writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+            writer.WriteLine($"    public void Deserialize(ref FlatBuffer buffer)");
+            writer.WriteLine("    {");
+
+            foreach (var field in fields)
+            {
+                var attribute = field.GetCustomAttribute<ContractFieldAttribute>();
+                var fieldType = attribute.Type;
+                var fieldName = field.Name;
+
+                switch (fieldType)
+                {
+                    case "integer":
+                    case "int":
+                    case "int32":
+                        writer.WriteLine($"        {fieldName} = buffer.Read<int>();");
+                        break;
+                    case "uint":
+                        writer.WriteLine($"        {fieldName} = buffer.Read<uint>();");
+                        break;
+                    case "ushort":
+                        writer.WriteLine($"        {fieldName} = buffer.Read<ushort>();");
+                        break;
+                    case "short":
+                        writer.WriteLine($"        {fieldName} = buffer.Read<short>();");
+                        break;
+                    case "byte":
+                        writer.WriteLine($"        {fieldName} = buffer.Read<byte>();");
+                        break;
+                    case "float":
+                        writer.WriteLine($"        {fieldName} = buffer.Read<float>();");
+                        break;
+                    case "long":
+                        writer.WriteLine($"        {fieldName} = buffer.Read<long>();");
+                        break;
+                    case "bool":
+                    case "boolean":
+                        writer.WriteLine($"        {fieldName} = (buffer.Read<byte>() == 1);");
+                        break;
+                    case "decimal":
+                        writer.WriteLine($"        {fieldName} = (decimal)buffer.Read<float>();");
+                        break;
+                    case "FVector":
+                        writer.WriteLine($"        {fieldName} = buffer.Read<FVector>();");
+                        break;
+                    case "FRotator":
+                        writer.WriteLine($"        {fieldName} = buffer.Read<FRotator>();");
+                        break;
+                    case "id":
+                        writer.WriteLine($"        {fieldName} = Base36.ToString(buffer.Read<int>());");
+                        break;
+                    default:
+                        writer.WriteLine($"    // Unsupported type: {fieldType}");
+                        break;
+                }
+            }
+
 
             writer.WriteLine("    }");
         }

@@ -12,4 +12,10 @@ public partial struct ConnectionAcceptedPacket: INetworkPacket
         buffer.Write(PacketType.ConnectionAccepted);
         buffer.Write(Id);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deserialize(ref FlatBuffer buffer)
+    {
+        Id = buffer.Read<uint>();
+    }
 }

@@ -15,4 +15,12 @@ public partial struct BenchmarkPacket: INetworkPacket
         buffer.Write(Positon);
         buffer.Write(Rotator);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deserialize(ref FlatBuffer buffer)
+    {
+        Id = buffer.Read<uint>();
+        Positon = buffer.Read<FVector>();
+        Rotator = buffer.Read<FRotator>();
+    }
 }

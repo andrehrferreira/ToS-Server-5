@@ -13,4 +13,11 @@ public partial struct CheckIntegrityPacket: INetworkPacket
         buffer.Write(Index);
         buffer.Write(Version);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deserialize(ref FlatBuffer buffer)
+    {
+        Index = buffer.Read<ushort>();
+        Version = buffer.Read<uint>();
+    }
 }

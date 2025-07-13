@@ -9,10 +9,18 @@ public partial struct DeltaSyncPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
-        buffer.Write(PacketType.Reliable);
+        buffer.Write(PacketType.Unreliable);
         buffer.Write((ushort)ServerPacket.DeltaSync);
         buffer.Write(Index);
         buffer.Write(EntitiesMask);
-    // Tipo não suportado: IntPtr
+    // Unsupported type: IntPtr
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deserialize(ref FlatBuffer buffer)
+    {
+        Index = buffer.Read<uint>();
+        EntitiesMask = buffer.Read<byte>();
+    // Unsupported type: IntPtr
     }
 }

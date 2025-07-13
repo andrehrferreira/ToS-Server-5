@@ -13,4 +13,10 @@ public partial struct RemoveEntityPacket: INetworkPacket
         buffer.Write((ushort)ServerPacket.RemoveEntity);
         buffer.Write(EntityId);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deserialize(ref FlatBuffer buffer)
+    {
+        EntityId = buffer.Read<uint>();
+    }
 }

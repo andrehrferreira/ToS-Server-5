@@ -12,4 +12,10 @@ public partial struct PingPacket: INetworkPacket
         buffer.Write(PacketType.Ping);
         buffer.Write(SentTimestamp);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deserialize(ref FlatBuffer buffer)
+    {
+        SentTimestamp = buffer.Read<long>();
+    }
 }

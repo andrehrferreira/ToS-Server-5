@@ -17,4 +17,14 @@ public partial struct UpdateEntityPacket: INetworkPacket
         buffer.Write(AnimationState);
         buffer.Write(Flags);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deserialize(ref FlatBuffer buffer)
+    {
+        EntityId = buffer.Read<uint>();
+        Positon = buffer.Read<FVector>();
+        Rotator = buffer.Read<FRotator>();
+        AnimationState = buffer.Read<ushort>();
+        Flags = buffer.Read<uint>();
+    }
 }

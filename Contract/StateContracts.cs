@@ -1,4 +1,4 @@
-[Contract("DeltaSync", PacketLayerType.Server, ContractPacketFlags.Reliable_ToEntity)]
+[Contract("DeltaSync", PacketLayerType.Server, ContractPacketFlags.ToEntity)]
 public partial struct DeltaSyncPacket
 {
     [ContractField("uint")]
