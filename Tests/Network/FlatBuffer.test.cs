@@ -344,13 +344,13 @@ namespace Tests
                     var originalVector = new FVector(100, 200, 300);
                     var originalRotator = new FRotator(45, 90, 135);
 
-                    buffer.Write(originalVector);    // Uses ZigZag encoding for int components
-                    buffer.Write(originalRotator);   // Uses ZigZag encoding for int components
+                    buffer.Write(originalVector);    // Uses default 0.1 quantization
+                    buffer.Write(originalRotator);   // Uses default 0.1 quantization
 
                     buffer.Reset();
 
-                    var resultVector = buffer.ReadFVector();    // Uses ZigZag decoding
-                    var resultRotator = buffer.ReadFRotator();  // Uses ZigZag decoding
+                    var resultVector = buffer.ReadFVector();    // Applies 0.1 factor
+                    var resultRotator = buffer.ReadFRotator();  // Applies 0.1 factor
 
                     Expect(resultVector.X).ToBe(originalVector.X);
                     Expect(resultVector.Y).ToBe(originalVector.Y);
@@ -359,6 +359,30 @@ namespace Tests
                     Expect(resultRotator.Pitch).ToBe(originalRotator.Pitch);
                     Expect(resultRotator.Yaw).ToBe(originalRotator.Yaw);
                     Expect(resultRotator.Roll).ToBe(originalRotator.Roll);
+                });
+
+                It("should quantize FVector and FRotator by default", () =>
+                {
+                    using var buffer = new FlatBuffer(1024);
+
+                    var originalVector = new FVector(1.23f, -4.56f, 7.89f);
+                    var originalRotator = new FRotator(12.3f, -45.6f, 78.9f);
+
+                    buffer.Write(originalVector);
+                    buffer.Write(originalRotator);
+
+                    buffer.Reset();
+
+                    var resultVector = buffer.ReadFVector();
+                    var resultRotator = buffer.ReadFRotator();
+
+                    Expect(resultVector.X).ToBeApproximately(1.2f, 0.05f);
+                    Expect(resultVector.Y).ToBeApproximately(-4.6f, 0.05f);
+                    Expect(resultVector.Z).ToBeApproximately(7.9f, 0.05f);
+
+                    Expect(resultRotator.Pitch).ToBeApproximately(12.3f, 0.05f);
+                    Expect(resultRotator.Yaw).ToBeApproximately(-45.6f, 0.05f);
+                    Expect(resultRotator.Roll).ToBeApproximately(78.9f, 0.05f);
                 });
             });
 
