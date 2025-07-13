@@ -24,7 +24,6 @@ class Program
 
         if (testPassed)
         {
-            //Generate
             ContractTraspiler.Generate();
             //UnrealTraspiler.Generate(clientProjectName);
             //UnrealUtils.RegenerateVSCodes(clientPath, unrealEditorPath, clientProjectName);
@@ -32,7 +31,14 @@ class Program
         else
         {
             Console.WriteLine();
-            Console.WriteLine("As the application did not pass the tests, the contract files and files for Unreal were not generated..");
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("❌ TESTS FAILED: The application did not pass the tests.");
+            Console.WriteLine("❌ SERVER STARTUP ABORTED: Fix the failing tests before running the server.");
+            Console.ResetColor();
+            Console.WriteLine();
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
+            Environment.Exit(1);
         }
 #else
         Console.WriteLine("Running in release mode. Tests and transpilers are skipped.");
@@ -63,9 +69,9 @@ class Program
         {
             Version = VersionReader.ToUInt(currentVersion),
             EnableWAF = false,
-            EnableIntegrityCheck = true, 
+            EnableIntegrityCheck = true,
             MaxConnections = 15000,
-            ReceiveBufferSize = 512 * 1024, 
+            ReceiveBufferSize = 512 * 1024,
             SendBufferSize = 512 * 1024,
         });
 
