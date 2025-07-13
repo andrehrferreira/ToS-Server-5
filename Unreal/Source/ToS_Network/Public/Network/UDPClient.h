@@ -33,7 +33,7 @@
 #include "HAL/RunnableThread.h"
 #include "HAL/ThreadSafeBool.h"
 
-class UByteBuffer;
+class UFlatBuffer;
 class UDPClient;
 
 UENUM(BlueprintType)
@@ -80,7 +80,7 @@ public:
     UDPClient();
     ~UDPClient();
 
-    std::function<void(UByteBuffer*)> OnDataReceive;
+    std::function<void(UFlatBuffer*)> OnDataReceive;
     std::function<void(int32)> OnConnect;
     std::function<void()> OnConnectDenied;
     std::function<void()> OnConnectionError;

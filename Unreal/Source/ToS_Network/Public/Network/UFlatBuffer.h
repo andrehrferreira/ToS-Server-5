@@ -197,7 +197,13 @@ public:
 
 	// Direct memory access methods
 	void CopyFromMemory(const uint8* SourceData, int32 Length);
-	void CopyToMemory(uint8* DestData, int32 Length) const;
+        void CopyToMemory(uint8* DestData, int32 Length) const;
+
+        // Additional helpers to match C# implementation
+        FORCEINLINE int32 SavePosition() const { return Position; }
+        FORCEINLINE void RestorePosition(int32 NewPos) { SetPosition(NewPos); }
+        FORCEINLINE int32 GetLengthBits() const { return (Position * 8) + WriteBitIndex; }
+        void WriteBytes(const uint8* Source, int32 Length);
 
 	// Accessors
 	FORCEINLINE uint8* GetData() { return Data; }

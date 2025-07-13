@@ -3,8 +3,7 @@
 #include "SocketSubsystem.h"
 #include "IPAddress.h"
 #include "Common/UdpSocketBuilder.h"
-#include "Network/UByteBufferPool.h"
-#include "Network/UByteBuffer.h"
+#include "Network/UFlatBuffer.h"
 #include "IntegrityTable.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
@@ -122,7 +121,7 @@ void UDPClient::SendPong(int64 PingTime)
 {
     if (Socket && RemoteEndpoint.IsValid())
     {
-        UByteBuffer* Buffer = UByteBuffer::CreateEmptyByteBuffer(9);
+        UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(9);
         Buffer->WriteByte(static_cast<uint8>(EPacketType::Pong));
         Buffer->WriteInt64(PingTime);
         int32 BytesSent = 0;
@@ -134,7 +133,7 @@ void UDPClient::SendAck(uint16 Sequence)
 {
     if (Socket && RemoteEndpoint.IsValid())
     {
-        UByteBuffer* Buffer = UByteBuffer::CreateEmptyByteBuffer(3);
+        UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(3);
         Buffer->WriteByte(static_cast<uint8>(EPacketType::Ack));
         Buffer->WriteUInt16(Sequence);
         int32 BytesSent = 0;
@@ -146,7 +145,7 @@ void UDPClient::SendIntegrity(uint16 Code)
 {
     if (Socket && RemoteEndpoint.IsValid())
     {
-        UByteBuffer* Buffer = UByteBuffer::CreateEmptyByteBuffer(3);
+        UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(3);
         Buffer->WriteByte(static_cast<uint8>(EPacketType::CheckIntegrity));
         Buffer->WriteUInt16(Code);
         int32 BytesSent = 0;
@@ -182,15 +181,11 @@ void UDPClient::PollIncomingPackets()
         {
             if (BytesRead > 0)
             {
-                UByteBuffer* Buffer = UByteBufferPool::Acquire();
+                UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(BytesRead);
+                Buffer->CopyFromMemory(ReceivedData.GetData(), BytesRead);
 
-                if (Buffer) {
-                    Buffer->Reset();
-                    Buffer->SetDataFromRaw(ReceivedData.GetData(), BytesRead);
-
-                    if (OnDataReceive) 
-                        OnDataReceive(Buffer);                    
-                }
+                if (OnDataReceive)
+                    OnDataReceive(Buffer);
 
                 EPacketType PacketType = static_cast<EPacketType>(Buffer->ReadByte());
 
