@@ -24,6 +24,7 @@
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 public unsafe struct FlatBuffer : IDisposable
 {
@@ -31,6 +32,10 @@ public unsafe struct FlatBuffer : IDisposable
     private int _capacity;
     private int _offset;
     private bool _disposed;
+    private byte _writeBits;
+    private int _writeBitIndex;
+    private byte _readBits;
+    private int _readBitIndex;
 
     public int Position => _offset;
     public int Capacity => _capacity;
@@ -42,12 +47,23 @@ public unsafe struct FlatBuffer : IDisposable
         _capacity = capacity;
         _offset = 0;
         _disposed = false;
+        _writeBits = 0;
+        _writeBitIndex = 0;
+        _readBits = 0;
+        _readBitIndex = 0;
         _ptr = (byte*)Marshal.AllocHGlobal(capacity);
     }
 
     public void Free() => Dispose();
 
-    public void Reset() => _offset = 0;
+    public void Reset()
+    {
+        _offset = 0;
+        _writeBits = 0;
+        _writeBitIndex = 0;
+        _readBits = 0;
+        _readBitIndex = 0;
+    }
 
     public void Dispose()
     {
@@ -390,5 +406,106 @@ public unsafe struct FlatBuffer : IDisposable
             hash = (hash << 5) + hash + Data[i];
 
         return hash.ToString("X8");
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteBit(bool value)
+    {
+        if (_writeBitIndex == 0)
+        {
+            if (_offset >= _capacity)
+                return;
+            _ptr[_offset] = 0;
+        }
+
+        if (value)
+            _ptr[_offset] |= (byte)(1 << _writeBitIndex);
+
+        _writeBitIndex++;
+        if (_writeBitIndex == 8)
+        {
+            _writeBitIndex = 0;
+            _offset++;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool ReadBit()
+    {
+        if (_readBitIndex == 0)
+            _readBits = Read<byte>();
+
+        bool result = (_readBits & (1 << _readBitIndex)) != 0;
+        _readBitIndex++;
+        if (_readBitIndex == 8)
+            _readBitIndex = 0;
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AlignBits()
+    {
+        if (_writeBitIndex > 0)
+        {
+            _writeBitIndex = 0;
+            _offset++;
+        }
+        if (_readBitIndex > 0)
+            _readBitIndex = 0;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T Peek<T>() where T : unmanaged
+    {
+        int size = sizeof(T);
+        if (_offset + size > _capacity)
+            throw new IndexOutOfRangeException($"Peek exceeds buffer size ({_capacity}) at {_offset} with size {size}");
+        return *(T*)(_ptr + _offset);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteAsciiString(string value)
+    {
+        var bytes = Encoding.ASCII.GetBytes(value);
+        Write(bytes.Length);
+        if (_offset + bytes.Length > _capacity)
+            return;
+        fixed (byte* ptr = bytes)
+            Buffer.MemoryCopy(ptr, _ptr + _offset, _capacity - _offset, bytes.Length);
+        _offset += bytes.Length;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public string ReadAsciiString()
+    {
+        int length = ReadInt();
+        if (_offset + length > _capacity)
+            throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {length}");
+        string result = Encoding.ASCII.GetString(new ReadOnlySpan<byte>(_ptr + _offset, length));
+        _offset += length;
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteUtf8String(string value)
+    {
+        var bytes = Encoding.UTF8.GetBytes(value);
+        Write(bytes.Length);
+        if (_offset + bytes.Length > _capacity)
+            return;
+        fixed (byte* ptr = bytes)
+            Buffer.MemoryCopy(ptr, _ptr + _offset, _capacity - _offset, bytes.Length);
+        _offset += bytes.Length;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public string ReadUtf8String()
+    {
+        int length = ReadInt();
+        if (_offset + length > _capacity)
+            throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {length}");
+        string result = Encoding.UTF8.GetString(new ReadOnlySpan<byte>(_ptr + _offset, length));
+        _offset += length;
+        return result;
     }
 }

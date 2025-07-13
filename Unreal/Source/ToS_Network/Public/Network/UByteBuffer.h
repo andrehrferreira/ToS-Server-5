@@ -34,7 +34,7 @@ class TOS_NETWORK_API UByteBuffer : public UObject
 	
 public:
 	UFUNCTION(BlueprintPure, Category = "ByteBuffer")
-	static UByteBuffer* CreateEmptyByteBuffer(int32 Capacity = 3600);
+        static UByteBuffer* CreateEmptyByteBuffer(int32 Capacity = 1500);
 
 	UFUNCTION(BlueprintPure, Category = "ByteBuffer")
 	static UByteBuffer* CreateByteBuffer(const TArray<uint8>& Data);

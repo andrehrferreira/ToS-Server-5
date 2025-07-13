@@ -52,7 +52,7 @@ public class UDPServerOptions
     public int ReceiveBufferSize { get; set; } = 512 * 1024;
     public int SendBufferSize { get; set; } = 512 * 1024;
     public int SendThreadCount { get; set; } = 1;
-    public int MTU = 3600;
+    public int MTU = 1500;
 }
 
 public sealed class UDPServer
@@ -113,7 +113,7 @@ public sealed class UDPServer
     {
         get
         {
-            return _options?.MTU ?? 1472;
+            return _options?.MTU ?? 1500;
         }
     }
 
