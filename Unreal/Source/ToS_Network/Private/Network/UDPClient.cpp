@@ -4,13 +4,15 @@
 #include "IPAddress.h"
 #include "Common/UdpSocketBuilder.h"
 #include "Network/UFlatBuffer.h"
-#include "IntegrityTable.h"
+#include "Network/IntegrityTable.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "HAL/Runnable.h"
 #include "HAL/RunnableThread.h"
 #include "HAL/ThreadSafeBool.h"
 #include "Async/Async.h"
+
+#include "Packets/PingPacket.h"
 
 UDPClient::UDPClient() {}
 UDPClient::~UDPClient() { Disconnect(); }
@@ -117,18 +119,6 @@ void UDPClient::OnRetryTimerTick()
     }
 }
 
-void UDPClient::SendPong(int64 PingTime)
-{
-    if (Socket && RemoteEndpoint.IsValid())
-    {
-        UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(9);
-        Buffer->WriteByte(static_cast<uint8>(EPacketType::Pong));
-        Buffer->WriteInt64(PingTime);
-        int32 BytesSent = 0;
-        Socket->SendTo(Buffer->GetRawBuffer(), Buffer->GetLength(), BytesSent, *RemoteEndpoint);
-    }
-}
-
 void UDPClient::SendAck(uint16 Sequence)
 {
     if (Socket && RemoteEndpoint.IsValid())
@@ -136,18 +126,6 @@ void UDPClient::SendAck(uint16 Sequence)
         UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(3);
         Buffer->WriteByte(static_cast<uint8>(EPacketType::Ack));
         Buffer->WriteUInt16(Sequence);
-        int32 BytesSent = 0;
-        Socket->SendTo(Buffer->GetRawBuffer(), Buffer->GetLength(), BytesSent, *RemoteEndpoint);
-    }
-}
-
-void UDPClient::SendIntegrity(uint16 Code)
-{
-    if (Socket && RemoteEndpoint.IsValid())
-    {
-        UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(3);
-        Buffer->WriteByte(static_cast<uint8>(EPacketType::CheckIntegrity));
-        Buffer->WriteUInt16(Code);
         int32 BytesSent = 0;
         Socket->SendTo(Buffer->GetRawBuffer(), Buffer->GetLength(), BytesSent, *RemoteEndpoint);
     }
@@ -193,9 +171,17 @@ void UDPClient::PollIncomingPackets()
                 {
                     case EPacketType::Ping:
                     {
-                        int64 PingTime = Buffer->ReadInt64();
+                        uint16 PingTime = Buffer->ReadUInt16();
                         LastPingTime = FPlatformTime::Seconds();
-                        SendPong(PingTime);
+
+                        UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(3);
+                        PingPacket pintPacket = PingPacket();
+                        pintPacket.SentTimestamp = PingTime;
+                        pintPacket.Serialize(Buffer);
+                        
+                        int32 BytesSent = 0;
+                        Socket->SendTo(Buffer->GetRawBuffer(), Buffer->GetLength(), BytesSent, *RemoteEndpoint);
+
                         break;
                     }
                     case EPacketType::Reliable:
@@ -250,7 +236,12 @@ void UDPClient::PollIncomingPackets()
                     {
                         uint16 Index = Buffer->ReadUInt16();
                         uint16 IntegityKey = IntegrityTableData::GetKey(Index);
-                        SendIntegrity(IntegityKey);
+
+                        UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(3);
+                        Buffer->WriteByte(static_cast<uint8>(EPacketType::CheckIntegrity));
+                        Buffer->WriteUInt16(Code);
+                        int32 BytesSent = 0;
+                        Socket->SendTo(Buffer->GetRawBuffer(), Buffer->GetLength(), BytesSent, *RemoteEndpoint);
 					}
                     break;
                     default:

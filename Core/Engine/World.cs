@@ -34,8 +34,6 @@ public class World : IDisposable
         if (aoiConfig != null)
             _aoiConfig = aoiConfig;
 
-        Console.WriteLine($"Create World supported {maxEntities} entities");
-
         for (int x = 0; x < _aoiConfig.GridWidth; x++)
         for (int y = 0; y < _aoiConfig.GridHeight; y++)
         for (int z = 0; z < _aoiConfig.GridDepth; z++)
@@ -58,6 +56,7 @@ public class World : IDisposable
             Tick(_tickDelta);
             sw.Stop();
             var sleep = (int)(_tickDelta * 1000 - sw.Elapsed.TotalMilliseconds);
+
             if (sleep > 0)
                 Thread.Sleep(sleep);
         }
@@ -95,7 +94,9 @@ public class World : IDisposable
 
     public void RemoveEntity(uint id)
     {
-        if (!_entityPool.IsActive(id)) return;
+        if (!_entityPool.IsActive(id)) 
+            return;
+
         ref Entity entity = ref _entityPool.Get(id);
         var cell = entity.CurrentCell;
 

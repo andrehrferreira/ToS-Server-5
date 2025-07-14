@@ -1,359 +1,198 @@
-﻿/*
- * UnrealTraspiler
- * 
- * Author: Andre Ferreira
- * 
- * Copyright (c) Uzmi Games. Licensed under the MIT License.
- *    
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+﻿using System.Reflection;
 
-using System.Reflection;
-
-public class UnrealTraspiler : AbstractTranspiler
+public class UnrealTranspiler : AbstractTranspiler
 {
-    private static List<string> clientPackets = new List<string>();
-    private static List<string> serverPackets = new List<string>();
-    private static List<string> multiplexPackets = new List<string>();
-
     public static void Generate()
     {
         var contracts = GetContracts();
-
         string projectDirectory = GetProjectDirectory();
-        string unrealPath = Path.Combine(projectDirectory, "Unreal", "Source", "ToS_Network";
+        string publicDir = Path.Combine(projectDirectory, "Unreal", "Source", "ToS_Network", "Public");
+
+        if (!Directory.Exists(publicDir))
+            Directory.CreateDirectory(publicDir);
+
+        List<string> serverPackets = new List<string>();
+        List<string> clientPackets = new List<string>();
 
         foreach (var contract in contracts)
         {
-            var fields = contract.GetFields(BindingFlags.Public | BindingFlags.Instance);
             var attribute = contract.GetCustomAttribute<ContractAttribute>();
+            var fields = contract.GetFields(BindingFlags.Public | BindingFlags.Instance);
+            var structName = contract.Name;
+            var rawName = structName.Replace("Packet", "");
 
-            string headerPath = Path.Combine(unrealPath, "Public", "Packets");
-            string cppPath = Path.Combine(unrealPath, "Private", "Packets");
+            if (attribute.LayerType == PacketLayerType.Server)
+                serverPackets.Add(rawName);
+            else
+                clientPackets.Add(rawName);
 
-            if (!Directory.Exists(headerPath))
-                Directory.CreateDirectory(headerPath);
-
-            if (!Directory.Exists(cppPath))
-                Directory.CreateDirectory(cppPath);
-
-            string headerFilePath = Path.Combine(unrealPath, "Public", "Packets", $"{contract.Name}Packet.h");
-            string cppFilePath = Path.Combine(unrealPath, "Private", "Packets", $"{contract.Name}Packet.cpp");
-
-            using (var writer = new StreamWriter(headerFilePath))
-            {
-                GenerateHeaderFile(writer, contract, fields);
-            }
-
-            using (var writer = new StreamWriter(cppFilePath))
-            {
-                GenerateCppFile(writer, contract, fields);
-            }
-
-            switch (attribute.LayerType)
-            {
-                case PacketLayerType.Client: clientPackets.Add(contract.Name); break;
-                case PacketLayerType.Server: serverPackets.Add(contract.Name); break;
-            }
+            GenerateHeader(publicDir, structName, rawName, fields, attribute);
         }
 
-        clientPackets.AddRange(multiplexPackets);
-        serverPackets.AddRange(multiplexPackets);
-
-        GenerateEnumHeader("ClientPacket", clientPackets, unrealPath);
-        GenerateEnumHeader("ServerPacket", serverPackets, unrealPath);
+        GenerateEnum(publicDir, "ClientPackets", clientPackets);
+        GenerateEnum(publicDir, "ServerPackets", serverPackets);
     }
 
-    private static void GenerateHeaderFile(StreamWriter writer, Type contract, FieldInfo[] fields)
+    private static void GenerateEnum(string directory, string enumName, List<string> values)
     {
-        if (fields.Length > 0)
+        string filePath = Path.Combine(directory, "Network", $"{enumName}.h");
+        using var writer = new StreamWriter(filePath);
+
+        writer.WriteLine("#pragma once");
+        writer.WriteLine();
+        writer.WriteLine("#include \"CoreMinimal.h\"");
+        writer.WriteLine();
+        writer.WriteLine($"enum class {enumName} : uint16");
+        writer.WriteLine("{");
+        int index = 0;
+
+        foreach (var val in values)
         {
-            var contractName = contract.Name.Replace("DTO", "");
-
-            writer.WriteLine("// This file was generated automatically, please do not change it.");
-            writer.WriteLine();
-            writer.WriteLine("#pragma once");
-            writer.WriteLine();
-            writer.WriteLine("#include \"CoreMinimal.h\"");
-            writer.WriteLine("#include \"Network/UFlatBuffer.h\"");
-            writer.WriteLine($"#include \"{contractName}Packet.generated.h\"");
-            writer.WriteLine();
-            writer.WriteLine("USTRUCT(BlueprintType)");
-            writer.WriteLine($"struct F{contractName}Recive");
-            writer.WriteLine("{");
-            writer.WriteLine("    GENERATED_USTRUCT_BODY();");
-            writer.WriteLine();
-
-            foreach (var field in fields)
-            {
-                var attributeField = field.GetCustomAttribute<ContractFieldAttribute>();
-                if (attributeField != null)
-                {
-                    var fieldType = ConvertToUnrealType(attributeField.Type);
-                    writer.WriteLine($"    UPROPERTY(EditAnywhere, BlueprintReadWrite)");
-                    writer.WriteLine($"    {fieldType} {field.Name};");
-                    writer.WriteLine();
-                }
-            }
-
-            writer.WriteLine("};");
-
-            writer.WriteLine();
-            writer.WriteLine("USTRUCT(BlueprintType)");
-            writer.WriteLine($"struct F{contractName}Send");
-            writer.WriteLine("{");
-            writer.WriteLine("    GENERATED_USTRUCT_BODY();");
-            writer.WriteLine();
-
-            foreach (var field in fields)
-            {
-                var attributeField = field.GetCustomAttribute<ContractFieldAttribute>();
-                if (attributeField != null)
-                {
-                    var fieldType = ConvertToUnrealType(attributeField.Type);
-                    writer.WriteLine($"    UPROPERTY(EditAnywhere, BlueprintReadWrite)");
-                    writer.WriteLine($"    {fieldType} {field.Name};");
-                    writer.WriteLine();
-                }
-            }
-            writer.WriteLine("};");
-
-            writer.WriteLine();
-            writer.WriteLine("// Function class to serialize and deserialize struct F" + contractName);
-            writer.WriteLine("UCLASS()");
-            writer.WriteLine($"class U{contractName}Library : public UBlueprintFunctionLibrary");
-            writer.WriteLine("{");
-            writer.WriteLine("    GENERATED_BODY()");
-            writer.WriteLine();
-            writer.WriteLine("public:");
-            writer.WriteLine();
-            writer.WriteLine($"    UFUNCTION(BlueprintCallable, Category = \"{contractName}Serialization\")");
-            writer.WriteLine($"    static F{contractName}Recive {contractName}Deserialize(UByteBuffer* Buffer);");
-            writer.WriteLine();
-            writer.WriteLine($"    UFUNCTION(BlueprintCallable, Category = \"{contractName}Serialization\")");
-            writer.WriteLine($"    static UByteBuffer* {contractName}Serialize(const F{contractName}Send& Data);");
-
-            /*var attribute = contract.GetCustomAttribute<ContractAttribute>();
-            if (attribute.Type == PacketType.Client || attribute.Type == PacketType.Multiplex)
-            {
-                writer.WriteLine();
-                writer.WriteLine($"    UFUNCTION(BlueprintCallable, Category = \"{contractName}Communication\")");
-                writer.WriteLine($"    void Send{contractName}(const F{contractName}& Data);");
-            }*/
-
-            writer.WriteLine("};");
+            writer.WriteLine($"    {val} = {index},");
+            index++;
         }
+
+        writer.WriteLine("};");
     }
 
-    private static void GenerateCppFile(StreamWriter writer, Type contract, FieldInfo[] fields)
+    private static void GenerateHeader(string directory, string structName, string rawName, FieldInfo[] fields, ContractAttribute attribute)
     {
-        var contractName = contract.Name.Replace("DTO", "");
+        string filePath = Path.Combine(directory, "Packets", $"{structName}.h");
+        using var writer = new StreamWriter(filePath);
 
-        if (fields.Length > 0)
+        writer.WriteLine("#pragma once");
+        writer.WriteLine();
+        writer.WriteLine("#include \"CoreMinimal.h\"");
+        writer.WriteLine("#include \"Network/UDPClient.h\"");
+        writer.WriteLine("#include \"Network/UFlatBuffer.h\"");
+        writer.WriteLine();
+        writer.WriteLine($"struct {structName}");
+        writer.WriteLine("{");
+
+        foreach (var field in fields)
         {
-            writer.WriteLine("// This file was generated automatically, please do not change it.");
-            writer.WriteLine();
-            writer.WriteLine($"#include \"Packets/{contractName}Packet.h\"");
-            writer.WriteLine("#include \"Network/UFlatBuffer.h\"");
-            writer.WriteLine();
-            writer.WriteLine($"F{contractName} U{contractName}Library::{contractName}Deserialize(UFlatBuffer* Buffer)");
-            writer.WriteLine("{");
-            writer.WriteLine($"    F{contractName}Recive Data = F{contractName}Recive();");
-            writer.WriteLine("    if (!Buffer) return Data;");
-            writer.WriteLine();
-
-            foreach (var field in fields)
-            {
-                var attributeField = field.GetCustomAttribute<ContractFieldAttribute>();
-
-                if (attributeField != null)
-                {
-                    var fieldType = attributeField.Type;
-                    var fieldName = field.Name;
-
-                    switch (fieldType)
-                    {
-                        case "int":
-                        case "int32":
-                        case "integer":
-                            writer.WriteLine($"    Data.{fieldName} = Buffer->GetInt32();");
-                            break;
-                        case "float":
-                            writer.WriteLine($"    Data.{fieldName} = Buffer->GetFloat();");
-                            break;
-                        case "string":
-                        case "str":
-                            writer.WriteLine($"    Data.{fieldName} = Buffer->GetString();");
-                            break;
-                        case "bool":
-                            writer.WriteLine($"    Data.{fieldName} = Buffer->GetBool();");
-                            break;
-                        case "byte":
-                            writer.WriteLine($"    Data.{fieldName} = Buffer->GetByte();");
-                            break;
-                        case "id":
-                            writer.WriteLine($"    Data.{fieldName} = Buffer->GetId();");
-                            break;
-                        case "vector3":
-                            writer.WriteLine($"    Data.{fieldName} = Buffer->GetVector();");
-                            break;
-                        case "rotator":
-                            writer.WriteLine($"    Data.{fieldName} = Buffer->GetRotator();");
-                            break;
-                        default:
-                            writer.WriteLine($"    // Unsupported type: {fieldType}");
-                            break;
-                    }
-                }
-            }
-
-            writer.WriteLine("    return Data;");
-            writer.WriteLine("}");
-            writer.WriteLine();
-            writer.WriteLine($"UByteBuffer* U{contractName}Library::{contractName}Serialize(const F{contractName}Send& Data)");
-            writer.WriteLine("{");
-            writer.WriteLine("    UByteBuffer* Buffer = UByteBuffer::CreateEmptyByteBuffer();");
-            writer.WriteLine("    if (!Buffer) return nullptr;");
-            writer.WriteLine();
-
-            foreach (var field in fields)
-            {
-                var attributeField = field.GetCustomAttribute<ContractFieldAttribute>();
-
-                if (attributeField != null)
-                {
-                    var fieldType = attributeField.Type;
-                    var fieldName = field.Name;
-
-                    switch (fieldType)
-                    {
-                        case "int":
-                        case "int32":
-                        case "integer":
-                            writer.WriteLine($"    Buffer->PutInt32(Data.{fieldName});");
-                            break;
-                        case "float":
-                            writer.WriteLine($"    Buffer->PutFloat(Data.{fieldName});");
-                            break;
-                        case "string":
-                        case "str":
-                            writer.WriteLine($"    Buffer->PutString(Data.{fieldName});");
-                            break;
-                        case "bool":
-                            writer.WriteLine($"    Buffer->PutBool(Data.{fieldName});");
-                            break;
-                        case "byte":
-                            writer.WriteLine($"    Buffer->PutByte(Data.{fieldName});");
-                            break;
-                        case "id":
-                            writer.WriteLine($"    Buffer->PutId(Data.{fieldName});");
-                            break;
-                        case "vector3":
-                            writer.WriteLine($"    Buffer->PutVector(Data.{fieldName});");
-                            break;
-                        case "rotator":
-                            writer.WriteLine($"    Buffer->PutRotator(Data.{fieldName});");
-                            break;
-                        default:
-                            writer.WriteLine($"    // Unsupported type: {fieldType}");
-                            break;
-                    }
-                }
-            }
-
-            writer.WriteLine("    return Buffer;");
-            writer.WriteLine("}");
-
-            /*var attribute = contract.GetCustomAttribute<ContractAttribute>();
-            if (attribute.Type == PacketType.Client || attribute.Type == PacketType.Multiplex)
-            {
-                writer.WriteLine();
-                writer.WriteLine($"void U{contractName}Library::Send{contractName}(const F{contractName}& Data)");
-                writer.WriteLine("{");
-                writer.WriteLine("    if (!UServerSubsystem::GetServerSubsystem(nullptr) || !UServerSubsystem::GetServerSubsystem(nullptr)->UDPInstance) return;");
-                writer.WriteLine();
-                writer.WriteLine($"    UByteBuffer* Buffer = U{contractName}Library::{contractName}Serialize(Data);");
-                writer.WriteLine("    if (!Buffer) return;");
-                writer.WriteLine();
-                writer.WriteLine($"    UServerSubsystem::GetServerSubsystem(nullptr)->UDPInstance->SendMessage(static_cast<uint8>(PacketType::{contractName}), Buffer);");
-                writer.WriteLine("}");
-            }*/
+            var attr = field.GetCustomAttribute<ContractFieldAttribute>();
+            string type = MapType(attr.Type);
+            writer.WriteLine($"    {type} {field.Name};");
         }
-    }
 
-    private static void GenerateEnumHeader(string enumName, List<string> values, string unrealPath)
-    {
-        string directoryPath = Path.Combine(unrealPath, "Public", "Enums");
-        string filePath = Path.Combine(directoryPath, $"{enumName}.h");
+        writer.WriteLine();
+        int totalBytes = attribute.PacketType != PacketType.None ? 1 : 3;
 
-        if (!Directory.Exists(directoryPath))
-            Directory.CreateDirectory(directoryPath);
-
-        if (values.Count > 0)
+        foreach (var field in fields)
         {
-            using (var writer = new StreamWriter(filePath))
-            {
-                writer.WriteLine("#pragma once");
-                writer.WriteLine();
-                writer.WriteLine($"UENUM(BlueprintType)");
-                writer.WriteLine($"enum class E{enumName} : uint8");
-                writer.WriteLine("{");
-
-                for (int i = 0; i < values.Count; i++)
-                {
-                    string value = values[i];
-
-                    if (i == values.Count - 1)
-                        writer.WriteLine($"    {value} UMETA(DisplayName = \"{value}\")");
-                    else
-                        writer.WriteLine($"    {value} UMETA(DisplayName = \"{value}\"),");
-                }
-
-                writer.WriteLine("};");
-            }
+            var attr = field.GetCustomAttribute<ContractFieldAttribute>();
+            totalBytes += TypeSize(attr.Type);
+            if (totalBytes == 3600)
+                break;
         }
+
+        writer.WriteLine($"    int32 GetSize() const {{ return {totalBytes}; }}");
+        writer.WriteLine();
+        writer.WriteLine("    void Serialize(UFlatBuffer* Buffer) const;");
+        writer.WriteLine("    void Deserialize(UFlatBuffer* Buffer);");
+        writer.WriteLine("};");
+
+        writer.WriteLine();
+        writer.WriteLine($"inline void {structName}::Serialize(UFlatBuffer* Buffer) const");
+        writer.WriteLine("{");
+
+        if (attribute.PacketType != PacketType.None)
+            writer.WriteLine($"    Buffer->WriteByte(static_cast<uint8>(EPacketType::{attribute.PacketType}));");
         else
         {
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
+            if (attribute.Flags.HasFlag(ContractPacketFlags.Reliable))
+                writer.WriteLine("    Buffer->WriteByte(static_cast<uint8>(EPacketType::Reliable));");
+            else
+                writer.WriteLine("    Buffer->WriteByte(static_cast<uint8>(EPacketType::Unreliable));");
+            writer.WriteLine($"    Buffer->WriteUInt16(static_cast<uint16>(ServerPacket::{rawName}));");
         }
+
+        foreach (var field in fields)
+        {
+            var attr = field.GetCustomAttribute<ContractFieldAttribute>();
+            string name = field.Name;
+            writer.WriteLine(GetSerializeLine(attr.Type, name));
+        }
+
+        writer.WriteLine("}");
+        writer.WriteLine();
+        writer.WriteLine($"inline void {structName}::Deserialize(UFlatBuffer* Buffer)");
+        writer.WriteLine("{");
+
+        foreach (var field in fields)
+        {
+            var attr = field.GetCustomAttribute<ContractFieldAttribute>();
+            string name = field.Name;
+            writer.WriteLine(GetDeserializeLine(attr.Type, name));
+        }
+
+        writer.WriteLine("}");
     }
 
-    private static string ConvertToUnrealType(string fieldType)
+    private static string MapType(string type) => type switch
     {
-        return fieldType.ToLower() switch
-        {
-            "int32" => "int32",
-            "int" => "int32",
-            "integer" => "int32",
-            "float" => "float",
-            "str" => "FString",
-            "string" => "FString",
-            "id" => "FString",
-            "byte" => "uint8",
-            "boolean" => "bool",
-            "bool" => "bool",
-            "vector3" => "FVector",
-            "FVector" => "FVector",
-            "rotator" => "FRotator",
-            "FRotator" => "FRotator",
-            "buffer" => "TArray<uint8>&",
-            _ => "UnsupportedType"
-        };
-    }
+        "integer" or "int" or "int32" => "int32",
+        "uint" => "uint32",
+        "ushort" => "uint16",
+        "short" => "int16",
+        "byte" => "uint8",
+        "float" or "decimal" => "float",
+        "bool" or "boolean" => "bool",
+        "long" => "int64",
+        "ulong" => "uint64",
+        "FVector" => "FVector",
+        "FRotator" => "FRotator",
+        "id" or "str" or "string" => "FString",
+        _ => "int32",
+    };
+
+    private static int TypeSize(string type) => type switch
+    {
+        "integer" or "int" or "int32" or "uint" or "float" or "decimal" or "id" => 4,
+        "ushort" or "short" => 2,
+        "byte" or "bool" or "boolean" => 1,
+        "long" or "ulong" => 8,
+        "FVector" or "FRotator" => 12,
+        "str" or "string" => 3600,
+        _ => 0,
+    };
+
+    private static string GetSerializeLine(string type, string name) => type switch
+    {
+        "integer" or "int" or "int32" => $"    Buffer->WriteInt32({name});",
+        "uint" => $"    Buffer->WriteUInt32({name});",
+        "ushort" => $"    Buffer->WriteUInt16({name});",
+        "short" => $"    Buffer->WriteInt16({name});",
+        "byte" => $"    Buffer->WriteByte({name});",
+        "float" => $"    Buffer->WriteFloat({name});",
+        "long" => $"    Buffer->WriteInt64({name});",
+        "ulong" => $"    Buffer->WriteVarULong({name});",
+        "bool" or "boolean" => $"    Buffer->WriteBool({name});",
+        "decimal" => $"    Buffer->WriteFloat({name});",
+        "FVector" => $"    Buffer->Write<FVector>({name});",
+        "FRotator" => $"    Buffer->Write<FRotator>({name});",
+        "id" => $"    Buffer->WriteInt32(UBase36::Base36ToInt({name}));",
+        "str" or "string" => $"    Buffer->WriteString({name});",
+        _ => $"    // Unsupported type: {type}",
+    };
+
+    private static string GetDeserializeLine(string type, string name) => type switch
+    {
+        "integer" or "int" or "int32" => $"    {name} = Buffer->ReadInt32();",
+        "uint" => $"    {name} = Buffer->ReadUInt32();",
+        "ushort" => $"    {name} = Buffer->ReadUInt16();",
+        "short" => $"    {name} = Buffer->ReadInt16();",
+        "byte" => $"    {name} = Buffer->ReadByte();",
+        "float" => $"    {name} = Buffer->ReadFloat();",
+        "long" => $"    {name} = Buffer->ReadInt64();",
+        "ulong" => $"    {name} = Buffer->ReadVarULong();",
+        "bool" or "boolean" => $"    {name} = Buffer->ReadBool();",
+        "decimal" => $"    {name} = Buffer->ReadFloat();",
+        "FVector" => $"    {name} = Buffer->Read<FVector>();",
+        "FRotator" => $"    {name} = Buffer->Read<FRotator>();",
+        "id" => $"    {name} = UBase36::IntToBase36(Buffer->ReadInt32());",
+        "str" or "string" => $"    {name} = Buffer->ReadString();",
+        _ => $"    // Unsupported type: {type}",
+    };
 }

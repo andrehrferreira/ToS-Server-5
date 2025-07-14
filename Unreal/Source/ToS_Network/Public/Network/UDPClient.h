@@ -26,7 +26,6 @@
 #include "CoreMinimal.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
-#include "NetTypes.h"
 #include "TimerManager.h"
 #include <functional>
 #include "HAL/Runnable.h"
@@ -88,9 +87,7 @@ public:
 
     bool Connect(const FString& Host, int32 Port);
     void Disconnect();
-    void SendPong(int64 PingTime);
     void SendAck(uint16 Sequence);
-    void SendIntegrity(uint16 Code);
     void PollIncomingPackets();
     void SetConnectTimeout(float Seconds) { ConnectTimeout = Seconds; }
     void SetRetryInterval(float Seconds) { RetryInterval = Seconds; }
@@ -113,17 +110,14 @@ private:
     int32 RetryCount = 0;
     double LastPingTime = 0.0;
 
-    // Socket
     FSocket* Socket = nullptr;
     TSharedPtr<FInternetAddr> RemoteEndpoint;
 
-    // Timer
     FTimerHandle RetryTimerHandle;
     void StartRetryTimer();
     void StopRetryTimer();
     void OnRetryTimerTick();
 
-    // Thread de polling
     FPacketPollRunnable* PacketPollRunnable = nullptr;
     FRunnableThread* PacketPollThread = nullptr;
     void StartPacketPollThread();

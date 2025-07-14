@@ -23,7 +23,7 @@
 
 using System.Reflection;
 
-public class ContractTraspiler : AbstractTranspiler
+public class ContractTranspiler : AbstractTranspiler
 {
     public static void Generate()
     {
@@ -81,8 +81,8 @@ public class ContractTraspiler : AbstractTranspiler
             }
         }
 
-        GenerateEnum("ClientPacket", clientPackets, networkDirectoryPath, null, null);
-        GenerateEnum("ServerPacket", serverPackets, networkDirectoryPath, serverLowLevelPacket, serverPacketType);
+        GenerateEnum("ClientPackets", clientPackets, networkDirectoryPath, null, null);
+        GenerateEnum("ServerPackets", serverPackets, networkDirectoryPath, serverLowLevelPacket, serverPacketType);
     }
 
     private static void GenerateEnum(

@@ -1,5 +1,6 @@
 #include "Network/UFlatBuffer.h"
 #include "Utils/CRC32C.h"
+#include "Containers/StringConv.h"
 
 static uint32 EncodeZigZag32(int32 Value)
 {

@@ -24,9 +24,8 @@ class Program
 
         if (testPassed)
         {
-            ContractTraspiler.Generate();
-            //UnrealTraspiler.Generate(clientProjectName);
-            //UnrealUtils.RegenerateVSCodes(clientPath, unrealEditorPath, clientProjectName);
+            ContractTranspiler.Generate();
+            UnrealTranspiler.Generate();
         }
         else
         {

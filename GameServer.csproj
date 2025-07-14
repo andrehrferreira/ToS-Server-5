@@ -25,6 +25,7 @@
 	  <Folder Include="Core\Packets\" />
 	  <Folder Include="Tables\" />
 	  <Folder Include="Tests\Network\" />
+	  <Folder Include="Unreal\Source\ToS_Network\Public\Packets\" />
 	</ItemGroup>
 
 	<ItemGroup>

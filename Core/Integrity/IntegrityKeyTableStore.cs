@@ -45,7 +45,7 @@ public class IntegrityKeyTableStore
     {
         try
         {
-            string headerPath = Path.Combine(unrealFolder, "Source", "ToS_Network", "Public", "IntegrityTable.h");
+            string headerPath = Path.Combine(unrealFolder, "Source", "ToS_Network", "Public", "Network", "IntegrityTable.h");
             string headerDir = Path.GetDirectoryName(headerPath);
 
             if (!Directory.Exists(headerDir))

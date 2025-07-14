@@ -82,13 +82,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void WriteByte(uint8 Value);
 
-	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void WriteUInt16(uint16 Value);
 
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void WriteInt32(int32 Value);
 
-	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void WriteUInt32(uint32 Value);
 
     UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
@@ -131,13 +129,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	uint8 ReadByte();
 
-	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	uint16 ReadUInt16();
 
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	int32 ReadInt32();
 
-	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	uint32 ReadUInt32();
 
     UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
@@ -189,7 +185,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	FString ToHex() const;
 
-	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	uint32 GetHashFast() const;
 
 	void CopyFromMemory(const uint8* SourceData, int32 Length);
