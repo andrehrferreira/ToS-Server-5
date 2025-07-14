@@ -1,33 +1,33 @@
+// This file was generated automatically, please do not change it.
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Network/UDPClient.h"
 #include "Network/UFlatBuffer.h"
+#include "Network/ServerPackets.h"
+#include "BenchmarkPacket.generated.h"
 
-struct BenchmarkPacket
+USTRUCT(BlueprintType)
+struct FBenchmarkPacket
 {
-    uint32 Id;
+    GENERATED_USTRUCT_BODY();
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 Id;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FVector Positon;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FRotator Rotator;
+
 
     int32 GetSize() const { return 31; }
 
-    void Serialize(UFlatBuffer* Buffer) const;
-    void Deserialize(UFlatBuffer* Buffer);
+    void Deserialize(UFlatBuffer* Buffer)
+    {
+        Id = static_cast<int32>(Buffer->ReadUInt32());
+        Positon = Buffer->Read<FVector>();
+        Rotator = Buffer->Read<FRotator>();
+    }
 };
-
-inline void BenchmarkPacket::Serialize(UFlatBuffer* Buffer) const
-{
-    Buffer->WriteByte(static_cast<uint8>(EPacketType::Unreliable));
-    Buffer->WriteUInt16(static_cast<uint16>(ServerPacket::Benchmark));
-    Buffer->WriteUInt32(Id);
-    Buffer->Write<FVector>(Positon);
-    Buffer->Write<FRotator>(Rotator);
-}
-
-inline void BenchmarkPacket::Deserialize(UFlatBuffer* Buffer)
-{
-    Id = Buffer->ReadUInt32();
-    Positon = Buffer->Read<FVector>();
-    Rotator = Buffer->Read<FRotator>();
-}

@@ -12,7 +12,7 @@
 #include "HAL/ThreadSafeBool.h"
 #include "Async/Async.h"
 
-#include "Packets/PingPacket.h"
+#include "Packets/PongPacket.h"
 
 UDPClient::UDPClient() {}
 UDPClient::~UDPClient() { Disconnect(); }
@@ -155,6 +155,7 @@ void UDPClient::PollIncomingPackets()
         ReceivedData.SetNumUninitialized(PendingDataSize);
         int32 BytesRead = 0;
         TSharedRef<FInternetAddr> Sender = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr();
+
         if (Socket->RecvFrom(ReceivedData.GetData(), ReceivedData.Num(), BytesRead, *Sender))
         {
             if (BytesRead > 0)
@@ -164,7 +165,7 @@ void UDPClient::PollIncomingPackets()
 
                 if (OnDataReceive)
                     OnDataReceive(Buffer);
-
+                
                 EPacketType PacketType = static_cast<EPacketType>(Buffer->ReadByte());
 
                 switch(PacketType)
@@ -174,15 +175,20 @@ void UDPClient::PollIncomingPackets()
                         uint16 PingTime = Buffer->ReadUInt16();
                         LastPingTime = FPlatformTime::Seconds();
 
-                        UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(3);
-                        PingPacket pintPacket = PingPacket();
-                        pintPacket.SentTimestamp = PingTime;
-                        pintPacket.Serialize(Buffer);
+                        UFlatBuffer* PongBuffer = UFlatBuffer::CreateFlatBuffer(3);
+                        FPongPacket pongPacket = FPongPacket();
+                        pongPacket.SentTimestamp = PingTime;
+                        pongPacket.Serialize(PongBuffer);
                         
                         int32 BytesSent = 0;
-                        Socket->SendTo(Buffer->GetRawBuffer(), Buffer->GetLength(), BytesSent, *RemoteEndpoint);
+                        Socket->SendTo(PongBuffer->GetRawBuffer(), PongBuffer->GetLength(), BytesSent, *RemoteEndpoint);
 
                         break;
+                    }
+                    case EPacketType::Unreliable:
+                    {
+                        if (OnDataReceive)
+                            OnDataReceive(Buffer);
                     }
                     case EPacketType::Reliable:
                     {
@@ -243,9 +249,6 @@ void UDPClient::PollIncomingPackets()
                         int32 BytesSent = 0;
                         Socket->SendTo(ResponseBuffer->GetRawBuffer(), ResponseBuffer->GetLength(), BytesSent, *RemoteEndpoint);
                     }
-                    break;
-                    default:
-                        
                     break;
                 }
             }

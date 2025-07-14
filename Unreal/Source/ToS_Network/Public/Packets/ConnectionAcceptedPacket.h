@@ -1,26 +1,25 @@
+// This file was generated automatically, please do not change it.
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Network/UDPClient.h"
 #include "Network/UFlatBuffer.h"
+#include "Network/ServerPackets.h"
+#include "ConnectionAcceptedPacket.generated.h"
 
-struct ConnectionAcceptedPacket
+USTRUCT(BlueprintType)
+struct FConnectionAcceptedPacket
 {
-    uint32 Id;
+    GENERATED_USTRUCT_BODY();
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 Id;
+
 
     int32 GetSize() const { return 5; }
 
-    void Serialize(UFlatBuffer* Buffer) const;
-    void Deserialize(UFlatBuffer* Buffer);
+    void Deserialize(UFlatBuffer* Buffer)
+    {
+        Id = static_cast<int32>(Buffer->ReadUInt32());
+    }
 };
-
-inline void ConnectionAcceptedPacket::Serialize(UFlatBuffer* Buffer) const
-{
-    Buffer->WriteByte(static_cast<uint8>(EPacketType::ConnectionAccepted));
-    Buffer->WriteUInt32(Id);
-}
-
-inline void ConnectionAcceptedPacket::Deserialize(UFlatBuffer* Buffer)
-{
-    Id = Buffer->ReadUInt32();
-}

@@ -128,7 +128,6 @@ void UFlatBuffer::CopyToMemory(uint8* DestData, int32 Length) const
     FMemory::Memcpy(DestData, Data, CopyLength);
 }
 
-// Specialized Write methods for Blueprint compatibility
 void UFlatBuffer::WriteByte(uint8 Value)
 {
     Write<uint8>(Value);
@@ -137,6 +136,11 @@ void UFlatBuffer::WriteByte(uint8 Value)
 void UFlatBuffer::WriteUInt16(uint16 Value)
 {
     Write<uint16>(Value);
+}
+
+void UFlatBuffer::WriteInt16(int16 Value)
+{
+    Write<int16>(Value);
 }
 
 void UFlatBuffer::WriteInt32(int32 Value)
@@ -230,8 +234,7 @@ void UFlatBuffer::WriteBit(bool Value)
 
 void UFlatBuffer::WriteAsciiString(const FString& Value)
 {
-    FTCHARToANSI Converter(*Value);
-    int32 StringLength = Converter.Length();
+    int32 StringLength = Value.Len();
     Write<int32>(StringLength);
     if (StringLength > 0)
     {
@@ -240,7 +243,11 @@ void UFlatBuffer::WriteAsciiString(const FString& Value)
             UE_LOG(LogTemp, Warning, TEXT("UFlatBuffer::WriteAsciiString - Buffer overflow. String length: %d"), StringLength);
             return;
         }
-        FMemory::Memcpy(Data + Position, (ANSICHAR*)Converter.Get(), StringLength);
+        for (int32 i = 0; i < StringLength; ++i)
+        {
+            TCHAR Char = Value[i];
+            Data[Position + i] = (Char >= 0 && Char <= 127) ? static_cast<uint8>(Char) : '?';
+        }
         Position += StringLength;
     }
 }
@@ -299,6 +306,11 @@ uint8 UFlatBuffer::ReadByte()
 uint16 UFlatBuffer::ReadUInt16()
 {
     return Read<uint16>();
+}
+
+int16 UFlatBuffer::ReadInt16()
+{
+    return Read<int16>();
 }
 
 int32 UFlatBuffer::ReadInt32()
@@ -458,7 +470,7 @@ FString UFlatBuffer::ReadString()
     TArray<UTF8CHAR> TempBuffer;
     TempBuffer.SetNumUninitialized(StringLength + 1);
     FMemory::Memcpy(TempBuffer.GetData(), Data + Position, StringLength);
-    TempBuffer[StringLength] = 0;
+    TempBuffer[StringLength] = static_cast<UTF8CHAR>(0);
     Position += StringLength;
 
     return FString(UTF8_TO_TCHAR(TempBuffer.GetData()));

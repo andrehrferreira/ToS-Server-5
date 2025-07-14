@@ -6,9 +6,6 @@ public partial struct DeltaSyncPacket
 
     [ContractField("byte")]
     public byte EntitiesMask;
-
-    [ContractField("IntPtr")]
-    public IntPtr EntitiesData;
 }
 
 [Contract("SyncStateInt", PacketLayerType.Server, ContractPacketFlags.Reliable_ToEntity)]

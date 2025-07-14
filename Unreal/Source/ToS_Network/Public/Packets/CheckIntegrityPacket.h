@@ -1,29 +1,29 @@
+// This file was generated automatically, please do not change it.
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Network/UDPClient.h"
 #include "Network/UFlatBuffer.h"
+#include "Network/ServerPackets.h"
+#include "CheckIntegrityPacket.generated.h"
 
-struct CheckIntegrityPacket
+USTRUCT(BlueprintType)
+struct FCheckIntegrityPacket
 {
-    uint16 Index;
-    uint32 Version;
+    GENERATED_USTRUCT_BODY();
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 Index;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 Version;
+
 
     int32 GetSize() const { return 7; }
 
-    void Serialize(UFlatBuffer* Buffer) const;
-    void Deserialize(UFlatBuffer* Buffer);
+    void Deserialize(UFlatBuffer* Buffer)
+    {
+        Index = static_cast<int32>(Buffer->ReadUInt16());
+        Version = static_cast<int32>(Buffer->ReadUInt32());
+    }
 };
-
-inline void CheckIntegrityPacket::Serialize(UFlatBuffer* Buffer) const
-{
-    Buffer->WriteByte(static_cast<uint8>(EPacketType::CheckIntegrity));
-    Buffer->WriteUInt16(Index);
-    Buffer->WriteUInt32(Version);
-}
-
-inline void CheckIntegrityPacket::Deserialize(UFlatBuffer* Buffer)
-{
-    Index = Buffer->ReadUInt16();
-    Version = Buffer->ReadUInt32();
-}

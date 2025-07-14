@@ -4,7 +4,7 @@
 
 #include "Modules/ModuleManager.h"
 
-class FToS_NetworkModule : public IModuleInterface
+class FNetworkModule : public IModuleInterface
 {
 public:
 

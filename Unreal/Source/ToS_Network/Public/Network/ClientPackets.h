@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 
-enum class ClientPackets : uint16
+enum class EClientPackets : uint16
 {
     SyncEntity = 0,
     Pong = 1,

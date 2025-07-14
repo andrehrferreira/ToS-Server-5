@@ -13,7 +13,6 @@ public partial struct DeltaSyncPacket: INetworkPacket
         buffer.Write((ushort)ServerPacket.DeltaSync);
         buffer.Write(Index);
         buffer.Write(EntitiesMask);
-    // Unsupported type: IntPtr
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -21,6 +20,5 @@ public partial struct DeltaSyncPacket: INetworkPacket
     {
         Index = buffer.ReadUInt();
         EntitiesMask = buffer.Read<byte>();
-    // Unsupported type: IntPtr
     }
 }

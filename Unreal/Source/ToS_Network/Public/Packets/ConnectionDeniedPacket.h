@@ -1,23 +1,18 @@
+// This file was generated automatically, please do not change it.
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Network/UDPClient.h"
 #include "Network/UFlatBuffer.h"
+#include "Network/ServerPackets.h"
+#include "ConnectionDeniedPacket.generated.h"
 
-struct ConnectionDeniedPacket
+USTRUCT(BlueprintType)
+struct FConnectionDeniedPacket
 {
+    GENERATED_USTRUCT_BODY();
+
 
     int32 GetSize() const { return 1; }
 
-    void Serialize(UFlatBuffer* Buffer) const;
-    void Deserialize(UFlatBuffer* Buffer);
 };
-
-inline void ConnectionDeniedPacket::Serialize(UFlatBuffer* Buffer) const
-{
-    Buffer->WriteByte(static_cast<uint8>(EPacketType::ConnectionDenied));
-}
-
-inline void ConnectionDeniedPacket::Deserialize(UFlatBuffer* Buffer)
-{
-}

@@ -84,6 +84,8 @@ public:
 
 	void WriteUInt16(uint16 Value);
 
+    void WriteInt16(int16 Value);
+
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	void WriteInt32(int32 Value);
 
@@ -130,6 +132,8 @@ public:
 	uint8 ReadByte();
 
 	uint16 ReadUInt16();
+
+    int16 ReadInt16();
 
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
 	int32 ReadInt32();
@@ -328,15 +332,3 @@ inline uint64 UFlatBuffer::Read<uint64>()
     return ReadVarULong();
 }
 
-template<>
-inline void UFlatBuffer::Write<int16>(const int16& Value)
-{
-    Write<uint16>(static_cast<uint16>((Value << 1) ^ (Value >> 15)));
-}
-
-template<>
-inline int16 UFlatBuffer::Read<int16>()
-{
-    uint16 Enc = Read<uint16>();
-    return static_cast<int16>((Enc >> 1) ^ -static_cast<int16>(Enc & 1));
-}

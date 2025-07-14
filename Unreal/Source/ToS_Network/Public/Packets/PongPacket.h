@@ -1,26 +1,27 @@
+// This file was generated automatically, please do not change it.
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Network/UDPClient.h"
 #include "Network/UFlatBuffer.h"
+#include "Network/ClientPackets.h"
+#include "PongPacket.generated.h"
 
-struct PongPacket
+USTRUCT(BlueprintType)
+struct FPongPacket
 {
-    uint16 SentTimestamp;
+    GENERATED_USTRUCT_BODY();
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 SentTimestamp;
+
 
     int32 GetSize() const { return 3; }
 
-    void Serialize(UFlatBuffer* Buffer) const;
-    void Deserialize(UFlatBuffer* Buffer);
+    void Serialize(UFlatBuffer* Buffer)
+    {
+        Buffer->WriteByte(static_cast<uint8>(EPacketType::Pong));
+        Buffer->WriteUInt16(static_cast<uint16>(SentTimestamp));
+    }
+
 };
-
-inline void PongPacket::Serialize(UFlatBuffer* Buffer) const
-{
-    Buffer->WriteByte(static_cast<uint8>(EPacketType::Pong));
-    Buffer->WriteUInt16(SentTimestamp);
-}
-
-inline void PongPacket::Deserialize(UFlatBuffer* Buffer)
-{
-    SentTimestamp = Buffer->ReadUInt16();
-}

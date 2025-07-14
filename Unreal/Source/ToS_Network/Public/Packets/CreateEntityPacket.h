@@ -1,36 +1,37 @@
+// This file was generated automatically, please do not change it.
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Network/UDPClient.h"
 #include "Network/UFlatBuffer.h"
+#include "Network/ServerPackets.h"
+#include "CreateEntityPacket.generated.h"
 
-struct CreateEntityPacket
+USTRUCT(BlueprintType)
+struct FCreateEntityPacket
 {
-    uint32 EntityId;
+    GENERATED_USTRUCT_BODY();
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 EntityId;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FVector Positon;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FRotator Rotator;
-    uint32 Flags;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 Flags;
+
 
     int32 GetSize() const { return 35; }
 
-    void Serialize(UFlatBuffer* Buffer) const;
-    void Deserialize(UFlatBuffer* Buffer);
+    void Deserialize(UFlatBuffer* Buffer)
+    {
+        EntityId = static_cast<int32>(Buffer->ReadUInt32());
+        Positon = Buffer->Read<FVector>();
+        Rotator = Buffer->Read<FRotator>();
+        Flags = static_cast<int32>(Buffer->ReadUInt32());
+    }
 };
-
-inline void CreateEntityPacket::Serialize(UFlatBuffer* Buffer) const
-{
-    Buffer->WriteByte(static_cast<uint8>(EPacketType::Reliable));
-    Buffer->WriteUInt16(static_cast<uint16>(ServerPacket::CreateEntity));
-    Buffer->WriteUInt32(EntityId);
-    Buffer->Write<FVector>(Positon);
-    Buffer->Write<FRotator>(Rotator);
-    Buffer->WriteUInt32(Flags);
-}
-
-inline void CreateEntityPacket::Deserialize(UFlatBuffer* Buffer)
-{
-    EntityId = Buffer->ReadUInt32();
-    Positon = Buffer->Read<FVector>();
-    Rotator = Buffer->Read<FRotator>();
-    Flags = Buffer->ReadUInt32();
-}

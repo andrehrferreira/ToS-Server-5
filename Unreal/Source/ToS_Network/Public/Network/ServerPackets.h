@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 
-enum class ServerPackets : uint16
+enum class EServerPackets : uint16
 {
     Benchmark = 0,
     CreateEntity = 1,

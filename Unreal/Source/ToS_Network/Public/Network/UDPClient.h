@@ -84,6 +84,7 @@ public:
     std::function<void()> OnConnectDenied;
     std::function<void()> OnConnectionError;
     std::function<void()> OnDisconnect;
+    std::function<void(int16)> OnPing;
 
     bool Connect(const FString& Host, int32 Port);
     void Disconnect();

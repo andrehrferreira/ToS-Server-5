@@ -1,26 +1,25 @@
+// This file was generated automatically, please do not change it.
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Network/UDPClient.h"
 #include "Network/UFlatBuffer.h"
+#include "Network/ServerPackets.h"
+#include "AckPacket.generated.h"
 
-struct AckPacket
+USTRUCT(BlueprintType)
+struct FAckPacket
 {
-    int16 Sequence;
+    GENERATED_USTRUCT_BODY();
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 Sequence;
+
 
     int32 GetSize() const { return 3; }
 
-    void Serialize(UFlatBuffer* Buffer) const;
-    void Deserialize(UFlatBuffer* Buffer);
+    void Deserialize(UFlatBuffer* Buffer)
+    {
+        Sequence = static_cast<int32>(Buffer->ReadInt16());
+    }
 };
-
-inline void AckPacket::Serialize(UFlatBuffer* Buffer) const
-{
-    Buffer->WriteByte(static_cast<uint8>(EPacketType::Ack));
-    Buffer->WriteInt16(Sequence);
-}
-
-inline void AckPacket::Deserialize(UFlatBuffer* Buffer)
-{
-    Sequence = Buffer->ReadInt16();
-}

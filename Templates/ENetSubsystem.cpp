@@ -7,21 +7,7 @@
 #include "SocketSubsystem.h"
 #include "IPAddress.h"
 #include "Common/UdpSocketBuilder.h"
-#include "Packets/BenchmarkPacket.h"
-#include "Packets/CreateEntityPacket.h"
-#include "Packets/UpdateEntityPacket.h"
-#include "Packets/RemoveEntityPacket.h"
-#include "Packets/PingPacket.h"
-#include "Packets/ConnectionAcceptedPacket.h"
-#include "Packets/ConnectionDeniedPacket.h"
-#include "Packets/DisconnectPacket.h"
-#include "Packets/CheckIntegrityPacket.h"
-#include "Packets/AckPacket.h"
-#include "Packets/DeltaSyncPacket.h"
-#include "Packets/SyncStateIntPacket.h"
-#include "Packets/SyncEntityPacket.h"
-#include "Packets/PongPacket.h"
-
+//%INCLUDES%
 
 void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -34,47 +20,7 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
             EServerPackets PacketType = static_cast<EServerPackets>(Buffer->ReadByte());
 
             switch (PacketType) {
-                case EServerPackets::Benchmark:
-                {
-                    FBenchmarkPacket fBenchmark = FBenchmarkPacket();
-                    fBenchmark.Deserialize(Buffer);
-                    OnBenchmark.Broadcast(fBenchmark.Id, fBenchmark.Positon, fBenchmark.Rotator);
-                    break;
-                }
-                case EServerPackets::CreateEntity:
-                {
-                    FCreateEntityPacket fCreateEntity = FCreateEntityPacket();
-                    fCreateEntity.Deserialize(Buffer);
-                    OnCreateEntity.Broadcast(fCreateEntity.EntityId, fCreateEntity.Positon, fCreateEntity.Rotator, fCreateEntity.Flags);
-                    break;
-                }
-                case EServerPackets::UpdateEntity:
-                {
-                    FUpdateEntityPacket fUpdateEntity = FUpdateEntityPacket();
-                    fUpdateEntity.Deserialize(Buffer);
-                    OnUpdateEntity.Broadcast(fUpdateEntity.EntityId, fUpdateEntity.Positon, fUpdateEntity.Rotator, fUpdateEntity.AnimationState, fUpdateEntity.Flags);
-                    break;
-                }
-                case EServerPackets::RemoveEntity:
-                {
-                    FRemoveEntityPacket fRemoveEntity = FRemoveEntityPacket();
-                    fRemoveEntity.Deserialize(Buffer);
-                    OnRemoveEntity.Broadcast(fRemoveEntity.EntityId);
-                    break;
-                }
-                case EServerPackets::DeltaSync:
-                {
-                    FDeltaSyncPacket fDeltaSync = FDeltaSyncPacket();
-                    fDeltaSync.Deserialize(Buffer);
-                    OnDeltaSync.Broadcast(fDeltaSync.Index, fDeltaSync.EntitiesMask);
-                    break;
-                }
-                case EServerPackets::SyncStateInt:
-                {
-                    OnSyncStateInt.Broadcast();
-                    break;
-                }
-
+//%DATASWITCH%
             }
         }
     };
@@ -190,4 +136,4 @@ bool UENetSubsystem::IsRetryEnabled() const
     return UdpClient ? UdpClient->IsRetryEnabled() : false;
 }
 
-
+//%FUNCTIONS%

@@ -1,33 +1,29 @@
+// This file was generated automatically, please do not change it.
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Network/UDPClient.h"
 #include "Network/UFlatBuffer.h"
+#include "Network/ServerPackets.h"
+#include "DeltaSyncPacket.generated.h"
 
-struct DeltaSyncPacket
+USTRUCT(BlueprintType)
+struct FDeltaSyncPacket
 {
-    uint32 Index;
+    GENERATED_USTRUCT_BODY();
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 Index;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     uint8 EntitiesMask;
-    int32 EntitiesData;
+
 
     int32 GetSize() const { return 8; }
 
-    void Serialize(UFlatBuffer* Buffer) const;
-    void Deserialize(UFlatBuffer* Buffer);
+    void Deserialize(UFlatBuffer* Buffer)
+    {
+        Index = static_cast<int32>(Buffer->ReadUInt32());
+        EntitiesMask = Buffer->ReadByte();
+    }
 };
-
-inline void DeltaSyncPacket::Serialize(UFlatBuffer* Buffer) const
-{
-    Buffer->WriteByte(static_cast<uint8>(EPacketType::Unreliable));
-    Buffer->WriteUInt16(static_cast<uint16>(ServerPacket::DeltaSync));
-    Buffer->WriteUInt32(Index);
-    Buffer->WriteByte(EntitiesMask);
-    // Unsupported type: IntPtr
-}
-
-inline void DeltaSyncPacket::Deserialize(UFlatBuffer* Buffer)
-{
-    Index = Buffer->ReadUInt32();
-    EntitiesMask = Buffer->ReadByte();
-    // Unsupported type: IntPtr
-}

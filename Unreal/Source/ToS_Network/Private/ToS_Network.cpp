@@ -1,15 +1,15 @@
 #include "ToS_Network.h"
 
-#define LOCTEXT_NAMESPACE "FToS_NetworkModule"
+#define LOCTEXT_NAMESPACE "FNetworkModule"
 
-void FToS_NetworkModule::StartupModule()
+void FNetworkModule::StartupModule()
 {
 }
 
-void FToS_NetworkModule::ShutdownModule()
+void FNetworkModule::ShutdownModule()
 {	
 }
 
 #undef LOCTEXT_NAMESPACE
 	
-IMPLEMENT_MODULE(FToS_NetworkModule, ToS_Network)
+IMPLEMENT_MODULE(FNetworkModule, ToS_Network)
