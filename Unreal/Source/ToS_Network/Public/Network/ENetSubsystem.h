@@ -37,12 +37,6 @@
 #include "Packets/CreateEntityPacket.h"
 #include "Packets/UpdateEntityPacket.h"
 #include "Packets/RemoveEntityPacket.h"
-#include "Packets/PingPacket.h"
-#include "Packets/ConnectionAcceptedPacket.h"
-#include "Packets/ConnectionDeniedPacket.h"
-#include "Packets/DisconnectPacket.h"
-#include "Packets/CheckIntegrityPacket.h"
-#include "Packets/AckPacket.h"
 #include "Packets/DeltaSyncPacket.h"
 #include "Packets/SyncStateIntPacket.h"
 #include "Packets/SyncEntityPacket.h"
@@ -68,12 +62,6 @@ public:
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FCreateEntityHandler, int32, EntityId, FVector, Positon, FRotator, Rotator, int32, Flags);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(FUpdateEntityHandler, int32, EntityId, FVector, Positon, FRotator, Rotator, int32, AnimationState, int32, Flags);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRemoveEntityHandler, int32, EntityId);
-    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPingHandler, int32, SentTimestamp);
-    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FConnectionAcceptedHandler, int32, Id);
-    DECLARE_DYNAMIC_MULTICAST_DELEGATE(FConnectionDeniedHandler);
-    DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDisconnectHandler);
-    DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCheckIntegrityHandler, int32, Index, int32, Version);
-    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAckHandler, int32, Sequence);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FDeltaSyncHandler, int32, Index, uint8, EntitiesMask);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSyncStateIntHandler);
 
@@ -137,24 +125,6 @@ public:
 
     UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnRemoveEntity", Keywords = "Server Events"), Category = "UDP")
     FRemoveEntityHandler OnRemoveEntity;
-
-    UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnPing", Keywords = "Server Events"), Category = "UDP")
-    FPingHandler OnPing;
-
-    UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnConnectionAccepted", Keywords = "Server Events"), Category = "UDP")
-    FConnectionAcceptedHandler OnConnectionAccepted;
-
-    UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnConnectionDenied", Keywords = "Server Events"), Category = "UDP")
-    FConnectionDeniedHandler OnConnectionDenied;
-
-    UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnDisconnect", Keywords = "Server Events"), Category = "UDP")
-    FDisconnectHandler OnDisconnect;
-
-    UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnCheckIntegrity", Keywords = "Server Events"), Category = "UDP")
-    FCheckIntegrityHandler OnCheckIntegrity;
-
-    UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnAck", Keywords = "Server Events"), Category = "UDP")
-    FAckHandler OnAck;
 
     UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnDeltaSync", Keywords = "Server Events"), Category = "UDP")
     FDeltaSyncHandler OnDeltaSync;

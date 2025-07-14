@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Text;
 
 public class UnrealTranspiler : AbstractTranspiler
@@ -22,9 +23,9 @@ public class UnrealTranspiler : AbstractTranspiler
             var structName = contract.Name;
             var rawName = structName.Replace("Packet", "");
 
-            if (attribute.LayerType == PacketLayerType.Server)
+            if (attribute.LayerType == PacketLayerType.Server && attribute.PacketType == PacketType.None)
                 serverPackets.Add(rawName);
-            else
+            else if (attribute.LayerType == PacketLayerType.Client)
                 clientPackets.Add(rawName);
 
             GenerateHeader(publicDir, structName, rawName, fields, attribute);
@@ -332,7 +333,7 @@ public class UnrealTranspiler : AbstractTranspiler
             var contract = GetContractByName(packet + "Packet");
             var attribute = contract.GetCustomAttribute<ContractAttribute>();
 
-            if (attribute.LayerType == PacketLayerType.Server)
+            if (attribute.LayerType == PacketLayerType.Server && attribute.PacketType == PacketType.None)
             {
                 var fields = contract.GetFields(BindingFlags.Public | BindingFlags.Instance);
 
