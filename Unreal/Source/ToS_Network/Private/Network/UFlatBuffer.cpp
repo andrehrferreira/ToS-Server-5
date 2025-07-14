@@ -458,7 +458,7 @@ FString UFlatBuffer::ReadString()
     TArray<UTF8CHAR> TempBuffer;
     TempBuffer.SetNumUninitialized(StringLength + 1);
     FMemory::Memcpy(TempBuffer.GetData(), Data + Position, StringLength);
-    TempBuffer[StringLength] = '\0';
+    TempBuffer[StringLength] = 0;
     Position += StringLength;
 
     return FString(UTF8_TO_TCHAR(TempBuffer.GetData()));
@@ -482,7 +482,7 @@ FString UFlatBuffer::ReadAsciiString()
     TArray<ANSICHAR> Temp;
     Temp.SetNumUninitialized(StringLength + 1);
     FMemory::Memcpy(Temp.GetData(), Data + Position, StringLength);
-    Temp[StringLength] = '\0';
+    Temp[StringLength] = 0;
     Position += StringLength;
 
     return FString(ANSI_TO_TCHAR(Temp.GetData()));

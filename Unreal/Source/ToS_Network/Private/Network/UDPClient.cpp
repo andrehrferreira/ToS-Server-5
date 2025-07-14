@@ -235,14 +235,14 @@ void UDPClient::PollIncomingPackets()
                     case EPacketType::CheckIntegrity:
                     {
                         uint16 Index = Buffer->ReadUInt16();
-                        uint16 IntegityKey = IntegrityTableData::GetKey(Index);
+                        uint16 IntegrityKey = IntegrityTableData::GetKey(Index);
 
-                        UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(3);
-                        Buffer->WriteByte(static_cast<uint8>(EPacketType::CheckIntegrity));
-                        Buffer->WriteUInt16(Code);
+                        UFlatBuffer* ResponseBuffer = UFlatBuffer::CreateFlatBuffer(3);
+                        ResponseBuffer->WriteByte(static_cast<uint8>(EPacketType::CheckIntegrity));
+                        ResponseBuffer->WriteUInt16(IntegrityKey);
                         int32 BytesSent = 0;
-                        Socket->SendTo(Buffer->GetRawBuffer(), Buffer->GetLength(), BytesSent, *RemoteEndpoint);
-					}
+                        Socket->SendTo(ResponseBuffer->GetRawBuffer(), ResponseBuffer->GetLength(), BytesSent, *RemoteEndpoint);
+                    }
                     break;
                     default:
                         
