@@ -51,12 +51,13 @@ void UTOSGameInstance::OnStart()
     }
 }
 
-ASyncEntity* UTOSGameInstance::GetEntityById(int32 Id) const
+ASyncEntity* UTOSGameInstance::GetEntityById(int32 Id) 
 {
-    if (const ASyncEntity* const* Found = SpawnedEntities.Find(Id))
+    if (ASyncEntity** Found = SpawnedEntities.Find(Id))
     {
         return *Found;
     }
+
     return nullptr;
 }
 
@@ -93,10 +94,10 @@ void UTOSGameInstance::HandleRemoveEntity(int32 EntityId)
     if (ASyncEntity* const* Found = SpawnedEntities.Find(EntityId))
     {
         ASyncEntity* Entity = *Found;
-        if (Entity && !Entity->IsPendingKill())
-        {
+
+        if (Entity)        
             Entity->Destroy();
-        }
+        
         SpawnedEntities.Remove(EntityId);
     }
 }

@@ -35,7 +35,7 @@ public:
     TMap<int32, ASyncEntity*> SpawnedEntities;
 
     UFUNCTION(BlueprintCallable, Category = "Entities")
-    ASyncEntity* GetEntityById(int32 Id) const;
+    ASyncEntity* GetEntityById(int32 Id);
 
 private:
     UFUNCTION()
