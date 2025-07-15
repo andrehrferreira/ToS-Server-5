@@ -18,7 +18,7 @@ public partial struct DeltaSyncPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deserialize(ref FlatBuffer buffer)
     {
-        Index = buffer.ReadUInt();
+        Index = buffer.Read<uint>();
         EntitiesMask = buffer.Read<byte>();
     }
 }

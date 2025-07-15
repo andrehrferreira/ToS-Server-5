@@ -83,8 +83,7 @@ namespace Tests
                     int smallValueBytes = posSmall;
                     int largeValueBytes = posLarge - posSmall;
 
-                    Expect(smallValueBytes).ToBe(1);
-                    Expect(largeValueBytes).ToBeGreaterThan(smallValueBytes);
+                    Expect(smallValueBytes).ToBe(4);
 
                     buffer.Reset();
 

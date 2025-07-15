@@ -20,6 +20,6 @@ struct FRemoveEntityPacket
 
     void Deserialize(UFlatBuffer* Buffer)
     {
-        EntityId = static_cast<int32>(Buffer->ReadUInt32());
+        EntityId = static_cast<int32>(Buffer->Read<uint32>());
     }
 };

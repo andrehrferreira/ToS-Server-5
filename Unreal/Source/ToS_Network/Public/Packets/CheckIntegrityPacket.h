@@ -23,7 +23,7 @@ struct FCheckIntegrityPacket
 
     void Deserialize(UFlatBuffer* Buffer)
     {
-        Index = static_cast<int32>(Buffer->ReadUInt16());
-        Version = static_cast<int32>(Buffer->ReadUInt32());
+        Index = static_cast<int32>(Buffer->Read<uint16>());
+        Version = static_cast<int32>(Buffer->Read<uint32>());
     }
 };

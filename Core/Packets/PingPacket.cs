@@ -16,6 +16,6 @@ public partial struct PingPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deserialize(ref FlatBuffer buffer)
     {
-        SentTimestamp = buffer.ReadUShort();
+        SentTimestamp = buffer.Read<ushort>();
     }
 }

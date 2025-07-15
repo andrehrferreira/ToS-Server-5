@@ -26,11 +26,11 @@ struct FSyncEntityPacket
 
     void Serialize(UFlatBuffer* Buffer)
     {
-        Buffer->WriteByte(static_cast<uint8>(EPacketType::Unreliable));
-        Buffer->WriteUInt16(static_cast<uint16>(EClientPackets::SyncEntity));
+        Buffer->Write<uint8>(static_cast<uint8>(EPacketType::Unreliable));
+        Buffer->Write<uint16>(static_cast<uint16>(EClientPackets::SyncEntity));
         Buffer->Write<FVector>(Positon);
         Buffer->Write<FRotator>(Rotator);
-        Buffer->WriteUInt16(static_cast<uint16>(AnimationState));
+        Buffer->Write<uint16>(static_cast<uint16>(AnimationState));
     }
 
 };

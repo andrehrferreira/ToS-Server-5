@@ -17,7 +17,7 @@ public partial struct CheckIntegrityPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deserialize(ref FlatBuffer buffer)
     {
-        Index = buffer.ReadUShort();
-        Version = buffer.ReadUInt();
+        Index = buffer.Read<ushort>();
+        Version = buffer.Read<uint>();
     }
 }

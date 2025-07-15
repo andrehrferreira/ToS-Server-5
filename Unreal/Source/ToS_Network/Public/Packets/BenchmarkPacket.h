@@ -26,7 +26,7 @@ struct FBenchmarkPacket
 
     void Deserialize(UFlatBuffer* Buffer)
     {
-        Id = static_cast<int32>(Buffer->ReadUInt32());
+        Id = static_cast<int32>(Buffer->Read<uint32>());
         Positon = Buffer->Read<FVector>();
         Rotator = Buffer->Read<FRotator>();
     }

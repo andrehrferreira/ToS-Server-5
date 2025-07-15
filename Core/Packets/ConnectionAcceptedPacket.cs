@@ -16,6 +16,6 @@ public partial struct ConnectionAcceptedPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deserialize(ref FlatBuffer buffer)
     {
-        Id = buffer.ReadUInt();
+        Id = buffer.Read<uint>();
     }
 }

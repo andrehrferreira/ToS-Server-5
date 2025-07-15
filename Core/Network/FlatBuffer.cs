@@ -103,36 +103,6 @@ public unsafe struct FlatBuffer : IDisposable
 
     public void Write<T>(T value) where T : unmanaged
     {
-        if (typeof(T) == typeof(int))
-        {
-            Write((int)(object)value);
-            return;
-        }
-        if (typeof(T) == typeof(uint))
-        {
-            Write((uint)(object)value);
-            return;
-        }
-        if (typeof(T) == typeof(long))
-        {
-            Write((long)(object)value);
-            return;
-        }
-        if (typeof(T) == typeof(ulong))
-        {
-            Write((ulong)(object)value);
-            return;
-        }
-        if (typeof(T) == typeof(short))
-        {
-            Write((short)(object)value);
-            return;
-        }
-        if (typeof(T) == typeof(ushort))
-        {
-            Write((ushort)(object)value);
-            return;
-        }
         if (typeof(T) == typeof(FVector))
         {
             Write((FVector)(object)value, 0.1f);
@@ -155,18 +125,6 @@ public unsafe struct FlatBuffer : IDisposable
 
     public T Read<T>() where T : unmanaged
     {
-        if (typeof(T) == typeof(int))
-            return (T)(object)ReadInt();
-        if (typeof(T) == typeof(uint))
-            return (T)(object)ReadUInt();
-        if (typeof(T) == typeof(long))
-            return (T)(object)ReadLong();
-        if (typeof(T) == typeof(ulong))
-            return (T)(object)ReadULong();
-        if (typeof(T) == typeof(short))
-            return (T)(object)ReadShort();
-        if (typeof(T) == typeof(ushort))
-            return (T)(object)ReadUShort();
         if (typeof(T) == typeof(FVector))
             return (T)(object)ReadFVector(0.1f);
         if (typeof(T) == typeof(FRotator))

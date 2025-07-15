@@ -20,9 +20,9 @@ struct FEnterToWorldPacket
 
     void Serialize(UFlatBuffer* Buffer)
     {
-        Buffer->WriteByte(static_cast<uint8>(EPacketType::Unreliable));
-        Buffer->WriteUInt16(static_cast<uint16>(EClientPackets::EnterToWorld));
-        Buffer->WriteUInt32(static_cast<uint32>(CharacterId));
+        Buffer->Write<uint8>(static_cast<uint8>(EPacketType::Unreliable));
+        Buffer->Write<uint16>(static_cast<uint16>(EClientPackets::EnterToWorld));
+        Buffer->Write<uint32>(static_cast<uint32>(CharacterId));
     }
 
 };

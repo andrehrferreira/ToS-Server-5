@@ -159,18 +159,18 @@ public class UnrealTranspiler : AbstractTranspiler
             writer.WriteLine("    {");
 
             if (attribute.PacketType != PacketType.None)
-                writer.WriteLine($"        Buffer->WriteByte(static_cast<uint8>(EPacketType::{attribute.PacketType}));");
+                writer.WriteLine($"        Buffer->Write<uint8>(static_cast<uint8>(EPacketType::{attribute.PacketType}));");
             else
             {
                 if (attribute.Flags.HasFlag(ContractPacketFlags.Reliable))
-                    writer.WriteLine("        Buffer->WriteByte(static_cast<uint8>(EPacketType::Reliable));");
+                    writer.WriteLine("        Buffer->Write<uint8>(static_cast<uint8>(EPacketType::Reliable));");
                 else
-                    writer.WriteLine("        Buffer->WriteByte(static_cast<uint8>(EPacketType::Unreliable));");
+                    writer.WriteLine("        Buffer->Write<uint8>(static_cast<uint8>(EPacketType::Unreliable));");
 
                 if(attribute.LayerType == PacketLayerType.Server)
-                    writer.WriteLine($"        Buffer->WriteByte(static_cast<uint8>(EServerPackets::{rawName}));");
+                    writer.WriteLine($"        Buffer->Write<uint8>(static_cast<uint8>(EServerPackets::{rawName}));");
                 else
-                    writer.WriteLine($"        Buffer->WriteUInt16(static_cast<uint16>(EClientPackets::{rawName}));");
+                    writer.WriteLine($"        Buffer->Write<uint16>(static_cast<uint16>(EClientPackets::{rawName}));");
             }
 
             foreach (var field in fields)
@@ -232,16 +232,16 @@ public class UnrealTranspiler : AbstractTranspiler
 
     private static string GetSerializeLine(string type, string name) => type switch
     {
-        "integer" or "int" or "int32" => $"        Buffer->WriteInt32({name});",
-        "uint" => $"        Buffer->WriteUInt32(static_cast<uint32>({name}));",
-        "ushort" => $"        Buffer->WriteUInt16(static_cast<uint16>({name}));",
-        "short" => $"        Buffer->WriteInt16(static_cast<int16>({name}));",
-        "byte" => $"        Buffer->WriteByte({name});",
-        "float" => $"        Buffer->WriteFloat({name});",
-        "long" => $"        Buffer->WriteInt64({name});",
-        "ulong" => $"        Buffer->WriteVarULong(static_cast<int64>({name}));",
+        "integer" or "int" or "int32" => $"        Buffer->Write<int32>({name});",
+        "uint" => $"        Buffer->Write<uint32>(static_cast<uint32>({name}));",
+        "ushort" => $"        Buffer->Write<uint16>(static_cast<uint16>({name}));",
+        "short" => $"        Buffer->Write<int16>(static_cast<int16>({name}));",
+        "byte" => $"        Buffer->Write<uint8>({name});",
+        "float" => $"        Buffer->Write<float>({name});",
+        "long" => $"        Buffer->Write<int64>({name});",
+        "ulong" => $"        Buffer->Write<int64>(static_cast<int64>({name}));",
         "bool" or "boolean" => $"        Buffer->WriteBool({name});",
-        "decimal" => $"        Buffer->WriteFloat({name});",
+        "decimal" => $"        Buffer->Write<float>({name});",
         "FVector" => $"        Buffer->Write<FVector>({name});",
         "FRotator" => $"        Buffer->Write<FRotator>({name});",
         "id" => $"        Buffer->WriteInt32(UBase36::Base36ToInt({name}));",
@@ -251,16 +251,16 @@ public class UnrealTranspiler : AbstractTranspiler
 
     private static string GetDeserializeLine(string type, string name) => type switch
     {
-        "integer" or "int" or "int32" => $"    {name} = Buffer->ReadInt32();",
-        "uint" => $"        {name} = static_cast<int32>(Buffer->ReadUInt32());",
-        "ushort" => $"        {name} = static_cast<int32>(Buffer->ReadUInt16());",
-        "short" => $"        {name} = static_cast<int32>(Buffer->ReadInt16());",
-        "byte" => $"        {name} = Buffer->ReadByte();",
-        "float" => $"        {name} = Buffer->ReadFloat();",
-        "long" => $"        {name} = Buffer->ReadInt64();",
-        "ulong" => $"        {name} = Buffer->ReadVarULong();",
+        "integer" or "int" or "int32" => $"    {name} = Buffer->Read<int32>();",
+        "uint" => $"        {name} = static_cast<int32>(Buffer->Read<uint32>());",
+        "ushort" => $"        {name} = static_cast<int32>(Buffer->Read<uint16>());",
+        "short" => $"        {name} = static_cast<int32>(Buffer->Read<int16>());",
+        "byte" => $"        {name} = Buffer->Read<int8>();",
+        "float" => $"        {name} = Buffer->Read<float>();",
+        "long" => $"        {name} = Buffer->Read<int64>();",
+        "ulong" => $"        {name} = Buffer->Read<int64>();",
         "bool" or "boolean" => $"        {name} = Buffer->ReadBool();",
-        "decimal" => $"        {name} = Buffer->ReadFloat();",
+        "decimal" => $"        {name} = Buffer->Read<float>();",
         "FVector" => $"        {name} = Buffer->Read<FVector>();",
         "FRotator" => $"        {name} = Buffer->Read<FRotator>();",
         "id" => $"        {name} = UBase36::IntToBase36(Buffer->ReadInt32());",

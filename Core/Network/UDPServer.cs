@@ -483,13 +483,12 @@ public sealed class UDPServer
                     {
                         if (Clients.TryGetValue(address, out conn))
                         {
-                            PrintBuffer(data.Data, len);
-                            uint signature = data.ReadSign(len);
-                            PrintBuffer(data.Data, len - 4);
+                            uint signature = data.ReadSign(len);                            
                             uint crc32c = CRC32C.Compute(data.Data, len - 4);
 
                             if (signature == crc32c)
                             {
+                                PrintBuffer(data.Data, len);
                                 data.Resize(len - 4);
                                 conn.TimeoutLeft = 30f;
                                 ClientPackets clientPacket = (ClientPackets)data.Read<short>();

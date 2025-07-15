@@ -244,16 +244,16 @@ public class ContractTranspiler : AbstractTranspiler
                     case "integer":
                     case "int":
                     case "int32":
-                        writer.WriteLine($"        {fieldName} = buffer.ReadInt();");
+                        writer.WriteLine($"        {fieldName} = buffer.Read<int>();");
                         break;
                     case "uint":
-                        writer.WriteLine($"        {fieldName} = buffer.ReadUInt();");
+                        writer.WriteLine($"        {fieldName} = buffer.Read<uint>();");
                         break;
                     case "ushort":
-                        writer.WriteLine($"        {fieldName} = buffer.ReadUShort();");
+                        writer.WriteLine($"        {fieldName} = buffer.Read<ushort>();");
                         break;
                     case "short":
-                        writer.WriteLine($"        {fieldName} = buffer.ReadShort();");
+                        writer.WriteLine($"        {fieldName} = buffer.Read<short>();");
                         break;
                     case "byte":
                         writer.WriteLine($"        {fieldName} = buffer.Read<byte>();");
@@ -262,10 +262,10 @@ public class ContractTranspiler : AbstractTranspiler
                         writer.WriteLine($"        {fieldName} = buffer.Read<float>();");
                         break;
                     case "long":
-                        writer.WriteLine($"        {fieldName} = buffer.ReadLong();");
+                        writer.WriteLine($"        {fieldName} = buffer.Read<long>();");
                         break;
                     case "ulong":
-                        writer.WriteLine($"        {fieldName} = buffer.ReadULong();");
+                        writer.WriteLine($"        {fieldName} = buffer.Read<ulong>();");
                         break;
                     case "bool":
                     case "boolean":

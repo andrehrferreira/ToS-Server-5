@@ -19,7 +19,7 @@ public partial struct BenchmarkPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deserialize(ref FlatBuffer buffer)
     {
-        Id = buffer.ReadUInt();
+        Id = buffer.Read<uint>();
         Positon = buffer.ReadFVector(0.1f);
         Rotator = buffer.ReadFRotator(0.1f);
     }

@@ -32,10 +32,10 @@ struct FUpdateEntityPacket
 
     void Deserialize(UFlatBuffer* Buffer)
     {
-        EntityId = static_cast<int32>(Buffer->ReadUInt32());
+        EntityId = static_cast<int32>(Buffer->Read<uint32>());
         Positon = Buffer->Read<FVector>();
         Rotator = Buffer->Read<FRotator>();
-        AnimationState = static_cast<int32>(Buffer->ReadUInt16());
-        Flags = static_cast<int32>(Buffer->ReadUInt32());
+        AnimationState = static_cast<int32>(Buffer->Read<uint16>());
+        Flags = static_cast<int32>(Buffer->Read<uint32>());
     }
 };

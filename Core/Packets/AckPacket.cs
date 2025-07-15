@@ -16,6 +16,6 @@ public partial struct AckPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deserialize(ref FlatBuffer buffer)
     {
-        Sequence = buffer.ReadShort();
+        Sequence = buffer.Read<short>();
     }
 }

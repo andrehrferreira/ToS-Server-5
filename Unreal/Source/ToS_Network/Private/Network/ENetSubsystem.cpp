@@ -17,7 +17,6 @@
 #include "Packets/PongPacket.h"
 #include "Packets/EnterToWorldPacket.h"
 
-
 void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     UdpClient = MakeUnique<UDPClient>();
@@ -187,7 +186,7 @@ bool UENetSubsystem::IsRetryEnabled() const
 
 void UENetSubsystem::SendEntitySync(FVector Position, FRotator Rotation, int32 AnimID) const
 {
-    UFlatBuffer* syncBuffer = UFlatBuffer::CreateFlatBuffer(20);
+    UFlatBuffer* syncBuffer = UFlatBuffer::CreateFlatBuffer(21);
     FSyncEntityPacket syncPacket = FSyncEntityPacket();
     syncPacket.Positon = Position;
     syncPacket.Rotator = Rotation;

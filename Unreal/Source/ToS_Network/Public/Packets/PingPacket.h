@@ -20,6 +20,6 @@ struct FPingPacket
 
     void Deserialize(UFlatBuffer* Buffer)
     {
-        SentTimestamp = static_cast<int32>(Buffer->ReadUInt16());
+        SentTimestamp = static_cast<int32>(Buffer->Read<uint16>());
     }
 };

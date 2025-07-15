@@ -21,10 +21,10 @@ public partial struct UpdateEntityPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deserialize(ref FlatBuffer buffer)
     {
-        EntityId = buffer.ReadUInt();
+        EntityId = buffer.Read<uint>();
         Positon = buffer.ReadFVector(0.1f);
         Rotator = buffer.ReadFRotator(0.1f);
-        AnimationState = buffer.ReadUShort();
-        Flags = buffer.ReadUInt();
+        AnimationState = buffer.Read<ushort>();
+        Flags = buffer.Read<uint>();
     }
 }

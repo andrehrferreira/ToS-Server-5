@@ -20,8 +20,8 @@ struct FPongPacket
 
     void Serialize(UFlatBuffer* Buffer)
     {
-        Buffer->WriteByte(static_cast<uint8>(EPacketType::Pong));
-        Buffer->WriteUInt16(static_cast<uint16>(SentTimestamp));
+        Buffer->Write<uint8>(static_cast<uint8>(EPacketType::Pong));
+        Buffer->Write<uint16>(static_cast<uint16>(SentTimestamp));
     }
 
 };

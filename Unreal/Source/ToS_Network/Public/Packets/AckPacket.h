@@ -20,6 +20,6 @@ struct FAckPacket
 
     void Deserialize(UFlatBuffer* Buffer)
     {
-        Sequence = static_cast<int32>(Buffer->ReadInt16());
+        Sequence = static_cast<int32>(Buffer->Read<int16>());
     }
 };
