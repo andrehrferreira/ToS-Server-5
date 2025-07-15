@@ -22,6 +22,7 @@
 */
 
 using NanoSockets;
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -446,6 +447,8 @@ public sealed class UDPServer
                                 newSocket.State = ConnectionState.Connected;
                             }
                         }
+
+                        data.Free();
                     }
                     break;
                 case PacketType.Pong:
@@ -458,6 +461,8 @@ public sealed class UDPServer
                             conn.Ping = rttMs;
                             conn.TimeoutLeft = 30f;
                         }
+
+                        data.Free();
                     }
                     break;
                 case PacketType.Disconnect:
@@ -469,6 +474,8 @@ public sealed class UDPServer
                             ServerMonitor.Log($"Client disconnected: {address}");
 #endif
                         }
+
+                        data.Free();
                     }
                     break;
                 case PacketType.Reliable:
@@ -476,9 +483,21 @@ public sealed class UDPServer
                     {
                         if (Clients.TryGetValue(address, out conn))
                         {
-                            conn.TimeoutLeft = 30f;
-                            ClientPacket clientPacket = (ClientPacket)data.Read<byte>();
+                            PrintBuffer(data.Data, len);
+                            uint signature = data.ReadSign(len);
+                            PrintBuffer(data.Data, len - 4);
+                            uint crc32c = CRC32C.Compute(data.Data, len - 4);
+
+                            if (signature == crc32c)
+                            {
+                                data.Resize(len - 4);
+                                conn.TimeoutLeft = 30f;
+                                ClientPackets clientPacket = (ClientPackets)data.Read<short>();
+                                //PacketHandler.HandlePacket(conn, ref data, clientPacket);
+                            }
                         }
+
+                        data.Free();
                     }
                     break;
                 case PacketType.Ack:
@@ -488,6 +507,8 @@ public sealed class UDPServer
                             short seq = data.Read<short>();
                             conn.Acknowledge(seq);
                         }
+
+                        data.Free();
                     }
                     break;
                 case PacketType.CheckIntegrity:
@@ -506,6 +527,8 @@ public sealed class UDPServer
                                 conn.TimeoutIntegrityCheck = 120f;
                             }
                         }
+
+                        data.Free();
                     }
                     break;
                 case PacketType.BenckmarkTest:
@@ -639,4 +662,13 @@ public sealed class UDPServer
         }
     }
 
+    private static unsafe void PrintBuffer(byte* buffer, int len)
+    {
+        var sb = new System.Text.StringBuilder(len * 3);
+
+        for (int i = 0; i < len; i++)        
+            sb.AppendFormat("{0:X2} ", buffer[i]);
+        
+        Console.WriteLine(sb.ToString());
+    }
 }

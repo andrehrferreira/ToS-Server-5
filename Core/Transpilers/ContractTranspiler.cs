@@ -184,7 +184,7 @@ public class ContractTranspiler : AbstractTranspiler
                 else
                     writer.WriteLine($"        buffer.Write(PacketType.Unreliable);");
 
-                writer.WriteLine($"        buffer.Write((ushort)ServerPacket.{rawName});");
+                writer.WriteLine($"        buffer.Write((ushort)ServerPackets.{rawName});");
             }
                 
             foreach (var field in fields)
@@ -314,7 +314,7 @@ public class ContractTranspiler : AbstractTranspiler
                 else
                     writer.WriteLine($"        buffer.Write(PacketType.Unreliable);");
 
-                writer.WriteLine($"        buffer.Write((ushort)ServerPacket.{rawName});");
+                writer.WriteLine($"        buffer.Write((ushort)ServerPackets.{rawName});");
             }
                             
             writer.WriteLine("    }");

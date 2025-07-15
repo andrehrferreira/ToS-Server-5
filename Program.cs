@@ -74,7 +74,17 @@ class Program
             SendBufferSize = 512 * 1024,
         });
 
-        ServerMonitor.Start();
+        byte[] data = new byte[] {
+            0x04, 0x00, 0x00, 0x28,
+            0x23, 0x5C, 0x2B, 0x98,
+            0x03, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x45
+        };
+
+        uint crc = CRC32C.Compute(data);
+        Console.WriteLine($"CRC32C Checksum: {crc:X8}");
+
+        //ServerMonitor.Start();
 
         while (true)
         {

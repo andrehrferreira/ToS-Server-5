@@ -161,44 +161,52 @@ void UFlatBuffer::WriteInt64(int64 Value)
 void UFlatBuffer::WriteVarInt(int32 Value)
 {
     uint32 V = EncodeZigZag32(Value);
+
     while (V >= 0x80)
     {
         Write<uint8>(static_cast<uint8>(V | 0x80));
         V >>= 7;
     }
+
     Write<uint8>(static_cast<uint8>(V));
 }
 
 void UFlatBuffer::WriteVarLong(int64 Value)
 {
     uint64 V = EncodeZigZag64(Value);
+
     while (V >= 0x80)
     {
         Write<uint8>(static_cast<uint8>(V | 0x80));
         V >>= 7;
     }
+
     Write<uint8>(static_cast<uint8>(V));
 }
 
 void UFlatBuffer::WriteVarUInt(uint32 Value)
 {
     uint32 V = Value;
+
     while (V >= 0x80)
     {
         Write<uint8>(static_cast<uint8>(V | 0x80));
         V >>= 7;
     }
+
     Write<uint8>(static_cast<uint8>(V));
 }
 
 void UFlatBuffer::WriteVarULong(uint64 Value)
 {
     uint64 V = Value;
+
     while (V >= 0x80)
     {
         Write<uint8>(static_cast<uint8>(V | 0x80));
         V >>= 7;
     }
+
     Write<uint8>(static_cast<uint8>(V));
 }
 
@@ -236,6 +244,7 @@ void UFlatBuffer::WriteAsciiString(const FString& Value)
 {
     int32 StringLength = Value.Len();
     Write<int32>(StringLength);
+
     if (StringLength > 0)
     {
         if (Position + StringLength > Capacity)
@@ -243,11 +252,13 @@ void UFlatBuffer::WriteAsciiString(const FString& Value)
             UE_LOG(LogTemp, Warning, TEXT("UFlatBuffer::WriteAsciiString - Buffer overflow. String length: %d"), StringLength);
             return;
         }
+
         for (int32 i = 0; i < StringLength; ++i)
         {
             TCHAR Char = Value[i];
             Data[Position + i] = (Char >= 0 && Char <= 127) ? static_cast<uint8>(Char) : '?';
         }
+
         Position += StringLength;
     }
 }

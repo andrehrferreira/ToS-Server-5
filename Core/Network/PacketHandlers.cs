@@ -4,8 +4,8 @@ using System.Runtime.CompilerServices;
 public abstract class PacketHandler
 {
     static readonly PacketHandler[] Handlers = new PacketHandler[1024];
-    public abstract ClientPacket Type { get; }
-    public abstract void Consume(PlayerController ctrl, FlatBuffer buffer);
+    public abstract ClientPackets Type { get; }
+    public abstract void Consume(PlayerController ctrl, ref FlatBuffer buffer);
 
     static PacketHandler()
     {
@@ -21,9 +21,9 @@ public abstract class PacketHandler
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void HandlePacket(PlayerController ctrl, FlatBuffer buffer, ClientPacket type)
+    public static void HandlePacket(PlayerController ctrl, ref FlatBuffer buffer, ClientPackets type)
     {
-        Handlers[(int)type]?.Consume(ctrl, buffer);
+        Handlers[(int)type]?.Consume(ctrl, ref buffer);
     }
 }
 
@@ -60,13 +60,13 @@ public unsafe class Packet : IPacket
 
 public static class PacketManager
 {
-    private static readonly ConcurrentDictionary<ServerPacket, IPacket> HighLevelPackets =
-        new ConcurrentDictionary<ServerPacket, IPacket>();
+    private static readonly ConcurrentDictionary<ServerPackets, IPacket> HighLevelPackets =
+        new ConcurrentDictionary<ServerPackets, IPacket>();
 
     private static readonly ConcurrentDictionary<PacketType, IPacket> LowLevelPackets =
         new ConcurrentDictionary<PacketType, IPacket>();
 
-    public static void Register(ServerPacket packetType, IPacket packet)
+    public static void Register(ServerPackets packetType, IPacket packet)
     {
         if (!HighLevelPackets.TryAdd(packetType, packet))
             throw new InvalidOperationException($"High-level packet for {packetType} already registered.");
@@ -78,13 +78,13 @@ public static class PacketManager
             throw new InvalidOperationException($"Low-level packet for {packetType} already registered.");
     }
 
-    public static bool TryGet(ServerPacket packetType, out IPacket packet)
+    public static bool TryGet(ServerPackets packetType, out IPacket packet)
         => HighLevelPackets.TryGetValue(packetType, out packet);
 
     public static bool TryGet(PacketType packetType, out IPacket packet)
         => LowLevelPackets.TryGetValue(packetType, out packet);
 
-    public static IPacket Get(ServerPacket packetType)
+    public static IPacket Get(ServerPackets packetType)
         => HighLevelPackets.TryGetValue(packetType, out var packet)
             ? packet
             : throw new KeyNotFoundException($"Packet {packetType} not registered.");

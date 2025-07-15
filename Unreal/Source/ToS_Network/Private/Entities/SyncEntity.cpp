@@ -12,16 +12,13 @@ ASyncEntity::ASyncEntity()
 void ASyncEntity::BeginPlay()
 {
 	Super::BeginPlay();
+
 	if (UWorld* World = GetWorld())
 	{
-		if (UTOSGameInstance* TosGameInstance = Cast<UTOSGameInstance>(World->GetGameInstance()))
-		{
-			NetSubsystem = TosGameInstance->GetSubsystem<UENetSubsystem>();
-		}
-		else
-		{
+		if (UTOSGameInstance* TosGameInstance = Cast<UTOSGameInstance>(World->GetGameInstance()))		
+			NetSubsystem = TosGameInstance->GetSubsystem<UENetSubsystem>();		
+		else		
 			NetSubsystem = nullptr;
-		}
 	}
 	else
 	{
@@ -31,10 +28,8 @@ void ASyncEntity::BeginPlay()
 
 void ASyncEntity::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (GetWorld())
-	{
+	if (GetWorld())	
 		GetWorld()->GetTimerManager().ClearTimer(NetSyncTimerHandle);
-	}
-
+	
 	Super::EndPlay(EndPlayReason);
 }

@@ -1,4 +1,5 @@
 #include "Network/UDPClient.h"
+#include "Utils/CRC32C.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
 #include "IPAddress.h"
@@ -131,6 +132,30 @@ void UDPClient::SendAck(uint16 Sequence)
     }
 }
 
+void UDPClient::Send(UFlatBuffer* buffer)
+{
+    if (!Socket || !RemoteEndpoint.IsValid())
+        return;
+
+    if (buffer->GetLength() <= 0)
+        return;
+        
+    int len = buffer->GetLength();
+    uint32 sign = FCRC32C::Compute(buffer->GetRawBuffer(), len);
+    buffer->WriteUInt32(sign);
+    int32 lenFinal = buffer->GetLength();
+    int32 BytesSent = 0;
+
+    FString Output;
+    const uint8* RawData = buffer->GetRawBuffer();
+
+    for (int32 i = 0; i < lenFinal; ++i)
+        Output += FString::Printf(TEXT("%02X "), RawData[i]);
+    
+    UE_LOG(LogTemp, Log, TEXT("Sending buffer (bytes): %s"), *Output);
+    Socket->SendTo(buffer->GetRawBuffer(), lenFinal, BytesSent, *RemoteEndpoint);
+}
+
 void UDPClient::PollIncomingPackets()
 {
     if (!Socket || (!bIsConnected && !bIsConnecting))
@@ -194,6 +219,10 @@ void UDPClient::PollIncomingPackets()
                     {
                         uint16 Seq = Buffer->ReadUInt16();
                         SendAck(Seq);
+
+                        if (OnDataReceive)
+                            OnDataReceive(Buffer);
+
                         break;
                     }
                     case EPacketType::ConnectionAccepted:

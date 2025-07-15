@@ -17,7 +17,7 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     {
         if (Buffer)
         {
-            EServerPackets PacketType = static_cast<EServerPackets>(Buffer->ReadByte());
+            EServerPackets PacketType = static_cast<EServerPackets>(Buffer->ReadInt16());
 
             switch (PacketType) {
 //%DATASWITCH%
@@ -134,6 +134,19 @@ float UENetSubsystem::GetRetryInterval() const
 bool UENetSubsystem::IsRetryEnabled() const
 {
     return UdpClient ? UdpClient->IsRetryEnabled() : false;
+}
+
+void UENetSubsystem::SendEntitySync(FVector Position, FRotator Rotation, int32 AnimID) const
+{
+    UFlatBuffer* syncBuffer = UFlatBuffer::CreateFlatBuffer(20);
+    FSyncEntityPacket syncPacket = FSyncEntityPacket();
+    syncPacket.Positon = Position;
+    syncPacket.Rotator = Rotation;
+    syncPacket.AnimationState = AnimID;
+    syncPacket.Serialize(syncBuffer);
+
+    if (UdpClient)
+        UdpClient->Send(syncBuffer);
 }
 
 //%FUNCTIONS%

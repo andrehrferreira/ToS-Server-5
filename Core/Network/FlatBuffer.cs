@@ -54,6 +54,11 @@ public unsafe struct FlatBuffer : IDisposable
         _ptr = (byte*)Marshal.AllocHGlobal(capacity);
     }
 
+    public void Resize(int newCapacity)
+    {
+        _capacity = newCapacity;
+    }
+
     public void Free() => Dispose();
 
     public int LengthBits => (_offset * 8) + _writeBitIndex;
@@ -79,6 +84,7 @@ public unsafe struct FlatBuffer : IDisposable
                 Marshal.FreeHGlobal((IntPtr)_ptr);
                 _ptr = null;
             }
+
             _disposed = true;
         }
     }
@@ -583,5 +589,14 @@ public unsafe struct FlatBuffer : IDisposable
         _offset += length;
 
         return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public uint ReadSign(int len)
+    {
+        if (len < 4)
+            throw new ArgumentOutOfRangeException(nameof(len), "Buffer too small to contain a CRC32C signature");
+
+        return *(uint*)(_ptr + len - 4);
     }
 }

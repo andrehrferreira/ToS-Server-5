@@ -89,6 +89,7 @@ public:
     bool Connect(const FString& Host, int32 Port);
     void Disconnect();
     void SendAck(uint16 Sequence);
+    void Send(UFlatBuffer* buffer);
     void PollIncomingPackets();
     void SetConnectTimeout(float Seconds) { ConnectTimeout = Seconds; }
     void SetRetryInterval(float Seconds) { RetryInterval = Seconds; }

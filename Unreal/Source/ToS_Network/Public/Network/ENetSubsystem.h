@@ -41,6 +41,7 @@
 #include "Packets/SyncStateIntPacket.h"
 #include "Packets/SyncEntityPacket.h"
 #include "Packets/PongPacket.h"
+#include "Packets/EnterToWorldPacket.h"
 
 #include "ENetSubsystem.generated.h"
 
@@ -113,6 +114,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UDP")
 	bool IsRetryEnabled() const;
+
+    UFUNCTION(BlueprintCallable, Category = "UDP")
+    void SendEntitySync(FVector Position, FRotator Rotation, int32 AnimID) const;
 
     UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnBenchmark", Keywords = "Server Events"), Category = "UDP")
     FBenchmarkHandler OnBenchmark;

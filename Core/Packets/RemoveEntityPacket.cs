@@ -10,7 +10,7 @@ public partial struct RemoveEntityPacket: INetworkPacket
     public void Serialize(ref FlatBuffer buffer)
     {
         buffer.Write(PacketType.Reliable);
-        buffer.Write((ushort)ServerPacket.RemoveEntity);
+        buffer.Write((ushort)ServerPackets.RemoveEntity);
         buffer.Write(EntityId);
     }
 

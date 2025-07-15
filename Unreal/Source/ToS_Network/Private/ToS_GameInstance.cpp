@@ -72,6 +72,7 @@ void UTOSGameInstance::HandleCreateEntity(int32 EntityId, FVector Positon, FRota
     Params.Owner = nullptr;
     Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
     ASyncEntity* NewEntity = World->SpawnActor<ASyncEntity>(EntityClass, Positon, Rotator, Params);
+
     if (NewEntity)
     {
         NewEntity->EntityId = EntityId;

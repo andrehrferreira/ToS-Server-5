@@ -10,7 +10,7 @@ public partial struct BenchmarkPacket: INetworkPacket
     public void Serialize(ref FlatBuffer buffer)
     {
         buffer.Write(PacketType.Unreliable);
-        buffer.Write((ushort)ServerPacket.Benchmark);
+        buffer.Write((ushort)ServerPackets.Benchmark);
         buffer.Write(Id);
         buffer.Write(Positon, 0.1f);
         buffer.Write(Rotator, 0.1f);

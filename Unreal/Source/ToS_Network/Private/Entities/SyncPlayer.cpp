@@ -1,5 +1,6 @@
 #include "Entities/SyncPlayer.h"
 #include "Engine/LocalPlayer.h"
+#include "Utils/Base36.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -43,7 +44,7 @@ void ASyncPlayer::BeginPlay()
 
     if (NetSubsystem)
     {
-        GetWorld()->GetTimerManager().SetTimer(NetSyncTimerHandle, this, &ASyncPlayer::SendSyncToServer, 0.05f, true);
+        GetWorld()->GetTimerManager().SetTimer(NetSyncTimerHandle, this, &ASyncPlayer::SendSyncToServer, 0.1f, true);
     }
 }
 
@@ -84,8 +85,6 @@ void ASyncPlayer::Move(const FInputActionValue& Value)
  
         AddMovementInput(ForwardDirection, MovementVector.Y);
         AddMovementInput(RightDirection, MovementVector.X);
-
-        UE_LOG(LogTemp, Warning, TEXT("Move Axis X: %f, Y: %f"), MovementVector.X, MovementVector.Y);
     }
 }
 
@@ -110,21 +109,17 @@ void ASyncPlayer::SendSyncToServer()
 
     if (UAnimInstance* AnimInstance = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr)
     {
-        if (UAnimMontage* Montage = AnimInstance->GetCurrentActiveMontage())
-        {
-            AnimName = Montage->GetName();
-        }
-        else
-        {
+        if (UAnimMontage* Montage = AnimInstance->GetCurrentActiveMontage())        
+            AnimName = Montage->GetName();        
+        else        
             AnimName = AnimInstance->GetClass()->GetName();
-        }
     }
     else
     {
         AnimName = TEXT("None");
     }
 
-    // Exemplo: NetSubsystem->SendEntitySync(this, Position, Rotation, AnimName);
-    // Implemente SendEntitySync no ENetSubsystem conforme necessário.
+	int32 AnimID = UBase36::Base36ToInt(AnimName);
+    NetSubsystem->SendEntitySync(Position, Rotation, AnimID);
 }
 

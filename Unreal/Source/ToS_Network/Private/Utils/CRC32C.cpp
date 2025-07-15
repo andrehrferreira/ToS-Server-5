@@ -77,16 +77,22 @@ uint32 FCRC32C::ComputeSSE42(const uint8* Data, int32 Length, uint32 crcLocal)
     const uint8* p = Data;
     int remaining = Length;
 
+    uint64 crcLocal64 = crcLocal; // Correção aqui
+
     while (remaining >= 8)
     {
-        crcLocal = _mm_crc32_u64(crcLocal, *(const uint64*)p);
+        crcLocal64 = _mm_crc32_u64(crcLocal64, *(const uint64*)p);
         p += 8;
         remaining -= 8;
     }
+
+    crcLocal = (uint32)crcLocal64;
+
     while (remaining--)
     {
         crcLocal = _mm_crc32_u8(crcLocal, *p++);
     }
+
     return crcLocal;
 #else
     return ComputeFallback(Data, Length, crcLocal);
@@ -99,22 +105,29 @@ uint32 FCRC32C::ComputeARMCRC(const uint8* Data, int32 Length, uint32 crcLocal)
     const uint8* p = Data;
     int remaining = Length;
 
+    uint64 crcLocal64 = crcLocal; // Correção aqui
+
     while (remaining >= 8)
     {
-        crcLocal = __crc32cd(crcLocal, *(const uint64*)p);
+        crcLocal64 = __crc32cd(crcLocal64, *(const uint64*)p);
         p += 8;
         remaining -= 8;
     }
+
+    crcLocal = (uint32)crcLocal64;
+
     while (remaining >= 4)
     {
         crcLocal = __crc32cw(crcLocal, *(const uint32*)p);
         p += 4;
         remaining -= 4;
     }
+
     while (remaining--)
     {
         crcLocal = __crc32cb(crcLocal, *p++);
     }
+
     return crcLocal;
 #else
     return ComputeFallback(Data, Length, crcLocal);

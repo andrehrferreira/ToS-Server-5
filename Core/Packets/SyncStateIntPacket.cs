@@ -10,6 +10,6 @@ public partial struct SyncStateIntPacket: INetworkPacket
     public void Serialize(ref FlatBuffer buffer)
     {
         buffer.Write(PacketType.Reliable);
-        buffer.Write((ushort)ServerPacket.SyncStateInt);
+        buffer.Write((ushort)ServerPackets.SyncStateInt);
     }
 }

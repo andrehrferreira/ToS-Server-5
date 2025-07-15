@@ -4,6 +4,7 @@
 #include "Engine/GameInstance.h"
 #include "Network/ENetSubsystem.h"
 #include "Entities/SyncEntity.h"
+#include "Entities/SyncPlayer.h"
 #include "Tos_GameInstance.generated.h"
 
 UCLASS()
@@ -30,6 +31,9 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Entities")
     TSubclassOf<ASyncEntity> EntityClass;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Entities")
+    TSubclassOf<ASyncPlayer> PlayerClass;
 
     UPROPERTY(BlueprintReadOnly, Category = "Entities")
     TMap<int32, ASyncEntity*> SpawnedEntities;

@@ -10,7 +10,7 @@ public partial struct CreateEntityPacket: INetworkPacket
     public void Serialize(ref FlatBuffer buffer)
     {
         buffer.Write(PacketType.Reliable);
-        buffer.Write((ushort)ServerPacket.CreateEntity);
+        buffer.Write((ushort)ServerPackets.CreateEntity);
         buffer.Write(EntityId);
         buffer.Write(Positon, 0.1f);
         buffer.Write(Rotator, 0.1f);

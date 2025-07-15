@@ -25,9 +25,6 @@ public partial struct SyncEntityPacket
 
     [ContractField("ushort")]
     public ushort AnimationState;
-
-    [ContractField("uint")]
-    public uint Flags;
 }
 
 [Contract("UpdateEntity", PacketLayerType.Server, ContractPacketFlags.FromEntity)]
