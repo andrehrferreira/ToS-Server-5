@@ -1,6 +1,7 @@
 #include "Entities/SyncPlayer.h"
 #include "Engine/LocalPlayer.h"
 #include "Utils/Base36.h"
+#include "Utils/CRC32C.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -119,7 +120,22 @@ void ASyncPlayer::SendSyncToServer()
         AnimName = TEXT("None");
     }
 
-	int32 AnimID = UBase36::Base36ToInt(AnimName);
+    int32 AnimID = UBase36::Base36ToInt(AnimName);
+
+    struct FSyncSnapshot
+    {
+        FVector Position;
+        FRotator Rotation;
+        int32 AnimID;
+    };
+
+    FSyncSnapshot Snapshot{ Position, Rotation, AnimID };
+    uint32 CurrentHash = FCRC32C::Compute(reinterpret_cast<const uint8*>(&Snapshot), sizeof(Snapshot));
+
+    if (CurrentHash == LastSyncHash)
+        return;
+
+    LastSyncHash = CurrentHash;
     NetSubsystem->SendEntitySync(Position, Rotation, AnimID);
 }
 

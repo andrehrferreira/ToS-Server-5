@@ -44,6 +44,7 @@ protected:
     void Move(const FInputActionValue& Value);
     void Look(const FInputActionValue& Value);
     void SendSyncToServer();
+    uint32 LastSyncHash = 0;
 
 public:
     FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
