@@ -85,8 +85,21 @@ void UTOSGameInstance::HandleUpdateEntity(int32 EntityId, FVector Positon, FRota
     if (ASyncEntity** Found = SpawnedEntities.Find(EntityId))
     {
         ASyncEntity* Entity = *Found;
-        Entity->SetActorLocation(Positon);
-        Entity->SetActorRotation(Rotator);
+        if (UWorld* World = GetWorld())
+        {
+            float Delta = World->GetDeltaSeconds();
+            FVector NewLocation = FMath::VInterpTo(Entity->GetActorLocation(), Positon, Delta, 10.f);
+            FRotator NewRotation = FMath::RInterpTo(Entity->GetActorRotation(), Rotator, Delta, 10.f);
+            Entity->SetActorLocation(NewLocation);
+            Entity->SetActorRotation(NewRotation);
+        }
+        else
+        {
+            Entity->SetActorLocation(Positon);
+            Entity->SetActorRotation(Rotator);
+        }
+
+        Entity->AnimationState = AnimationState;
     }
 }
 

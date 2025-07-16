@@ -106,21 +106,17 @@ void ASyncPlayer::SendSyncToServer()
 
     FVector Position = GetActorLocation();
     FRotator Rotation = GetActorRotation();
-    FString AnimName;
+    FString AnimName = TEXT("None");
 
-    if (UAnimInstance* AnimInstance = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr)
+    if (const UAnimInstance* AnimInstance = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr)
     {
-        if (UAnimMontage* Montage = AnimInstance->GetCurrentActiveMontage())        
-            AnimName = Montage->GetName();        
-        else        
-            AnimName = AnimInstance->GetClass()->GetName();
-    }
-    else
-    {
-        AnimName = TEXT("None");
+        if (const UAnimMontage* Montage = AnimInstance->GetCurrentActiveMontage())
+        {
+            AnimName = Montage->GetName();
+        }
     }
 
-    int32 AnimID = UBase36::Base36ToInt(AnimName);
+    const int32 AnimID = AnimName == TEXT("None") ? 0 : UBase36::Base36ToInt(AnimName);
 
     struct FSyncSnapshot
     {
