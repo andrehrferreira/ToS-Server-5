@@ -26,9 +26,10 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     {
         if (Buffer)
         {
-            EServerPackets PacketType = static_cast<EServerPackets>(Buffer->ReadInt16());
+            EPacketType PacketType = static_cast<EPacketType>(Buffer->ReadByte());
+            EServerPackets ServerPacketType = static_cast<EServerPackets>(Buffer->ReadInt16());
 
-            switch (PacketType) {
+            switch (ServerPacketType) {
                 case EServerPackets::Benchmark:
                 {
                     FBenchmarkPacket fBenchmark = FBenchmarkPacket();
