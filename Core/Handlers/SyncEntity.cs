@@ -10,6 +10,8 @@ namespace Packets.Handler
             SyncEntityPacket syncEntityPacket = new SyncEntityPacket();
             syncEntityPacket.Deserialize(ref buffer);
 
+            var delta = syncEntityPacket.Positon - ctrl.Entity.Position;
+            ctrl.Entity.Speed = delta.Size() / 0.05f;
             ctrl.Entity.Move(syncEntityPacket.Positon);
             ctrl.Entity.Rotate(syncEntityPacket.Rotator);
             ctrl.Entity.SetAnimState(syncEntityPacket.AnimationState);

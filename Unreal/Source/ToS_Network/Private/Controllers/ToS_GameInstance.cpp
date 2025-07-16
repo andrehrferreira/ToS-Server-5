@@ -71,16 +71,16 @@ void UTOSGameInstance::HandleCreateEntity(int32 EntityId, FVector Positon, FRota
     });
 }
 
-void UTOSGameInstance::HandleUpdateEntity(int32 EntityId, FVector Positon, FRotator Rotator, int32 AnimationState, int32 Flags)
+void UTOSGameInstance::HandleUpdateEntity(int32 EntityId, FVector Positon, FRotator Rotator, float Speed, int32 AnimationState, int32 Flags)
 {
     if (!PlayerController)
         return;
 
-    AsyncTask(ENamedThreads::GameThread, [this, EntityId, Positon, Rotator, AnimationState, Flags]()
+    AsyncTask(ENamedThreads::GameThread, [this, EntityId, Positon, Rotator, Speed, AnimationState, Flags]()
     {
         if (PlayerController)
         {
-            PlayerController->HandleUpdateEntity(EntityId, Positon, Rotator, AnimationState, Flags);
+            PlayerController->HandleUpdateEntity(EntityId, Positon, Rotator, Speed, AnimationState, Flags);
         }
     });
 }

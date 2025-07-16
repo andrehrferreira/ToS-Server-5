@@ -226,6 +226,8 @@ public class UDPSocket
     {
         if (State != ConnectionState.Disconnected)
             State = ConnectionState.Disconnected;
+
+        EntityManager.CleanupSocket(this);
     }
 
     public bool AddReliablePacket(short packetId, FlatBuffer buffer)

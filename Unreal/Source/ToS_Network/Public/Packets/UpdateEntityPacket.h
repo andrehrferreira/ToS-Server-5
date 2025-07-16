@@ -22,19 +22,23 @@ struct FUpdateEntityPacket
     FRotator Rotator;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float Speed;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 AnimationState;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 Flags;
 
 
-    int32 GetSize() const { return 37; }
+    int32 GetSize() const { return 41; }
 
     void Deserialize(UFlatBuffer* Buffer)
     {
         EntityId = static_cast<int32>(Buffer->Read<uint32>());
         Positon = Buffer->Read<FVector>();
         Rotator = Buffer->Read<FRotator>();
+        Speed = Buffer->Read<float>();
         AnimationState = static_cast<int32>(Buffer->Read<uint16>());
         Flags = static_cast<int32>(Buffer->Read<uint32>());
     }

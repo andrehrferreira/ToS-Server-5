@@ -52,7 +52,7 @@ void ATOSPlayerController::HandleCreateEntity(int32 EntityId, FVector Positon, F
     }
 }
 
-void ATOSPlayerController::HandleUpdateEntity(int32 EntityId, FVector Positon, FRotator Rotator, int32 AnimationState, int32 Flags)
+void ATOSPlayerController::HandleUpdateEntity(int32 EntityId, FVector Positon, FRotator Rotator, float Speed, int32 AnimationState, int32 Flags)
 {
     if (!bIsReadyToSync) return;
 
@@ -78,6 +78,7 @@ void ATOSPlayerController::HandleUpdateEntity(int32 EntityId, FVector Positon, F
         }
 
         Entity->AnimationState = AnimationState;
+        Entity->UpdateAnimationFromNetwork(Speed, AnimationState);
     }
     else if (EntityClass)
     {
@@ -95,6 +96,7 @@ void ATOSPlayerController::HandleUpdateEntity(int32 EntityId, FVector Positon, F
         {
             NewEntity->EntityId = EntityId;
             NewEntity->AnimationState = AnimationState;
+            NewEntity->UpdateAnimationFromNetwork(Speed, AnimationState);
             SpawnedEntities.Add(EntityId, NewEntity);
         }
     }

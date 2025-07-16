@@ -43,6 +43,7 @@ public partial struct Entity
     public FVector Position;
     public FRotator Rotation;
     public uint AnimState;
+    public float Speed;
 
     //AIO Control
     public uint WorldId;
@@ -262,6 +263,26 @@ public static class EntityManager
             throw new KeyNotFoundException($"Entity with ID {id} not found");
 
         return ref entityRef;
+    }
+
+    public static void CleanupSocket(UDPSocket socket)
+    {
+        if (socket == null)
+            return;
+
+        List<uint> removeIds = new();
+
+        foreach (var pair in _entities)
+        {
+            if (pair.Value.Socket == socket)
+                removeIds.Add(pair.Key);
+        }
+
+        foreach (var id in removeIds)
+        {
+            Remove(id);
+            EntitySocketMap.Unbind(id);
+        }
     }
 }
 

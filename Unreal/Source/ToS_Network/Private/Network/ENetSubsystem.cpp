@@ -47,7 +47,7 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
                 {
                     FUpdateEntityPacket fUpdateEntity = FUpdateEntityPacket();
                     fUpdateEntity.Deserialize(Buffer);
-                    OnUpdateEntity.Broadcast(fUpdateEntity.EntityId, fUpdateEntity.Positon, fUpdateEntity.Rotator, fUpdateEntity.AnimationState, fUpdateEntity.Flags);
+                    OnUpdateEntity.Broadcast(fUpdateEntity.EntityId, fUpdateEntity.Positon, fUpdateEntity.Rotator, fUpdateEntity.Speed, fUpdateEntity.AnimationState, fUpdateEntity.Flags);
                     break;
                 }
                 case EServerPackets::RemoveEntity:
