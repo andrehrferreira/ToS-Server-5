@@ -62,5 +62,33 @@ public partial class PlayerController
 
             return null;
         }
-    } 
+    }
+
+    public void Update()
+    {
+        if (!EntityManager.TryGet(EntityId, out var entity))
+            return;
+
+        var neighbours = EntityManager.GetNearestEntities(EntityId);
+
+        if (neighbours.Count == 0)
+            return;
+
+        var packet = new UpdateEntityPacket
+        {
+            EntityId = entity.Id,
+            Positon = entity.Position,
+            Rotator = entity.Rotation,
+            AnimationState = (ushort)entity.AnimState,
+            Flags = (uint)entity.Flags
+        };
+
+        foreach (var other in neighbours)
+        {
+            if (EntitySocketMap.TryGet(other.Id, out var socket))
+            {
+                socket.Send(packet);
+            }
+        }
+    }
 }

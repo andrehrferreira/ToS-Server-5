@@ -23,6 +23,7 @@ public class World : IDisposable
 
     private AOIGridConfig _aoiConfig = new AOIGridConfig();
     private Dictionary<(int, int, int), List<uint>> _aoiGrid = new();
+    private ConcurrentDictionary<uint, PlayerController> _players = new();
 
     public static ConcurrentDictionary<uint, World> Worlds = new ConcurrentDictionary<uint, World>();
 
@@ -112,6 +113,17 @@ public class World : IDisposable
         //_entityPool.Create(entity.Id, );
     }
 
+    public void AddPlayer(PlayerController player)
+    {
+        if (player != null)
+            _players[player.EntityId] = player;
+    }
+
+    public void RemovePlayer(uint entityId)
+    {
+        _players.TryRemove(entityId, out _);
+    }
+
     public void RemoveEntity(uint id)
     {
         if (!_entityPool.IsActive(id)) 
@@ -182,6 +194,11 @@ public class World : IDisposable
                     entity.LastPosition = entity.Position;
                 }
             }
+        }
+
+        foreach (var player in _players.Values)
+        {
+            player.Update();
         }
     }
 

@@ -60,7 +60,6 @@ class Program
 
             var map = World.GetOrCreate("Sample2");
 
-            Entity entity;
             PlayerController controller;
 
             if(!PlayerController.TryGet(socket.Id, out controller))
@@ -69,10 +68,7 @@ class Program
                 PlayerController.Add(socket.Id, controller);
             }
 
-            if (!map.TryGetEntity(socket.Id, out entity))
-            {
-                //map.
-            }
+            map.AddPlayer(controller);
 
             return false;
         }, new UDPServerOptions()
