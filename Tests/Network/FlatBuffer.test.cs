@@ -104,9 +104,9 @@ namespace Tests
 
                     buffer.Reset();
 
-                    int value1 = buffer.ReadInt();
-                    int value2 = buffer.ReadInt();
-                    int value3 = buffer.ReadInt();
+                    int value1 = buffer.Read<int>();
+                    int value2 = buffer.Read<int>();
+                    int value3 = buffer.Read<int>();
 
                     Expect(value1).ToBe(42);
                     Expect(value2).ToBe(-42);
@@ -168,7 +168,7 @@ namespace Tests
                         buffer.Reset();
                         buffer.Write(value);    // Uses ZigZag encoding
                         buffer.Reset();
-                        int result = buffer.ReadInt();  // Uses ZigZag decoding
+                        int result = buffer.Read<int>();  // Uses ZigZag decoding
                         Expect(result).ToBe(value);
                     }
                 });
@@ -184,7 +184,7 @@ namespace Tests
                         buffer.Reset();
                         buffer.Write(value);    // Uses VarInt encoding
                         buffer.Reset();
-                        uint result = buffer.ReadUInt();  // Uses VarInt decoding
+                        uint result = buffer.Read<uint>();  // Uses VarInt decoding
                         Expect(result).ToBe(value);
                     }
                 });
@@ -200,7 +200,7 @@ namespace Tests
                         buffer.Reset();
                         buffer.Write(value);    // Uses ZigZag encoding
                         buffer.Reset();
-                        long result = buffer.ReadLong();  // Uses ZigZag decoding
+                        long result = buffer.Read<long>();  // Uses ZigZag decoding
                         Expect(result).ToBe(value);
                     }
                 });
@@ -633,7 +633,7 @@ namespace Tests
                         buffer.Reset();
                         buffer.Write(value);    // Uses ZigZag encoding
                         buffer.Reset();
-                        short result = buffer.ReadShort();  // Uses ZigZag decoding
+                        short result = buffer.Read<short>();  // Uses ZigZag decoding
                         Expect(result).ToBe(value);
                     }
                 });
@@ -649,7 +649,7 @@ namespace Tests
                         buffer.Reset();
                         buffer.Write(value);    // Uses direct write
                         buffer.Reset();
-                        ushort result = buffer.ReadUShort();  // Uses direct read
+                        ushort result = buffer.Read<ushort>();  // Uses direct read
                         Expect(result).ToBe(value);
                     }
                 });
@@ -694,7 +694,7 @@ namespace Tests
 
                     buffer.Write(original);
                     buffer.Reset();
-                    long result = buffer.ReadLong();
+                    long result = buffer.Read<long>();
 
                     Console.WriteLine($"Original: {original}, ReadBack: {result}");
 

@@ -1,4 +1,4 @@
-﻿
+
 namespace Packets.Handler
 {
     public class SyncEntity : PacketHandler
@@ -10,9 +10,9 @@ namespace Packets.Handler
             SyncEntityPacket syncEntityPacket = new SyncEntityPacket();
             syncEntityPacket.Deserialize(ref buffer);
 
-            ctrl.Entity?.Move(syncEntityPacket.Positon);
-            ctrl.Entity?.Rotate(syncEntityPacket.Rotator);
-            ctrl.Entity?.SetAnimState(syncEntityPacket.AnimationState);
+            ctrl.Entity.Move(syncEntityPacket.Positon);
+            ctrl.Entity.Rotate(syncEntityPacket.Rotator);
+            ctrl.Entity.SetAnimState(syncEntityPacket.AnimationState);
         }
     }
 }

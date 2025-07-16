@@ -35,7 +35,7 @@ class TOS_NETWORK_API UFlatBuffer : public UObject
 
 public:
 	UFUNCTION(BlueprintPure, Category = "FlatBuffer")
-        static UFlatBuffer* CreateFlatBuffer(int32 Capacity = 1500);
+    static UFlatBuffer* CreateFlatBuffer(int32 Capacity = 1500);
 
 	UFUNCTION(BlueprintPure, Category = "FlatBuffer")
 	static UFlatBuffer* CreateFromData(const TArray<uint8>& Data);

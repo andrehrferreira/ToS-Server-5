@@ -44,7 +44,7 @@ public partial class PlayerController
         entity.Flags = EntityState.None;
         entity.Name = name;
         entity.Position = new FVector(0, 0, 0);
-        entity.Rotation = new FRotator(0, 0, 0);    
+        entity.Rotation = new FRotator(0, 0, 0);
         entity.AnimState = 0;
 
         // AccountId vem no token
@@ -54,14 +54,11 @@ public partial class PlayerController
         EntityManager.Add(entity);
     }
 
-    public Entity? Entity
+    public ref Entity Entity
     {
         get
         {
-            if (EntityManager.TryGet(EntityId, out var entity))
-                return entity;
-
-            return null;
+            return ref EntityManager.TryGetRef(EntityId, out _);
         }
     }
 

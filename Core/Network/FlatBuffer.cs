@@ -140,30 +140,6 @@ public unsafe struct FlatBuffer : IDisposable
         return val;
     }
 
-    public void Write(int value)
-        => WriteVarUInt(EncodeZigZag(value));
-
-    public int ReadInt()
-    {
-        uint raw = ReadVarUInt();
-        return DecodeZigZag(raw);
-    }
-
-    public void Write(uint value)
-        => WriteVarUInt(value);
-
-    public uint ReadUInt()
-        => ReadVarUInt();
-
-    public void Write(long value)
-        => WriteVarULong(EncodeZigZag(value));
-
-    public long ReadLong()
-    {
-        ulong raw = ReadVarULong();
-        return DecodeZigZag(raw);
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteByteDirect(byte value)
     {
@@ -314,54 +290,6 @@ public unsafe struct FlatBuffer : IDisposable
         return result;
     }
 
-    public void Write(ulong value)
-        => WriteVarULong(value);
-
-    public ulong ReadULong()
-        => ReadVarULong();
-
-    public void Write(short value)
-    {
-        ushort encoded = (ushort)EncodeZigZag(value);
-        int size = sizeof(ushort);
-
-        if (_offset + size > _capacity)
-            return;
-
-        *(ushort*)(_ptr + _offset) = encoded;
-        _offset += size;
-    }
-
-    public short ReadShort()
-    {
-        ushort raw = ReadUShort();
-        return (short)DecodeZigZag(raw);
-    }
-
-    public void Write(ushort value)
-    {
-        int size = sizeof(ushort);
-
-        if (_offset + size > _capacity)
-            return;
-
-        *(ushort*)(_ptr + _offset) = value;
-        _offset += size;
-    }
-
-    public ushort ReadUShort()
-    {
-        int size = sizeof(ushort);
-
-        if (_offset + size > _capacity)
-            throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {size}");
-
-        ushort val = *(ushort*)(_ptr + _offset);
-        _offset += size;
-
-        return val;
-    }
-
     public void Write(FVector value, float factor = 0.1f)
     {
         Write<short>((short)MathF.Round(value.X / factor));
@@ -495,7 +423,7 @@ public unsafe struct FlatBuffer : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string ReadAsciiString()
     {
-        int length = ReadInt();
+        int length = Read<int>();
 
         if (_offset + length > _capacity)
             throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {length}");
@@ -537,7 +465,7 @@ public unsafe struct FlatBuffer : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string ReadUtf8String()
     {
-        int length = ReadInt();
+        int length = Read<int>();
 
         if (_offset + length > _capacity)
             throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {length}");

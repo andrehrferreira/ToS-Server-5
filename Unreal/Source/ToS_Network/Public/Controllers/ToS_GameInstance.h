@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "Network/ENetSubsystem.h"
+#include "Entities/SyncEntity.h"
+#include "Entities/SyncPlayer.h"
 #include "Tos_GameInstance.generated.h"
 
 class ATOSPlayerController;
@@ -30,6 +32,12 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Network")
     int32 ServerPort = 3565;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Entities")
+    TSubclassOf<ASyncEntity> EntityClass;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Entities")
+    TSubclassOf<ASyncPlayer> PlayerClass;
 
 private:
     UPROPERTY()

@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 [Flags]
 public enum EntityState : uint
@@ -78,9 +79,9 @@ public partial struct Entity
     public UDPSocket Socket {
         get
         {
-            if (EntitySocketMap.TryGet(Id, out var socket))            
+            if (EntitySocketMap.TryGet(Id, out var socket))
                 return socket;
-            
+
             return null;
         }
         set
@@ -178,8 +179,10 @@ public static class EntitySocketMap
 
 public static class EntityManager
 {
-    private static readonly ConcurrentDictionary<uint, Entity> _entities = new();
-    private static readonly ConcurrentDictionary<uint, Entity> _snapshot = new();
+    private static readonly Dictionary<uint, Entity> _entities = new();
+    private static readonly Dictionary<uint, Entity> _snapshot = new();
+    private static readonly object _lock = new();
+    private static Entity NullEntity;
 
     public static void Add(Entity entity)
     {
@@ -203,7 +206,10 @@ public static class EntityManager
 
     public static void Remove(uint id)
     {
-        _entities.TryRemove(id, out _);
+        lock (_lock)
+        {
+            _entities.Remove(id);
+        }
     }
 
     public static List<Entity> GetNearestEntities(uint id, float maxDistance = 5000f, int maxResults = 100)
@@ -211,7 +217,7 @@ public static class EntityManager
         if (!TryGet(id, out var originEntity))
             return new List<Entity>();
 
-        var originPos = originEntity.Position; 
+        var originPos = originEntity.Position;
 
         var nearbyEntities = new List<(Entity entity, float distance)>(maxResults);
 
@@ -223,7 +229,7 @@ public static class EntityManager
             var target = pair.Value;
             var distanceSquared = (target.Position - originPos).SizeSquared();
 
-            if (distanceSquared <= maxDistance * maxDistance)            
+            if (distanceSquared <= maxDistance * maxDistance)
                 nearbyEntities.Add((target, distanceSquared));
         }
 
@@ -232,6 +238,30 @@ public static class EntityManager
             .Take(maxResults)
             .Select(e => e.entity)
             .ToList();
+    }
+
+    public static ref Entity TryGetRef(uint id, out bool found)
+    {
+        ref var entityRef = ref CollectionsMarshal.GetValueRefOrNullRef(_entities, id);
+
+        if (Unsafe.IsNullRef(ref entityRef))
+        {
+            found = false;
+            return ref NullEntity;
+        }
+
+        found = true;
+        return ref entityRef;
+    }
+
+    public static ref Entity GetRef(uint id)
+    {
+        ref var entityRef = ref CollectionsMarshal.GetValueRefOrNullRef(_entities, id);
+
+        if (Unsafe.IsNullRef(ref entityRef))
+            throw new KeyNotFoundException($"Entity with ID {id} not found");
+
+        return ref entityRef;
     }
 }
 

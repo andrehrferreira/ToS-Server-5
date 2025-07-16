@@ -1,5 +1,5 @@
 #include "Controllers/ToS_PlayerController.h"
-#include "Tos_GameInstance.h"
+#include "Controllers/ToS_GameInstance.h"
 #include "Engine/World.h"
 
 void ATOSPlayerController::BeginPlay()
@@ -9,7 +9,16 @@ void ATOSPlayerController::BeginPlay()
     if (UTOSGameInstance* GI = GetGameInstance<UTOSGameInstance>())
     {
         GI->OnPlayerControllerReady(this);
+		EntityClass = GI->EntityClass;
+        PlayerClass = GI->PlayerClass;
     }
+    else
+    {
+        EntityClass = nullptr;
+		PlayerClass = nullptr;
+    }
+
+    bIsReadyToSync = true;
 }
 
 ASyncEntity* ATOSPlayerController::GetEntityById(int32 Id)
@@ -24,6 +33,8 @@ ASyncEntity* ATOSPlayerController::GetEntityById(int32 Id)
 
 void ATOSPlayerController::HandleCreateEntity(int32 EntityId, FVector Positon, FRotator Rotator, int32 Flags)
 {
+    if (!bIsReadyToSync) return;
+
     if (!EntityClass) return;
 
     UWorld* World = GetWorld();
@@ -43,16 +54,22 @@ void ATOSPlayerController::HandleCreateEntity(int32 EntityId, FVector Positon, F
 
 void ATOSPlayerController::HandleUpdateEntity(int32 EntityId, FVector Positon, FRotator Rotator, int32 AnimationState, int32 Flags)
 {
+    if (!bIsReadyToSync) return;
+
     if (ASyncEntity** Found = SpawnedEntities.Find(EntityId))
     {
         ASyncEntity* Entity = *Found;
+
+        if (!Entity)
+			return;
+
         if (UWorld* World = GetWorld())
         {
             float Delta = World->GetDeltaSeconds();
-            FVector NewLocation = FMath::VInterpTo(Entity->GetActorLocation(), Positon, Delta, 10.f);
-            FRotator NewRotation = FMath::RInterpTo(Entity->GetActorRotation(), Rotator, Delta, 10.f);
-            Entity->SetActorLocation(NewLocation);
-            Entity->SetActorRotation(NewRotation);
+            //FVector NewLocation = FMath::VInterpTo(Entity->GetActorLocation(), Positon, Delta, 10.f);
+            //FRotator NewRotation = FMath::RInterpTo(Entity->GetActorRotation(), Rotator, Delta, 10.f);
+            Entity->SetActorLocation(Positon);
+            Entity->SetActorRotation(Rotator);
         }
         else
         {
@@ -65,13 +82,14 @@ void ATOSPlayerController::HandleUpdateEntity(int32 EntityId, FVector Positon, F
     else if (EntityClass)
     {
         UWorld* World = GetWorld();
+
         if (!World)
             return;
 
         FActorSpawnParameters Params;
         Params.Owner = nullptr;
         Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-        ASyncEntity* NewEntity = World->SpawnActor<ASyncEntity>(EntityClass, Positon, Rotator, Params);
+        auto NewEntity = World->SpawnActor<ASyncEntity>(EntityClass, Positon, Rotator, Params);
 
         if (NewEntity)
         {
@@ -84,6 +102,8 @@ void ATOSPlayerController::HandleUpdateEntity(int32 EntityId, FVector Positon, F
 
 void ATOSPlayerController::HandleRemoveEntity(int32 EntityId)
 {
+    if (!bIsReadyToSync) return;
+
     if (ASyncEntity* const* Found = SpawnedEntities.Find(EntityId))
     {
         ASyncEntity* Entity = *Found;

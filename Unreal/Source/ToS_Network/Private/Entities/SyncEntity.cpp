@@ -1,6 +1,6 @@
 #include "Entities/SyncEntity.h"
 #include "Network/ENetSubsystem.h"
-#include "Tos_GameInstance.h"
+#include "Controllers/ToS_GameInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/AnimInstance.h"
 

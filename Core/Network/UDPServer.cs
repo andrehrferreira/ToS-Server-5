@@ -575,10 +575,15 @@ public sealed class UDPServer
     {
         if (length > 0 && socket != null)
         {
+            AddSignature(buffer._ptr, length, out int newLength);
+
+            if (newLength != length)
+                buffer.Resize(newLength);
+
             var packet = new SendPacket
             {
                 Buffer = buffer.Data,
-                Length = length,
+                Length = newLength,
                 Address = socket.RemoteAddress,
                 Pooled = true
             };

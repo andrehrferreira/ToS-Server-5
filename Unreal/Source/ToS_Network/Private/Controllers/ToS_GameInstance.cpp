@@ -1,6 +1,7 @@
-#include "Tos_GameInstance.h"
-#include "Controllers/Tos_PlayerController.h"
+#include "Controllers/ToS_GameInstance.h"
+#include "Controllers/ToS_PlayerController.h"
 #include "Engine/World.h"
+#include "Async/Async.h"
 
 static bool bENetInitialized = false;
 
@@ -50,31 +51,50 @@ void UTOSGameInstance::OnStart()
         bENetInitialized = true;
 
         if (!Socket->IsConnected() && Socket->GetConnectionStatus() != EConnectionStatus::Connecting && ServerAutoConnect)
+        {
             Socket->Connect(ServerIP, ServerPort);
+        }
     }
 }
 
 void UTOSGameInstance::HandleCreateEntity(int32 EntityId, FVector Positon, FRotator Rotator, int32 Flags)
 {
-    if (PlayerController)
+    if (!PlayerController)
+        return;
+
+    AsyncTask(ENamedThreads::GameThread, [this, EntityId, Positon, Rotator, Flags]()
     {
-        PlayerController->HandleCreateEntity(EntityId, Positon, Rotator, Flags);
-    }
+        if (PlayerController)
+        {
+            PlayerController->HandleCreateEntity(EntityId, Positon, Rotator, Flags);
+        }
+    });
 }
 
 void UTOSGameInstance::HandleUpdateEntity(int32 EntityId, FVector Positon, FRotator Rotator, int32 AnimationState, int32 Flags)
 {
-    if (PlayerController)
+    if (!PlayerController)
+        return;
+
+    AsyncTask(ENamedThreads::GameThread, [this, EntityId, Positon, Rotator, AnimationState, Flags]()
     {
-        PlayerController->HandleUpdateEntity(EntityId, Positon, Rotator, AnimationState, Flags);
-    }
+        if (PlayerController)
+        {
+            PlayerController->HandleUpdateEntity(EntityId, Positon, Rotator, AnimationState, Flags);
+        }
+    });
 }
 
 void UTOSGameInstance::HandleRemoveEntity(int32 EntityId)
 {
-    if (PlayerController)
-    {
-        PlayerController->HandleRemoveEntity(EntityId);
-    }
-}
+    if (!PlayerController)
+        return;
 
+    AsyncTask(ENamedThreads::GameThread, [this, EntityId]()
+    {
+        if (PlayerController)
+        {
+            PlayerController->HandleRemoveEntity(EntityId);
+        }
+    });
+}
