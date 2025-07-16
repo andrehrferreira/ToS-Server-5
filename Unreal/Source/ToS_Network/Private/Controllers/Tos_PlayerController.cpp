@@ -1,5 +1,16 @@
 #include "Controllers/ToS_PlayerController.h"
+#include "Tos_GameInstance.h"
 #include "Engine/World.h"
+
+void ATOSPlayerController::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (UTOSGameInstance* GI = GetGameInstance<UTOSGameInstance>())
+    {
+        GI->OnPlayerControllerReady(this);
+    }
+}
 
 ASyncEntity* ATOSPlayerController::GetEntityById(int32 Id)
 {

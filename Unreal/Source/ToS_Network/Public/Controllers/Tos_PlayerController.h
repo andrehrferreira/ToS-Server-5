@@ -32,5 +32,8 @@ public:
 
     UFUNCTION()
     void HandleRemoveEntity(int32 EntityId);
+
+protected:
+    virtual void BeginPlay() override;
 };
 

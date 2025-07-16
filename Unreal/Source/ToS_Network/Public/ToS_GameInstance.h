@@ -17,6 +17,8 @@ public:
     virtual void OnStart() override;
     virtual void Shutdown() override;
 
+    void OnPlayerControllerReady(ATOSPlayerController* Controller);
+
     UFUNCTION(BlueprintImplementableEvent, Category = "GameInstance")
     void OnGameInstanceStarted();
 
@@ -30,6 +32,9 @@ public:
     int32 ServerPort = 3565;
 
 private:
+    UPROPERTY()
+    ATOSPlayerController* PlayerController = nullptr;
+
     UFUNCTION()
     void HandleCreateEntity(int32 EntityId, FVector Positon, FRotator Rotator, int32 Flags);
 
