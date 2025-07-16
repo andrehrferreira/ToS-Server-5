@@ -4,6 +4,11 @@
 
 static bool bENetInitialized = false;
 
+void UTOSGameInstance::OnPlayerControllerReady(ATOSPlayerController* Controller)
+{
+    PlayerController = Controller;
+}
+
 void UTOSGameInstance::Init()
 {
     Super::Init();
@@ -51,34 +56,25 @@ void UTOSGameInstance::OnStart()
 
 void UTOSGameInstance::HandleCreateEntity(int32 EntityId, FVector Positon, FRotator Rotator, int32 Flags)
 {
-    if (UWorld* World = GetWorld())
+    if (PlayerController)
     {
-        if (ATOSPlayerController* PlayerController = Cast<ATOSPlayerController>(World->GetFirstPlayerController()))
-        {
-            PlayerController->HandleCreateEntity(EntityId, Positon, Rotator, Flags);
-        }
+        PlayerController->HandleCreateEntity(EntityId, Positon, Rotator, Flags);
     }
 }
 
 void UTOSGameInstance::HandleUpdateEntity(int32 EntityId, FVector Positon, FRotator Rotator, int32 AnimationState, int32 Flags)
 {
-    if (UWorld* World = GetWorld())
+    if (PlayerController)
     {
-        if (ATOSPlayerController* PlayerController = Cast<ATOSPlayerController>(World->GetFirstPlayerController()))
-        {
-            PlayerController->HandleUpdateEntity(EntityId, Positon, Rotator, AnimationState, Flags);
-        }
+        PlayerController->HandleUpdateEntity(EntityId, Positon, Rotator, AnimationState, Flags);
     }
 }
 
 void UTOSGameInstance::HandleRemoveEntity(int32 EntityId)
 {
-    if (UWorld* World = GetWorld())
+    if (PlayerController)
     {
-        if (ATOSPlayerController* PlayerController = Cast<ATOSPlayerController>(World->GetFirstPlayerController()))
-        {
-            PlayerController->HandleRemoveEntity(EntityId);
-        }
+        PlayerController->HandleRemoveEntity(EntityId);
     }
 }
 
