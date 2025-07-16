@@ -4,7 +4,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Entities/SyncEntity.h"
 #include "Entities/SyncPlayer.h"
-#include "Tos_PlayerController.generated.h"
+#include "ToS_PlayerController.generated.h"
 
 UCLASS()
 class TOS_NETWORK_API ATOSPlayerController : public APlayerController

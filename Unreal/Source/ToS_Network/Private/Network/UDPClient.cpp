@@ -179,9 +179,6 @@ void UDPClient::PollIncomingPackets()
                 UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(BytesRead);
                 Buffer->CopyFromMemory(ReceivedData.GetData(), BytesRead);
 
-                if (OnDataReceive)
-                    OnDataReceive(Buffer);
-                
                 EPacketType PacketType = static_cast<EPacketType>(Buffer->ReadByte());
 
                 switch(PacketType)

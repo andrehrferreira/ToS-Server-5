@@ -17,7 +17,6 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     {
         if (Buffer)
         {
-            EPacketType PacketType = static_cast<EPacketType>(Buffer->ReadByte());
             EServerPackets ServerPacketType = static_cast<EServerPackets>(Buffer->ReadInt16());
 
             switch (ServerPacketType) {
