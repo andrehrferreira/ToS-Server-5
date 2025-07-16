@@ -3,14 +3,14 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "Network/ENetSubsystem.h"
-#include "Entities/SyncEntity.h"
-#include "Entities/SyncPlayer.h"
 #include "Tos_GameInstance.generated.h"
+
+class ATOSGameMode;
 
 UCLASS()
 class TOS_NETWORK_API UTOSGameInstance : public UGameInstance
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
     virtual void Init() override;
@@ -29,18 +29,6 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Network")
     int32 ServerPort = 3565;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Entities")
-    TSubclassOf<ASyncEntity> EntityClass;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Entities")
-    TSubclassOf<ASyncPlayer> PlayerClass;
-
-    UPROPERTY(BlueprintReadOnly, Category = "Entities")
-    TMap<int32, ASyncEntity*> SpawnedEntities;
-
-    UFUNCTION(BlueprintCallable, Category = "Entities")
-    ASyncEntity* GetEntityById(int32 Id);
-
 private:
     UFUNCTION()
     void HandleCreateEntity(int32 EntityId, FVector Positon, FRotator Rotator, int32 Flags);
@@ -51,3 +39,4 @@ private:
     UFUNCTION()
     void HandleRemoveEntity(int32 EntityId);
 };
+
