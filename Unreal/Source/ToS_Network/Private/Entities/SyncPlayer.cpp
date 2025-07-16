@@ -132,6 +132,7 @@ void ASyncPlayer::SendSyncToServer()
         return;
 
     LastSyncHash = CurrentHash;
-    NetSubsystem->SendEntitySync(Position, Rotation, AnimID);
+    const float Speed = GetVelocity().Size2D();
+    NetSubsystem->SendEntitySync(Position, Rotation, AnimID, Speed);
 }
 

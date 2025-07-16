@@ -136,13 +136,14 @@ bool UENetSubsystem::IsRetryEnabled() const
     return UdpClient ? UdpClient->IsRetryEnabled() : false;
 }
 
-void UENetSubsystem::SendEntitySync(FVector Position, FRotator Rotation, int32 AnimID) const
+void UENetSubsystem::SendEntitySync(FVector Position, FRotator Rotation, int32 AnimID, uint32 Speed) const
 {
-    UFlatBuffer* syncBuffer = UFlatBuffer::CreateFlatBuffer(21);
+    UFlatBuffer* syncBuffer = UFlatBuffer::CreateFlatBuffer(29);
     FSyncEntityPacket syncPacket = FSyncEntityPacket();
     syncPacket.Positon = Position;
     syncPacket.Rotator = Rotation;
     syncPacket.AnimationState = AnimID;
+    syncPacket.Speed = Speed;
     syncPacket.Serialize(syncBuffer);
 
     if (UdpClient)

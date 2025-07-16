@@ -43,7 +43,7 @@ public partial struct Entity
     public FVector Position;
     public FRotator Rotation;
     public uint AnimState;
-    public float Speed;
+    public uint Speed;
 
     //AIO Control
     public uint WorldId;
@@ -140,6 +140,15 @@ public partial struct Entity
 
         Snapshot();
         AnimState = animState;
+    }
+
+    public void SetSpeed(uint speed)
+    {
+        if (speed == Speed)
+            return;
+
+        Snapshot();
+        Speed = speed;
     }
 
     public EntityDelta Delta()

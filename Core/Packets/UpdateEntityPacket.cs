@@ -6,13 +6,6 @@ public partial struct UpdateEntityPacket: INetworkPacket
 {
     public int Size => 29;
 
-    public uint EntityId;
-    public FVector Positon;
-    public FRotator Rotator;
-    public float Speed;
-    public ushort AnimationState;
-    public uint Flags;
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
@@ -32,7 +25,7 @@ public partial struct UpdateEntityPacket: INetworkPacket
         EntityId = buffer.Read<uint>();
         Positon = buffer.ReadFVector(0.1f);
         Rotator = buffer.ReadFRotator(0.1f);
-        Speed = buffer.Read<float>();
+        Speed = buffer.Read<uint>();
         AnimationState = buffer.Read<ushort>();
         Flags = buffer.Read<uint>();
     }

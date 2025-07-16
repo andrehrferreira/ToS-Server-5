@@ -52,11 +52,11 @@ void ATOSPlayerController::HandleCreateEntity(int32 EntityId, FVector Positon, F
     }
 }
 
-void ATOSPlayerController::HandleUpdateEntity(int32 EntityId, FVector Positon, FRotator Rotator, float Speed, int32 AnimationState, int32 Flags)
+void ATOSPlayerController::HandleUpdateEntity(FUpdateEntityPacket data)
 {
     if (!bIsReadyToSync) return;
 
-    if (ASyncEntity** Found = SpawnedEntities.Find(EntityId))
+    if (ASyncEntity** Found = SpawnedEntities.Find(data.EntityId))
     {
         ASyncEntity* Entity = *Found;
 
@@ -66,19 +66,17 @@ void ATOSPlayerController::HandleUpdateEntity(int32 EntityId, FVector Positon, F
         if (UWorld* World = GetWorld())
         {
             float Delta = World->GetDeltaSeconds();
-            //FVector NewLocation = FMath::VInterpTo(Entity->GetActorLocation(), Positon, Delta, 10.f);
-            //FRotator NewRotation = FMath::RInterpTo(Entity->GetActorRotation(), Rotator, Delta, 10.f);
-            Entity->SetActorLocation(Positon);
-            Entity->SetActorRotation(Rotator);
+            Entity->SetActorLocation(data.Positon);
+            Entity->SetActorRotation(data.Rotator);
         }
         else
         {
-            Entity->SetActorLocation(Positon);
-            Entity->SetActorRotation(Rotator);
+            Entity->SetActorLocation(data.Positon);
+            Entity->SetActorRotation(data.Rotator);
         }
 
-        Entity->AnimationState = AnimationState;
-        Entity->UpdateAnimationFromNetwork(Speed, AnimationState);
+        Entity->AnimationState = data.AnimationState;
+        Entity->UpdateAnimationFromNetwork(data.Speed, data.AnimationState);
     }
     else if (EntityClass)
     {
@@ -90,14 +88,14 @@ void ATOSPlayerController::HandleUpdateEntity(int32 EntityId, FVector Positon, F
         FActorSpawnParameters Params;
         Params.Owner = nullptr;
         Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-        auto NewEntity = World->SpawnActor<ASyncEntity>(EntityClass, Positon, Rotator, Params);
+        auto NewEntity = World->SpawnActor<ASyncEntity>(EntityClass, data.Positon, data.Rotator, Params);
 
         if (NewEntity)
         {
-            NewEntity->EntityId = EntityId;
-            NewEntity->AnimationState = AnimationState;
-            NewEntity->UpdateAnimationFromNetwork(Speed, AnimationState);
-            SpawnedEntities.Add(EntityId, NewEntity);
+            NewEntity->EntityId = data.EntityId;
+            NewEntity->AnimationState = data.AnimationState;
+            NewEntity->UpdateAnimationFromNetwork(data.Speed, data.AnimationState);
+            SpawnedEntities.Add(data.EntityId, NewEntity);
         }
     }
 }

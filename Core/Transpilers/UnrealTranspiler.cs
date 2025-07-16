@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using System.Text;
 
@@ -364,7 +364,7 @@ public class UnrealTranspiler : AbstractTranspiler
                 }
                 else
                 {
-                    result.AppendLine($"    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(F{packet}Handler, F{packet}, Data);");
+                    result.AppendLine($"    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(F{packet}Handler, F{packet}Packet, Data);");
                 }
             }                
         }
@@ -494,7 +494,7 @@ public class UnrealTranspiler : AbstractTranspiler
                 {
                     switchBuilder.AppendLine($"                    F{packet}Packet f{packet} = F{packet}Packet();");
                     switchBuilder.AppendLine($"                    f{packet}.Deserialize(Buffer);");
-                    switchBuilder.AppendLine($"                    On{packet}.Broadcast(Data);");
+                    switchBuilder.AppendLine($"                    On{packet}.Broadcast(f{packet});");
                 }
 
                 switchBuilder.AppendLine("                    break;");

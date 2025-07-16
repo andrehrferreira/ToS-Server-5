@@ -28,20 +28,20 @@ void ASyncEntity::BeginPlay()
 
 void ASyncEntity::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-        if (GetWorld())
-                GetWorld()->GetTimerManager().ClearTimer(NetSyncTimerHandle);
+    if (GetWorld())
+		GetWorld()->GetTimerManager().ClearTimer(NetSyncTimerHandle);
 
-        Super::EndPlay(EndPlayReason);
+    Super::EndPlay(EndPlayReason);
 }
 
-void ASyncEntity::UpdateAnimationFromNetwork(float Speed, uint32 AnimationState)
+void ASyncEntity::UpdateAnimationFromNetwork(uint32 Speed, uint32 Animation)
 {
-        if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
-        {
-                FVector Forward = GetActorForwardVector() * Speed;
-                MoveComp->Velocity = Forward;
-        }
+    if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+    {
+        FVector Forward = GetActorForwardVector() * Speed;
+        MoveComp->Velocity = Forward;
+    }
 
-        this->AnimationState = static_cast<int32>(AnimationState);
-        SetSpeed(Speed);
+    this->AnimationState = static_cast<int32>(Animation);
+    SetSpeed(static_cast<float>(Speed));
 }

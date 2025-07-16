@@ -483,7 +483,7 @@ public sealed class UDPServer
 
                             if (signature == crc32c)
                             {
-                                PrintBuffer(data._ptr, len);
+                                //PrintBuffer(data._ptr, len);
                                 data.Resize(len - 4);
                                 conn.TimeoutLeft = 30f;
                                 ClientPackets clientPacket = (ClientPackets)data.Read<short>();

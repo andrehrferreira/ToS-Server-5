@@ -22,7 +22,7 @@ struct FUpdateEntityPacket
     FRotator Rotator;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float Speed;
+    int32 Speed;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 AnimationState;
@@ -38,7 +38,7 @@ struct FUpdateEntityPacket
         EntityId = static_cast<int32>(Buffer->Read<uint32>());
         Positon = Buffer->Read<FVector>();
         Rotator = Buffer->Read<FRotator>();
-        Speed = Buffer->Read<float>();
+        Speed = static_cast<int32>(Buffer->Read<uint32>());
         AnimationState = static_cast<int32>(Buffer->Read<uint16>());
         Flags = static_cast<int32>(Buffer->Read<uint32>());
     }

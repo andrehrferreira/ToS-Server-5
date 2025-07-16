@@ -47,7 +47,7 @@ private:
     void HandleCreateEntity(int32 EntityId, FVector Positon, FRotator Rotator, int32 Flags);
 
     UFUNCTION()
-    void HandleUpdateEntity(int32 EntityId, FVector Positon, FRotator Rotator, float Speed, int32 AnimationState, int32 Flags);
+    void HandleUpdateEntity(FUpdateEntityPacket data);
 
     UFUNCTION()
     void HandleRemoveEntity(int32 EntityId);

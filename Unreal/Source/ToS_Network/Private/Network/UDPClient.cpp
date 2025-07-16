@@ -205,8 +205,8 @@ void UDPClient::PollIncomingPackets()
                     }
                     case EPacketType::Reliable:
                     {
-                        uint16 Seq = Buffer->ReadUInt16();
-                        SendAck(Seq);
+                        //uint16 Seq = Buffer->ReadUInt16();
+                        //SendAck(Seq);
 
                         if (OnDataReceive)
                             OnDataReceive(Buffer);

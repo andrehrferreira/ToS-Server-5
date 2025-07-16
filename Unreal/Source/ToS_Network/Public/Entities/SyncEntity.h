@@ -12,19 +12,17 @@ class TOS_NETWORK_API ASyncEntity : public ACharacter
 	GENERATED_BODY()
 
 public:
-        ASyncEntity();
+    ASyncEntity();
 
-        UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Entity)
-        int32 EntityId;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Entity)
+    int32 EntityId;
 
-        UPROPERTY(BlueprintReadWrite, Category = Entity)
-        int32 AnimationState = 0;
+    void UpdateAnimationFromNetwork(uint32 Speed, uint32 Animation);
 
-        UFUNCTION(BlueprintCallable, Category = "Network")
-        void UpdateAnimationFromNetwork(float Speed, uint32 AnimationState);
+    UFUNCTION(BlueprintImplementableEvent, Category = "Network")
+    void SetSpeed(float Speed);
 
-        UFUNCTION(BlueprintImplementableEvent, Category = "Network")
-        void SetSpeed(float Speed);
+	int32 AnimationState = 0;
 
 protected:
 	virtual void BeginPlay() override;

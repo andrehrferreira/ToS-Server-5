@@ -61,7 +61,7 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnConnectDenied);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FBenchmarkHandler, int32, Id, FVector, Positon, FRotator, Rotator);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FCreateEntityHandler, int32, EntityId, FVector, Positon, FRotator, Rotator, int32, Flags);
-    DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FUpdateEntityHandler, int32, EntityId, FVector, Positon, FRotator, Rotator, float, Speed, int32, AnimationState, int32, Flags);
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUpdateEntityHandler, FUpdateEntityPacket, Data);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRemoveEntityHandler, int32, EntityId);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FDeltaSyncHandler, int32, Index, uint8, EntitiesMask);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSyncStateIntHandler);
@@ -115,8 +115,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UDP")
 	bool IsRetryEnabled() const;
 
-    UFUNCTION(BlueprintCallable, Category = "UDP")
-    void SendEntitySync(FVector Position, FRotator Rotation, int32 AnimID) const;
+    void SendEntitySync(FVector Position, FRotator Rotation, int32 AnimID, uint32 Speed) const;
 
     UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnBenchmark", Keywords = "Server Events"), Category = "UDP")
     FBenchmarkHandler OnBenchmark;
