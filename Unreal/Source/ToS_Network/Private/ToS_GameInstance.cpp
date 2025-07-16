@@ -1,5 +1,5 @@
 #include "Tos_GameInstance.h"
-#include "Entities/SyncEntity.h"
+#include "Tos_GameMode.h"
 #include "Engine/World.h"
 
 static bool bENetInitialized = false;
@@ -29,8 +29,6 @@ void UTOSGameInstance::Shutdown()
         Socket->OnRemoveEntity.RemoveDynamic(this, &UTOSGameInstance::HandleRemoveEntity);
         Socket->Disconnect();
     }
-
-    SpawnedEntities.Empty();
 }
 
 void UTOSGameInstance::OnStart()
@@ -41,9 +39,9 @@ void UTOSGameInstance::OnStart()
 
     if (UENetSubsystem* Socket = GetSubsystem<UENetSubsystem>())
     {
-        if (bENetInitialized)        
+        if (bENetInitialized)
             return;
-        
+
         bENetInitialized = true;
 
         if (!Socket->IsConnected() && Socket->GetConnectionStatus() != EConnectionStatus::Connecting && ServerAutoConnect)
@@ -51,85 +49,36 @@ void UTOSGameInstance::OnStart()
     }
 }
 
-ASyncEntity* UTOSGameInstance::GetEntityById(int32 Id) 
-{
-    if (ASyncEntity** Found = SpawnedEntities.Find(Id))
-    {
-        return *Found;
-    }
-
-    return nullptr;
-}
-
 void UTOSGameInstance::HandleCreateEntity(int32 EntityId, FVector Positon, FRotator Rotator, int32 Flags)
 {
-    if (!EntityClass) return;
-
-    UWorld* World = GetWorld();
-    if (!World) return;
-
-    FActorSpawnParameters Params;
-    Params.Owner = nullptr;
-    Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-    ASyncEntity* NewEntity = World->SpawnActor<ASyncEntity>(EntityClass, Positon, Rotator, Params);
-
-    if (NewEntity)
+    if (UWorld* World = GetWorld())
     {
-        NewEntity->EntityId = EntityId;
-        SpawnedEntities.Add(EntityId, NewEntity);
+        if (ATOSGameMode* GameMode = Cast<ATOSGameMode>(World->GetAuthGameMode()))
+        {
+            GameMode->HandleCreateEntity(EntityId, Positon, Rotator, Flags);
+        }
     }
 }
 
 void UTOSGameInstance::HandleUpdateEntity(int32 EntityId, FVector Positon, FRotator Rotator, int32 AnimationState, int32 Flags)
 {
-    if (ASyncEntity** Found = SpawnedEntities.Find(EntityId))
+    if (UWorld* World = GetWorld())
     {
-        ASyncEntity* Entity = *Found;
-        if (UWorld* World = GetWorld())
+        if (ATOSGameMode* GameMode = Cast<ATOSGameMode>(World->GetAuthGameMode()))
         {
-            float Delta = World->GetDeltaSeconds();
-            FVector NewLocation = FMath::VInterpTo(Entity->GetActorLocation(), Positon, Delta, 10.f);
-            FRotator NewRotation = FMath::RInterpTo(Entity->GetActorRotation(), Rotator, Delta, 10.f);
-            Entity->SetActorLocation(NewLocation);
-            Entity->SetActorRotation(NewRotation);
-        }
-        else
-        {
-            Entity->SetActorLocation(Positon);
-            Entity->SetActorRotation(Rotator);
-        }
-
-        Entity->AnimationState = AnimationState;
-    }
-    else if (EntityClass)
-    {
-        UWorld* World = GetWorld();
-        if (!World)
-            return;
-
-        FActorSpawnParameters Params;
-        Params.Owner = nullptr;
-        Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-        ASyncEntity* NewEntity = World->SpawnActor<ASyncEntity>(EntityClass, Positon, Rotator, Params);
-
-        if (NewEntity)
-        {
-            NewEntity->EntityId = EntityId;
-            NewEntity->AnimationState = AnimationState;
-            SpawnedEntities.Add(EntityId, NewEntity);
+            GameMode->HandleUpdateEntity(EntityId, Positon, Rotator, AnimationState, Flags);
         }
     }
 }
 
 void UTOSGameInstance::HandleRemoveEntity(int32 EntityId)
 {
-    if (ASyncEntity* const* Found = SpawnedEntities.Find(EntityId))
+    if (UWorld* World = GetWorld())
     {
-        ASyncEntity* Entity = *Found;
-
-        if (Entity)        
-            Entity->Destroy();
-        
-        SpawnedEntities.Remove(EntityId);
+        if (ATOSGameMode* GameMode = Cast<ATOSGameMode>(World->GetAuthGameMode()))
+        {
+            GameMode->HandleRemoveEntity(EntityId);
+        }
     }
 }
+
