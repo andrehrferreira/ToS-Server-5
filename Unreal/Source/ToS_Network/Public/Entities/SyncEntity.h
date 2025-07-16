@@ -20,6 +20,12 @@ public:
         UPROPERTY(BlueprintReadWrite, Category = Entity)
         int32 AnimationState = 0;
 
+        UFUNCTION(BlueprintCallable, Category = "Network")
+        void UpdateAnimationFromNetwork(float Speed, uint32 AnimationState);
+
+        UFUNCTION(BlueprintImplementableEvent, Category = "Network")
+        void SetSpeed(float Speed);
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
