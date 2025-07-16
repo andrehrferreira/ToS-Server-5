@@ -42,7 +42,7 @@ public unsafe struct FlatBuffer : IDisposable
     public byte* Data => _ptr;
     public bool IsDisposed => _disposed;
 
-    public FlatBuffer(int capacity)
+    public FlatBuffer(int capacity = 1500)
     {
         _capacity = capacity;
         _offset = 0;

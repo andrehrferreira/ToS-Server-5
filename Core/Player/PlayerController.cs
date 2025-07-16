@@ -48,6 +48,7 @@ public partial class PlayerController
         entity.AnimState = 0;
 
         // AccountId vem no token
+        EntitySocketMap.Bind(socket.Id, socket);
 
         EntityId = entity.Id;
         EntityManager.Add(entity);
@@ -87,7 +88,9 @@ public partial class PlayerController
         {
             if (EntitySocketMap.TryGet(other.Id, out var socket))
             {
-                socket.Send(packet);
+                FlatBuffer buffer = new FlatBuffer(packet.Size);
+                packet.Serialize(ref buffer);
+                socket.Send(ref buffer);
             }
         }
     }
