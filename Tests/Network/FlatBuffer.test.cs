@@ -340,7 +340,7 @@ namespace Tests
                     float min = -100.0f;
                     float max = 100.0f;
 
-                    buffer.Write(original);
+                    buffer.Write(original, 0.1f);
                     buffer.Reset();
 
                     var result = buffer.ReadFVector();

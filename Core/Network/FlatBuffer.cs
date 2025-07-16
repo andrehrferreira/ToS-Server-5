@@ -136,7 +136,6 @@ public unsafe struct FlatBuffer : IDisposable
             throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {size}");
 
         T val = *(T*)(_ptr + _offset);
-        //Console.WriteLine($"[DEBUG] Read<byte> = {val:X2} at offset {_offset}");
         _offset += size;
         return val;
     }
@@ -365,33 +364,33 @@ public unsafe struct FlatBuffer : IDisposable
 
     public void Write(FVector value, float factor = 0.1f)
     {
-        Write((short)MathF.Round(value.X / factor));
-        Write((short)MathF.Round(value.Y / factor));
-        Write((short)MathF.Round(value.Z / factor));
+        Write<short>((short)MathF.Round(value.X / factor));
+        Write<short>((short)MathF.Round(value.Y / factor));
+        Write<short>((short)MathF.Round(value.Z / factor));
     }
 
     public void Write(FRotator value, float factor = 0.1f)
     {
-        Write((short)MathF.Round(value.Pitch / factor));
-        Write((short)MathF.Round(value.Yaw / factor));
-        Write((short)MathF.Round(value.Roll / factor));
+        Write<short>((short)MathF.Round(value.Pitch / factor));
+        Write<short>((short)MathF.Round(value.Yaw / factor));
+        Write<short>((short)MathF.Round(value.Roll / factor));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public FVector ReadFVector(float factor = 0.1f)
     {
-        short x = ReadShort();
-        short y = ReadShort();
-        short z = ReadShort();
+        short x = Read<short>();
+        short y = Read<short>();
+        short z = Read<short>();
         return new FVector(x * factor, y * factor, z * factor);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public FRotator ReadFRotator(float factor = 0.1f)
     {
-        short pitch = ReadShort();
-        short yaw = ReadShort();
-        short roll = ReadShort();
+        short pitch = Read<short>();
+        short yaw = Read<short>();
+        short roll = Read<short>();
         return new FRotator(pitch * factor, yaw * factor, roll * factor);
     }
 

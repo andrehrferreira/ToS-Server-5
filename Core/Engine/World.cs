@@ -26,7 +26,7 @@ public class World : IDisposable
 
     public static ConcurrentDictionary<uint, World> Worlds = new ConcurrentDictionary<uint, World>();
 
-    public World(int maxEntities = 100000, AOIGridConfig aoiConfig = null)
+    public World(int maxEntities = 10000, AOIGridConfig aoiConfig = null)
     {
         _maxEntities = maxEntities;
         _entityPool = new StructPool<Entity>(_maxEntities);
@@ -40,7 +40,19 @@ public class World : IDisposable
             _aoiGrid[(x, y, z)] = new List<uint>();
 
         _worldThread = new Thread(WorldLoop) { IsBackground = true };
+
         _worldThread.Start();
+    }
+
+    public static World GetOrCreate(string map)
+    {
+        if(Worlds.TryGetValue((uint)map.GetHashCode(), out var world))
+            return world;
+
+        world = new World();
+        world.Id = (uint)map.GetHashCode();
+        Worlds.TryAdd(world.Id, world);
+        return world;
     }
 
     public static bool Get(uint Id, out World world)
@@ -90,6 +102,14 @@ public class World : IDisposable
         }
 
         return id;
+    }
+
+    public void AddEntity(Entity entity)
+    {
+        if (_entityPool.IsActive(entity.Id))
+            return;
+
+        //_entityPool.Create(entity.Id, );
     }
 
     public void RemoveEntity(uint id)
@@ -205,6 +225,23 @@ public class World : IDisposable
     public ref Entity GetEntity(uint id)
     {
         return ref _entityPool.Get(id);
+    }
+
+    public bool TryGetEntity(uint id, out Entity entity)
+    {
+        if (_entityPool.IsActive(id))
+        {
+            entity = _entityPool.Get(id);
+            return true;
+        }
+
+        entity = default;
+        return false;
+    }
+
+    public bool HasEntity(uint id)
+    {
+        return _entityPool.IsActive(id);
     }
 
     public void Dispose()

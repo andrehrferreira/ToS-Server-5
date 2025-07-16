@@ -7,6 +7,12 @@ public interface INetworkPacket
     //void Deserialize(ref FlatBuffer buffer);
 }
 
+public interface INetworkPacketRecive
+{
+    int Size { get; }
+    void Deserialize(ref FlatBuffer buffer);
+}
+
 public enum PacketLayerType
 {
     Server,

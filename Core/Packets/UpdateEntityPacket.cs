@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 public partial struct UpdateEntityPacket: INetworkPacket
 {
-    public int Size => 37;
+    public int Size => 25;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)

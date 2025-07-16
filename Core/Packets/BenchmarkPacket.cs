@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 public partial struct BenchmarkPacket: INetworkPacket
 {
-    public int Size => 31;
+    public int Size => 19;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)

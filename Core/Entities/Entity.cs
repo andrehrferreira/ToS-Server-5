@@ -122,6 +122,24 @@ public partial struct Entity
         Position = position;
     }
 
+    public void Rotate(FRotator rotation)
+    {
+        if(rotation == Rotation)
+            return;
+
+        Snapshot();
+        Rotation = rotation;
+    }
+
+    public void SetAnimState(uint animState)
+    {
+        if(animState == AnimState)
+            return;
+
+        Snapshot();
+        AnimState = animState;
+    }
+
     public EntityDelta Delta()
     {
         Entity last;
@@ -186,6 +204,34 @@ public static class EntityManager
     public static void Remove(uint id)
     {
         _entities.TryRemove(id, out _);
+    }
+
+    public static List<Entity> GetNearestEntities(uint id, float maxDistance = 5000f, int maxResults = 100)
+    {
+        if (!TryGet(id, out var originEntity))
+            return new List<Entity>();
+
+        var originPos = originEntity.Position; 
+
+        var nearbyEntities = new List<(Entity entity, float distance)>(maxResults);
+
+        foreach (var pair in _entities)
+        {
+            if (pair.Key == id)
+                continue;
+
+            var target = pair.Value;
+            var distanceSquared = (target.Position - originPos).SizeSquared();
+
+            if (distanceSquared <= maxDistance * maxDistance)            
+                nearbyEntities.Add((target, distanceSquared));
+        }
+
+        return nearbyEntities
+            .OrderBy(e => e.distance)
+            .Take(maxResults)
+            .Select(e => e.entity)
+            .ToList();
     }
 }
 

@@ -74,7 +74,7 @@ public sealed class UDPServer
 
     private static IntegrityKeyTable _integrityKeyTable;
 
-    private static NanoSockets.Socket ServerSocket;
+    private static Socket ServerSocket;
 
     private static bool Running = true;
 
@@ -111,11 +111,6 @@ public sealed class UDPServer
     public delegate bool ConnectionHandler(UDPSocket socket, string token);
 
     private static ConnectionHandler _connectionHandler;
-
-    private static World _worldRef;
-
-    public static void SetWorld(World worldRef) => _worldRef = worldRef;
-    public static World GetWorld() => _worldRef;
 
     public static int ConnectionCount => Clients.Count;
 
@@ -488,11 +483,13 @@ public sealed class UDPServer
 
                             if (signature == crc32c)
                             {
-                                PrintBuffer(data.Data, len);
+                                PrintBuffer(data._ptr, len);
                                 data.Resize(len - 4);
                                 conn.TimeoutLeft = 30f;
                                 ClientPackets clientPacket = (ClientPackets)data.Read<short>();
-                                //PacketHandler.HandlePacket(conn, ref data, clientPacket);
+                                
+                                if(PlayerController.TryGet(conn.Id, out var controller))                                
+                                    PacketHandler.HandlePacket(controller, ref data, clientPacket);                                
                             }
                         }
 

@@ -17,6 +17,7 @@
 #include "Packets/PongPacket.h"
 #include "Packets/EnterToWorldPacket.h"
 
+
 void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     UdpClient = MakeUnique<UDPClient>();

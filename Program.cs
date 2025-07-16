@@ -42,11 +42,6 @@ class Program
 #else
         Console.WriteLine("Running in release mode. Tests and transpilers are skipped.");
 #endif
-
-        World world = new World(100000);
-
-        UDPServer.SetWorld(world);
-
         UDPServer.Init(port, (UDPSocket socket, string token) =>
         {
             if (!string.IsNullOrEmpty(token))
@@ -63,6 +58,22 @@ class Program
                 return false;
             }
 
+            var map = World.GetOrCreate("Sample2");
+
+            Entity entity;
+            PlayerController controller;
+
+            if(!PlayerController.TryGet(socket.Id, out controller))
+            {
+                controller = new PlayerController(socket, token);
+                PlayerController.Add(socket.Id, controller);
+            }
+
+            if (!map.TryGetEntity(socket.Id, out entity))
+            {
+                //map.
+            }
+
             return false;
         }, new UDPServerOptions()
         {
@@ -73,16 +84,6 @@ class Program
             ReceiveBufferSize = 512 * 1024,
             SendBufferSize = 512 * 1024,
         });
-
-        byte[] data = new byte[] {
-            0x04, 0x00, 0x00, 0x28,
-            0x23, 0x5C, 0x2B, 0x98,
-            0x03, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x45
-        };
-
-        uint crc = CRC32C.Compute(data);
-        Console.WriteLine($"CRC32C Checksum: {crc:X8}");
 
         //ServerMonitor.Start();
 

@@ -74,6 +74,24 @@ public class ContractTranspiler : AbstractTranspiler
                     writer.WriteLine("}");
                 }
             }
+            else if (attribute.LayerType == PacketLayerType.Client)
+            {
+                string filePath = Path.Combine(baseDirectoryPath, $"{contractName}.cs");
+
+                using (var writer = new StreamWriter(filePath))
+                {
+                    writer.WriteLine("// This file was generated automatically, please do not change it.");
+                    writer.WriteLine();
+                    writer.WriteLine("using System.Runtime.CompilerServices;");
+                    writer.WriteLine();
+                    writer.WriteLine($"public partial struct {contractName}: INetworkPacketRecive");
+                    writer.WriteLine("{");
+
+                    GenerateSerialize(writer, contract, fields, attribute);
+
+                    writer.WriteLine("}");
+                }
+            }
 
             if (attribute.LayerType == PacketLayerType.Client)
             {
@@ -159,7 +177,7 @@ public class ContractTranspiler : AbstractTranspiler
                         break;
                     case "FVector":
                     case "FRotator":
-                        totalBytes += 12;
+                        totalBytes += 6;
                         break;
                 }
 
@@ -171,61 +189,64 @@ public class ContractTranspiler : AbstractTranspiler
             writer.WriteLine();
 
             //Serialize
-            writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            writer.WriteLine($"    public void Serialize(ref FlatBuffer buffer)");
-            writer.WriteLine("    {");
-
-            if (contractAttribute.PacketType != PacketType.None)
-                writer.WriteLine($"        buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
-            else
+            if(contractAttribute.LayerType == PacketLayerType.Server)
             {
-                if (contractAttribute.Flags.HasFlag(ContractPacketFlags.Reliable))
-                    writer.WriteLine($"        buffer.Write(PacketType.Reliable);");
+                writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+                writer.WriteLine($"    public void Serialize(ref FlatBuffer buffer)");
+                writer.WriteLine("    {");
+
+                if (contractAttribute.PacketType != PacketType.None)
+                    writer.WriteLine($"        buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
                 else
-                    writer.WriteLine($"        buffer.Write(PacketType.Unreliable);");
-
-                writer.WriteLine($"        buffer.Write((ushort)ServerPackets.{rawName});");
-            }
-                
-            foreach (var field in fields)
-            {
-                var attribute = field.GetCustomAttribute<ContractFieldAttribute>();
-                var fieldType = attribute.Type;
-                var fieldName = field.Name;
-
-                switch (fieldType)
                 {
-                    case "integer":
-                    case "int":
-                    case "int32":
-                    case "uint":
-                    case "ushort":
-                    case "short":
-                    case "byte":
-                    case "float":
-                    case "long":
-                    case "decimal":
-                        writer.WriteLine($"        buffer.Write({fieldName});");
-                        break;
-                    case "bool":
-                    case "boolean":
-                        writer.WriteLine($"        buffer.WriteBit({fieldName});");
-                        break;                   
-                    case "FVector":
-                    case "FRotator":                    
-                        writer.WriteLine($"        buffer.Write({fieldName}, 0.1f);");
-                        break;
-                    case "id":
-                        writer.WriteLine($"        buffer.Write(Base36.ToInt({fieldName}));");
-                        break;
-                    default:
-                        writer.WriteLine($"    // Unsupported type: {fieldType}");
-                        break;
+                    if (contractAttribute.Flags.HasFlag(ContractPacketFlags.Reliable))
+                        writer.WriteLine($"        buffer.Write(PacketType.Reliable);");
+                    else
+                        writer.WriteLine($"        buffer.Write(PacketType.Unreliable);");
+
+                    writer.WriteLine($"        buffer.Write((ushort)ServerPackets.{rawName});");
                 }
+
+                foreach (var field in fields)
+                {
+                    var attribute = field.GetCustomAttribute<ContractFieldAttribute>();
+                    var fieldType = attribute.Type;
+                    var fieldName = field.Name;
+
+                    switch (fieldType)
+                    {
+                        case "integer":
+                        case "int":
+                        case "int32":
+                        case "uint":
+                        case "ushort":
+                        case "short":
+                        case "byte":
+                        case "float":
+                        case "long":
+                        case "decimal":
+                            writer.WriteLine($"        buffer.Write({fieldName});");
+                            break;
+                        case "bool":
+                        case "boolean":
+                            writer.WriteLine($"        buffer.WriteBit({fieldName});");
+                            break;
+                        case "FVector":
+                        case "FRotator":
+                            writer.WriteLine($"        buffer.Write({fieldName}, 0.1f);");
+                            break;
+                        case "id":
+                            writer.WriteLine($"        buffer.Write(Base36.ToInt({fieldName}));");
+                            break;
+                        default:
+                            writer.WriteLine($"    // Unsupported type: {fieldType}");
+                            break;
+                    }
+                }
+
+                writer.WriteLine("    }");
             }
-
-            writer.WriteLine("    }");
-
+            
             //Deserialize
 
             writer.WriteLine();
