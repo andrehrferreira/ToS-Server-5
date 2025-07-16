@@ -101,6 +101,24 @@ void UTOSGameInstance::HandleUpdateEntity(int32 EntityId, FVector Positon, FRota
 
         Entity->AnimationState = AnimationState;
     }
+    else if (EntityClass)
+    {
+        UWorld* World = GetWorld();
+        if (!World)
+            return;
+
+        FActorSpawnParameters Params;
+        Params.Owner = nullptr;
+        Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        ASyncEntity* NewEntity = World->SpawnActor<ASyncEntity>(EntityClass, Positon, Rotator, Params);
+
+        if (NewEntity)
+        {
+            NewEntity->EntityId = EntityId;
+            NewEntity->AnimationState = AnimationState;
+            SpawnedEntities.Add(EntityId, NewEntity);
+        }
+    }
 }
 
 void UTOSGameInstance::HandleRemoveEntity(int32 EntityId)
