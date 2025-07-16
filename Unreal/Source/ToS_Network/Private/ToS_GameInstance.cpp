@@ -1,5 +1,5 @@
 #include "Tos_GameInstance.h"
-#include "Tos_GameMode.h"
+#include "Controllers/Tos_PlayerController.h"
 #include "Engine/World.h"
 
 static bool bENetInitialized = false;
@@ -53,9 +53,9 @@ void UTOSGameInstance::HandleCreateEntity(int32 EntityId, FVector Positon, FRota
 {
     if (UWorld* World = GetWorld())
     {
-        if (ATOSGameMode* GameMode = Cast<ATOSGameMode>(World->GetAuthGameMode()))
+        if (ATOSPlayerController* PlayerController = Cast<ATOSPlayerController>(World->GetFirstPlayerController()))
         {
-            GameMode->HandleCreateEntity(EntityId, Positon, Rotator, Flags);
+            PlayerController->HandleCreateEntity(EntityId, Positon, Rotator, Flags);
         }
     }
 }
@@ -64,9 +64,9 @@ void UTOSGameInstance::HandleUpdateEntity(int32 EntityId, FVector Positon, FRota
 {
     if (UWorld* World = GetWorld())
     {
-        if (ATOSGameMode* GameMode = Cast<ATOSGameMode>(World->GetAuthGameMode()))
+        if (ATOSPlayerController* PlayerController = Cast<ATOSPlayerController>(World->GetFirstPlayerController()))
         {
-            GameMode->HandleUpdateEntity(EntityId, Positon, Rotator, AnimationState, Flags);
+            PlayerController->HandleUpdateEntity(EntityId, Positon, Rotator, AnimationState, Flags);
         }
     }
 }
@@ -75,9 +75,9 @@ void UTOSGameInstance::HandleRemoveEntity(int32 EntityId)
 {
     if (UWorld* World = GetWorld())
     {
-        if (ATOSGameMode* GameMode = Cast<ATOSGameMode>(World->GetAuthGameMode()))
+        if (ATOSPlayerController* PlayerController = Cast<ATOSPlayerController>(World->GetFirstPlayerController()))
         {
-            GameMode->HandleRemoveEntity(EntityId);
+            PlayerController->HandleRemoveEntity(EntityId);
         }
     }
 }

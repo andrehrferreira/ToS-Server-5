@@ -5,7 +5,7 @@
 #include "Network/ENetSubsystem.h"
 #include "Tos_GameInstance.generated.h"
 
-class ATOSGameMode;
+class ATOSPlayerController;
 
 UCLASS()
 class TOS_NETWORK_API UTOSGameInstance : public UGameInstance
