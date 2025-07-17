@@ -64,14 +64,12 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
                         case EServerPackets::DeltaSync:
                         {
-                            int32 EntityId = static_cast<int32>(Buffer->Read<uint32>());
-                            uint16 PayloadSize = Buffer->Read<uint16>();
-                            int32 StartPos = Buffer->GetPosition();
-                            uint8 Mask = Buffer->Read<int8>();
+                            FDeltaSyncPacket delta = FDeltaSyncPacket();
+                            delta.Deserialize(Buffer);
 
                             FDeltaUpdateData data;
-                            data.Index = EntityId;
-                            data.EntitiesMask = static_cast<EEntityDelta>(Mask);
+                            data.Index = delta.Index;
+                            data.EntitiesMask = static_cast<EEntityDelta>(delta.EntitiesMask);
 
                             if (EnumHasAnyFlags(data.EntitiesMask, EEntityDelta::Position))
                                 data.Positon = Buffer->Read<FVector>();
@@ -83,8 +81,6 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
                                 data.Velocity = Buffer->Read<FVector>();
                             if (EnumHasAnyFlags(data.EntitiesMask, EEntityDelta::Flags))
                                 data.Flags = Buffer->Read<uint32>();
-
-                            Buffer->SetPosition(StartPos + PayloadSize);
 
                             OnDeltaSync.Broadcast(data.Index, static_cast<uint8>(data.EntitiesMask));
                             OnDeltaUpdate.Broadcast(data);
