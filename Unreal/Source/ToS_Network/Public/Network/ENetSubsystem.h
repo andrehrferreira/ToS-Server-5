@@ -38,7 +38,6 @@
 #include "Packets/UpdateEntityPacket.h"
 #include "Packets/RemoveEntityPacket.h"
 #include "Packets/DeltaSyncPacket.h"
-#include "Packets/SyncStateIntPacket.h"
 #include "Packets/SyncEntityPacket.h"
 #include "Packets/PongPacket.h"
 #include "Packets/EnterToWorldPacket.h"
@@ -64,7 +63,6 @@ public:
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUpdateEntityHandler, FUpdateEntityPacket, Data);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRemoveEntityHandler, int32, EntityId);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FDeltaSyncHandler, int32, Index, uint8, EntitiesMask);
-    DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSyncStateIntHandler);
 
 
 	UPROPERTY(BlueprintAssignable, Category = "UDP")
@@ -131,9 +129,6 @@ public:
 
     UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnDeltaSync", Keywords = "Server Events"), Category = "UDP")
     FDeltaSyncHandler OnDeltaSync;
-
-    UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnSyncStateInt", Keywords = "Server Events"), Category = "UDP")
-    FSyncStateIntHandler OnSyncStateInt;
 
 
 

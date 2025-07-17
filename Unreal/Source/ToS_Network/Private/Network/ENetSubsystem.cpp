@@ -12,7 +12,6 @@
 #include "Packets/UpdateEntityPacket.h"
 #include "Packets/RemoveEntityPacket.h"
 #include "Packets/DeltaSyncPacket.h"
-#include "Packets/SyncStateIntPacket.h"
 #include "Packets/SyncEntityPacket.h"
 #include "Packets/PongPacket.h"
 #include "Packets/EnterToWorldPacket.h"
@@ -50,11 +49,6 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
                     FRemoveEntityPacket fRemoveEntity = FRemoveEntityPacket();
                     fRemoveEntity.Deserialize(Buffer);
                     OnRemoveEntity.Broadcast(fRemoveEntity.EntityId);
-                }
-                break;
-                case EServerPackets::SyncStateInt:
-                {
-                    OnSyncStateInt.Broadcast();
                 }
                 break;
 

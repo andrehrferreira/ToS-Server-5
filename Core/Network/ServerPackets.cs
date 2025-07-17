@@ -13,5 +13,4 @@ public enum ServerPackets: ushort
     CheckIntegrity = 8,
     Ack = 9,
     DeltaSync = 10,
-    SyncStateInt = 11,
 }

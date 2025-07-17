@@ -1,9 +1,9 @@
-using System;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [Flags]
+[FlagReply]
 public enum EntityState : uint
 {
     None = 0,
@@ -16,6 +16,7 @@ public enum EntityState : uint
 }
 
 [Flags]
+[FlagReply]
 public enum EntityDelta
 {
     None = 0,

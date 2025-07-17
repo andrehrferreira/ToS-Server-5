@@ -7,9 +7,3 @@ public partial struct DeltaSyncPacket
     [ContractField("byte")]
     public byte EntitiesMask;
 }
-
-[Contract("SyncStateInt", PacketLayerType.Server, ContractPacketFlags.Reliable_ToEntity)]
-public partial struct SyncStateIntPacket
-{ 
-    //uint 
-}
