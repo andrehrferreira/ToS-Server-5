@@ -70,17 +70,15 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
                             FDeltaUpdateData data;
                             data.Index = delta.Index;
                             data.EntitiesMask = static_cast<EEntityDelta>(delta.EntitiesMask);
+                            data.Velocity = Buffer->Read<FVector>();
+                            data.Flags = Buffer->Read<uint32>();
 
                             if (EnumHasAnyFlags(data.EntitiesMask, EEntityDelta::Position))
                                 data.Positon = Buffer->Read<FVector>();
                             if (EnumHasAnyFlags(data.EntitiesMask, EEntityDelta::Rotation))
                                 data.Rotator = Buffer->Read<FRotator>();
                             if (EnumHasAnyFlags(data.EntitiesMask, EEntityDelta::AnimState))
-                                data.AnimationState = static_cast<int32>(Buffer->Read<uint32>());
-                            if (EnumHasAnyFlags(data.EntitiesMask, EEntityDelta::Velocity))
-                                data.Velocity = Buffer->Read<FVector>();
-                            if (EnumHasAnyFlags(data.EntitiesMask, EEntityDelta::Flags))
-                                data.Flags = Buffer->Read<uint32>();
+                                data.AnimationState = static_cast<int32>(Buffer->Read<uint32>());                                
 
                             OnDeltaSync.Broadcast(data.Index, static_cast<uint8>(data.EntitiesMask));
                             OnDeltaUpdate.Broadcast(data);

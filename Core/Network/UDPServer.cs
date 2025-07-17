@@ -571,7 +571,7 @@ public sealed class UDPServer
 
     public static unsafe bool Send(ref FlatBuffer buffer, int length, UDPSocket socket, bool flush = true)
     {
-        if (length > 1 && socket != null && GlobalSendChannel != null)
+        if (length > 0 && socket != null && GlobalSendChannel != null)
         {
             var len = length;
             var data = AddSignature(buffer.Data, length, out len);

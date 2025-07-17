@@ -159,7 +159,7 @@ public class UDPSocket
 
     public bool Send(ref FlatBuffer buffer, bool flush = true)
     {
-        if(buffer.Position > 1)
+        if(buffer.Position > 0)
             return UDPServer.Send(ref buffer, buffer.Position, this, flush);
         else
             return false;
@@ -202,10 +202,10 @@ public class UDPSocket
             }
         }
 
-        if (UnreliableBuffer.Position > 1)        
+        if (UnreliableBuffer.Position > 0)        
             Send(ref UnreliableBuffer);
                     
-        if (AckBuffer.Position > 1)
+        if (AckBuffer.Position > 0)
             Send(ref AckBuffer);
                     
         ProcessPacket();

@@ -336,6 +336,8 @@ public partial struct DeltaSyncPacket
             buffer.Write((ushort)ServerPackets.DeltaSync);
             buffer.Write(entity.Id);
             buffer.Write((byte)delta);
+            buffer.Write(entity.Velocity);
+            buffer.Write(entity.Flags);
 
             if (delta.HasFlag(EntityDelta.Position))
                 buffer.Write(entity.Position);
@@ -343,10 +345,6 @@ public partial struct DeltaSyncPacket
                 buffer.Write(entity.Rotation);
             if (delta.HasFlag(EntityDelta.AnimState))
                 buffer.Write(entity.AnimState);
-            if (delta.HasFlag(EntityDelta.Velocity))
-                buffer.Write(entity.Velocity);
-            if (delta.HasFlag(EntityDelta.Flags))
-                buffer.Write(entity.Flags);
         }
     }
 }
