@@ -17,6 +17,12 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Entity)
     int32 EntityId;
 
+    UPROPERTY(BlueprintReadWrite, Category = "Network")
+    FVector TargetLocation;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Network")
+    FRotator TargetRotation;
+
     void UpdateAnimationFromNetwork(FVector Velocity, uint32 Animation, bool IsFalling);
 
     UFUNCTION(BlueprintImplementableEvent, Category = "Network")
@@ -25,7 +31,8 @@ public:
 	int32 AnimationState = 0;
 
 protected:
-	virtual void BeginPlay() override;
+    virtual void Tick(float DeltaTime) override;
+    virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY()
