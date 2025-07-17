@@ -188,6 +188,7 @@ public class UnrealTranspiler : AbstractTranspiler
         {
             writer.WriteLine($"    void Deserialize(UFlatBuffer* Buffer)");
             writer.WriteLine("    {");
+            //writer.WriteLine("        try{");
 
             foreach (var field in fields)
             {
@@ -195,6 +196,12 @@ public class UnrealTranspiler : AbstractTranspiler
                 string name = field.Name;
                 writer.WriteLine(GetDeserializeLine(attr.Type, name));
             }
+
+            //writer.WriteLine("        }");
+            //writer.WriteLine($"         catch(...)");
+            //writer.WriteLine("        {");
+            //writer.WriteLine($"            UE_LOG(LogTemp, Warning, TEXT(\"{structName}\"));");
+            //writer.WriteLine("        }");
 
             writer.WriteLine("    }");
         }

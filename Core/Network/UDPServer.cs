@@ -527,7 +527,7 @@ public sealed class UDPServer
                         data.Free();
                     }
                     break;
-                case PacketType.BenckmarkTest:
+                /*case PacketType.BenckmarkTest:
                     {
                         if (Clients.TryGetValue(address, out conn))
                         {
@@ -535,7 +535,7 @@ public sealed class UDPServer
                             conn.EventQueue.Writer.TryWrite(data);
                         }
                     }
-                    break;
+                    break;*/
             }
         }
         catch (Exception ex)

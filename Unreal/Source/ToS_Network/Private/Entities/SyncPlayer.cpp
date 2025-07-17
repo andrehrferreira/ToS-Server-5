@@ -133,6 +133,7 @@ void ASyncPlayer::SendSyncToServer()
 
     LastSyncHash = CurrentHash;
     const FVector Velocity = GetVelocity();
+
     NetSubsystem->SendEntitySync(Position, Rotation, AnimID, Velocity);
 }
 

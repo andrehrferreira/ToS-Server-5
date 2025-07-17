@@ -50,10 +50,11 @@ void ASyncEntity::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ASyncEntity::UpdateAnimationFromNetwork(FVector Velocity, uint32 Animation)
 {
-    if (UCharacterMovementComponent* Movement = GetCharacterMovement())
-    {
-        Movement->Velocity = Velocity;
-    }
+	if (UCharacterMovementComponent* Movement = GetCharacterMovement())
+	{
+		Movement->Velocity = Velocity;
+		Movement->RequestDirectMove(Velocity.GetSafeNormal() * Movement->GetMaxSpeed(), false);
+	}
 
     AnimationState = static_cast<int32>(Animation);
     SetSpeed(Velocity.Size());

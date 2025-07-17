@@ -144,8 +144,8 @@ public partial struct Entity
 
     public void SetVelocity(FVector velocity)
     {
-        if (velocity == velocity)
-            return;
+        //if (velocity == velocity)
+        //    return;
 
         Snapshot();
         Velocity = velocity;

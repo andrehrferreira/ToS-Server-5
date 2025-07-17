@@ -53,6 +53,7 @@ public:
 		if (Position + Size > Capacity)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("UFlatBuffer::Write - Buffer overflow. Cannot write value of size %d"), Size);
+			//throw std::runtime_error("Buffer overflow");
 			return;
 		}
 
@@ -70,6 +71,7 @@ public:
 		if (Position + Size > Capacity)
 		{
 			UE_LOG(LogTemp, Error, TEXT("UFlatBuffer::Read - Buffer underflow. Cannot read value of size %d"), Size);
+			//throw std::runtime_error("Buffer underflow");
 			return T{};
 		}
 
