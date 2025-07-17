@@ -330,11 +330,16 @@ public partial struct DeltaSyncPacket
     {
         var delta = entity.Delta();
 
-        if(delta != EntityDelta.None)
+        if (delta != EntityDelta.None)
         {
             buffer.Write(PacketType.Unreliable);
             buffer.Write((ushort)ServerPackets.DeltaSync);
             buffer.Write(entity.Id);
+
+            int sizePos = buffer.SavePosition();
+            buffer.Write((ushort)0);
+            int start = buffer.Position;
+
             buffer.Write((byte)delta);
 
             if (delta.HasFlag(EntityDelta.Position))
@@ -347,6 +352,12 @@ public partial struct DeltaSyncPacket
                 buffer.Write(entity.Velocity);
             if (delta.HasFlag(EntityDelta.Flags))
                 buffer.Write(entity.Flags);
-        }        
+
+            int end = buffer.Position;
+            ushort size = (ushort)(end - start);
+            buffer.RestorePosition(sizePos);
+            buffer.Write(size);
+            buffer.RestorePosition(end);
+        }
     }
 }
