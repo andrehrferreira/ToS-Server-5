@@ -50,20 +50,11 @@ void ASyncEntity::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ASyncEntity::UpdateAnimationFromNetwork(FVector Velocity, uint32 Animation)
 {
-	/*const float MaxSpeed = GetCharacterMovement()->MaxWalkSpeed;
-	float Scale = FMath::Clamp(static_cast<float>(Speed) / MaxSpeed, 0.f, 1.f);
+    if (UCharacterMovementComponent* Movement = GetCharacterMovement())
+    {
+        Movement->Velocity = Velocity;
+    }
 
-	const FRotator Rotation = GetActorRotation();
-	const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-	FVector2D FakeInput = FVector2D(0.7f, 0.7f) * Scale; 
-
-	AddMovementInput(ForwardDirection, FakeInput.Y);
-	AddMovementInput(RightDirection, FakeInput.X);
-
-	SetSpeed(static_cast<float>(Speed));*/
-	//AnimationState = static_cast<int32>(Animation);
+    AnimationState = static_cast<int32>(Animation);
+    SetSpeed(Velocity.Size());
 }
