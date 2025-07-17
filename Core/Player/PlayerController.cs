@@ -78,22 +78,13 @@ public partial class PlayerController
         if (neighbours.Count == 0)
             return;
 
-        var packet = new UpdateEntityPacket
-        {
-            EntityId = entity.Id,
-            Positon = entity.Position,
-            Rotator = entity.Rotation,
-            Velocity = entity.Velocity,
-            AnimationState = (ushort)entity.AnimState,
-            Flags = (uint)entity.Flags
-        };
-
-        //Console.WriteLine($"Sending update for entity {entity.Id} velocity {entity.Velocity.ToString()}.");
+        var packet = new DeltaSyncPacket();
 
         foreach (var other in neighbours)
         {
-            if (EntitySocketMap.TryGet(other.Id, out var socket))            
-                packet.Serialize(ref socket.UnreliableBuffer);            
+            if (EntitySocketMap.TryGet(other.Id, out var socket))
+                packet.Delta(entity, ref socket.UnreliableBuffer);
         }
     }
 }
+
