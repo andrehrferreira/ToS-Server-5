@@ -28,6 +28,9 @@ public partial struct SyncEntityPacket
 
     [ContractField("ushort")]
     public ushort AnimationState;
+
+    [ContractField("bool")]
+    public bool IsFalling;
 }
 
 [Contract("UpdateEntity", PacketLayerType.Server, ContractPacketFlags.FromEntity)]

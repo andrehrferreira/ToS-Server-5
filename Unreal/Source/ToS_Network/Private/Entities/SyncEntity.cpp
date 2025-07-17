@@ -48,13 +48,16 @@ void ASyncEntity::EndPlay(const EEndPlayReason::Type EndPlayReason)
     Super::EndPlay(EndPlayReason);
 }
 
-void ASyncEntity::UpdateAnimationFromNetwork(FVector Velocity, uint32 Animation)
+void ASyncEntity::UpdateAnimationFromNetwork(FVector Velocity, uint32 Animation, bool IsFalling)
 {
 	if (UCharacterMovementComponent* Movement = GetCharacterMovement())
 	{
 		Movement->Velocity = Velocity;
-		Movement->RequestDirectMove(Velocity.GetSafeNormal() * Movement->GetMaxSpeed(), false);
+		Movement->RequestDirectMove(Velocity.GetSafeNormal() * Movement->GetMaxSpeed(), false);	
+		Movement->SetMovementMode(IsFalling ? MOVE_Falling : MOVE_Walking);
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("UpdateAnimationFromNetwork: %s."), *Velocity.ToString());
 
     AnimationState = static_cast<int32>(Animation);
     SetSpeed(Velocity.Size());

@@ -100,7 +100,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UDP")
 	bool IsRetryEnabled() const;
 
-    void SendEntitySync(FVector Position, FRotator Rotation, int32 AnimID, FVector Velocity) const;
+    void SendEntitySync(FVector Position, FRotator Rotation, int32 AnimID, FVector Velocity, bool IsFalling) const;
 
 //%EVENTS%
 

@@ -2,6 +2,7 @@
 #include "Network/UDPClient.h"
 #include "Network/UFlatBuffer.h"
 #include "Network/ServerPackets.h"
+#include "Utils/CRC32C.h"
 #include "Misc/ScopeLock.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
@@ -17,16 +18,26 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     {
         if (Buffer && Buffer->Position == 1)
         {
-            EServerPackets ServerPacketType = static_cast<EServerPackets>(Buffer->ReadInt16());
-            //FString PacketName = StaticEnum<EServerPackets>()->GetNameStringByValue(static_cast<int64>(ServerPacketType));
-            //UE_LOG(LogTemp, Warning, TEXT("UENetSubsystem: Received %s."), *PacketName);
+            auto bufferSign = Buffer->ReadSign();
+            auto sign = FCRC32C::Compute(Buffer->Data, Buffer->Capacity);
 
-            switch (ServerPacketType) {
+            if (bufferSign == sign) {
+                do {
+                    EServerPackets ServerPacketType = static_cast<EServerPackets>(Buffer->ReadInt16());
+                    //FString PacketName = StaticEnum<EServerPackets>()->GetNameStringByValue(static_cast<int64>(ServerPacketType));
+                    //UE_LOG(LogTemp, Warning, TEXT("UENetSubsystem: Received %s."), *PacketName);
+
+                    switch (ServerPacketType) {
 //%DATASWITCH%
-                case EServerPackets::DeltaSync:
-                {
-                }
-                break;
+                        case EServerPackets::DeltaSync:
+                        {
+                        }
+                        break;
+                    }
+                } while (Buffer->Position < Buffer->Capacity);
+            }
+            else {
+                UE_LOG(LogTemp, Warning, TEXT("UENetSubsystem: Sign %d / %d."), bufferSign, sign);
             }
         }
     };
@@ -142,14 +153,15 @@ bool UENetSubsystem::IsRetryEnabled() const
     return UdpClient ? UdpClient->IsRetryEnabled() : false;
 }
 
-void UENetSubsystem::SendEntitySync(FVector Position, FRotator Rotation, int32 AnimID, FVector Velocity) const
+void UENetSubsystem::SendEntitySync(FVector Position, FRotator Rotation, int32 AnimID, FVector Velocity, bool IsFalling) const
 {
-    UFlatBuffer* syncBuffer = UFlatBuffer::CreateFlatBuffer(33);
+    UFlatBuffer* syncBuffer = UFlatBuffer::CreateFlatBuffer(34);
     FSyncEntityPacket syncPacket = FSyncEntityPacket();
     syncPacket.Positon = Position;
     syncPacket.Rotator = Rotation;
     syncPacket.AnimationState = AnimID;
     syncPacket.Velocity = Velocity;
+    syncPacket.IsFalling = IsFalling;
     syncPacket.Serialize(syncBuffer);
 
     if (UdpClient)

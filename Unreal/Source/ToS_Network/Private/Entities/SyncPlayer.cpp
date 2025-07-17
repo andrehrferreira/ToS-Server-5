@@ -106,6 +106,7 @@ void ASyncPlayer::SendSyncToServer()
 
     FVector Position = GetActorLocation();
     FRotator Rotation = GetActorRotation();
+    bool IsFalling = false;
     FString AnimName = TEXT("None");
 
     if (const UAnimInstance* AnimInstance = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr)
@@ -118,14 +119,18 @@ void ASyncPlayer::SendSyncToServer()
 
     const int32 AnimID = AnimName == TEXT("None") ? 0 : UBase36::Base36ToInt(AnimName);
 
+    if (UCharacterMovementComponent* Movement = GetCharacterMovement())    
+		IsFalling = Movement->IsFalling();
+    
     struct FSyncSnapshot
     {
         FVector Position;
         FRotator Rotation;
         int32 AnimID;
+        bool IsFalling;
     };
 
-    FSyncSnapshot Snapshot{ Position, Rotation, AnimID };
+    FSyncSnapshot Snapshot{ Position, Rotation, AnimID, IsFalling };
     uint32 CurrentHash = FCRC32C::Compute(reinterpret_cast<const uint8*>(&Snapshot), sizeof(Snapshot));
 
     if (CurrentHash == LastSyncHash)
@@ -133,7 +138,6 @@ void ASyncPlayer::SendSyncToServer()
 
     LastSyncHash = CurrentHash;
     const FVector Velocity = GetVelocity();
-
-    NetSubsystem->SendEntitySync(Position, Rotation, AnimID, Velocity);
+    NetSubsystem->SendEntitySync(Position, Rotation, AnimID, Velocity, IsFalling);
 }
 

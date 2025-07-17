@@ -180,8 +180,8 @@ void UDPClient::PollIncomingPackets()
                 Buffer->CopyFromMemory(ReceivedData.GetData(), BytesRead);
 
                 EPacketType PacketType = static_cast<EPacketType>(Buffer->ReadByte());
-                //FString PacketName = StaticEnum<EPacketType>()->GetNameStringByValue(static_cast<int64>(PacketType));
-                //UE_LOG(LogTemp, Warning, TEXT("UDPClient: Received %s."), *PacketName);
+                FString PacketName = StaticEnum<EPacketType>()->GetNameStringByValue(static_cast<int64>(PacketType));
+                UE_LOG(LogTemp, Warning, TEXT("UDPClient: Received %s (%d bytes)."), *PacketName, BytesRead);
 
                 switch(PacketType)
                 {

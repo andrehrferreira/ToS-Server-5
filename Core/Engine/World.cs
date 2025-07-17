@@ -19,7 +19,7 @@ public class World : IDisposable
     private int _maxEntities;
     private Thread _worldThread;
     private bool _running = true;
-    private float _tickDelta = 1f / 20f;
+    private float _tickDelta = 1f / 30f;
 
     private AOIGridConfig _aoiConfig = new AOIGridConfig();
     private Dictionary<(int, int, int), List<uint>> _aoiGrid = new();

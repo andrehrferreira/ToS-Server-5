@@ -229,7 +229,7 @@ public class ContractTranspiler : AbstractTranspiler
                             break;
                         case "bool":
                         case "boolean":
-                            writer.WriteLine($"        buffer.WriteBit({fieldName});");
+                            writer.WriteLine($"        buffer.Write({fieldName});");
                             break;
                         case "FVector":
                         case "FRotator":
@@ -290,7 +290,7 @@ public class ContractTranspiler : AbstractTranspiler
                         break;
                     case "bool":
                     case "boolean":
-                        writer.WriteLine($"        {fieldName} = buffer.ReadBit();");
+                        writer.WriteLine($"        {fieldName} = buffer.Read<bool>();");
                         break;
                     case "decimal":
                         writer.WriteLine($"        {fieldName} = (decimal)buffer.Read<float>();");

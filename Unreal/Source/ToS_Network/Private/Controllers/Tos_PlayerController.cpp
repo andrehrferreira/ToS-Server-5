@@ -1,5 +1,6 @@
 #include "Controllers/ToS_PlayerController.h"
 #include "Controllers/ToS_GameInstance.h"
+#include "Enum/EntityState.h"
 #include "Engine/World.h"
 
 void ATOSPlayerController::BeginPlay()
@@ -60,6 +61,8 @@ void ATOSPlayerController::HandleUpdateEntity(FUpdateEntityPacket data)
     {
         ASyncEntity* Entity = *Found;
 
+        EEntityState Flags = static_cast<EEntityState>(data.Flags);
+
         if (!Entity)
 			return;
 
@@ -76,7 +79,7 @@ void ATOSPlayerController::HandleUpdateEntity(FUpdateEntityPacket data)
         }
 
         Entity->AnimationState = data.AnimationState;
-        Entity->UpdateAnimationFromNetwork(data.Velocity, data.AnimationState);
+        Entity->UpdateAnimationFromNetwork(data.Velocity, data.AnimationState, HasEntityState(Flags, EEntityState::IsFalling));
     }
     else if (EntityClass)
     {
@@ -94,7 +97,7 @@ void ATOSPlayerController::HandleUpdateEntity(FUpdateEntityPacket data)
         {
             NewEntity->EntityId = data.EntityId;
             NewEntity->AnimationState = data.AnimationState;
-            NewEntity->UpdateAnimationFromNetwork(data.Velocity, data.AnimationState);
+            NewEntity->UpdateAnimationFromNetwork(data.Velocity, data.AnimationState, false);
             SpawnedEntities.Add(data.EntityId, NewEntity);
         }
     }

@@ -516,6 +516,23 @@ FString UFlatBuffer::ReadUtf8String()
     return ReadString();
 }
 
+uint32 UFlatBuffer::ReadSign()
+{
+    if (Capacity < 4)
+    {
+        UE_LOG(LogTemp, Error, TEXT("UFlatBuffer::ReadSign - Buffer too small (%d bytes)"), Capacity);
+        return 0;
+    }
+
+    int32 SignOffset = Capacity - 4;
+    uint32 Signature = 0;
+    FMemory::Memcpy(&Signature, Data + SignOffset, 4);
+
+    Capacity -= 4;
+
+    return Signature;
+}
+
 void UFlatBuffer::AlignBits()
 {
     if (WriteBitIndex > 0)
@@ -556,4 +573,17 @@ uint32 UFlatBuffer::GetHashFast() const
         Hash = (Hash << 5) + Hash + Data[i];
 
     return Hash;
+}
+
+
+void UFlatBuffer::PrintBuffer(const uint8* buffer, int len)
+{
+    FString HexString;
+
+    for (int i = 0; i < len; ++i)
+    {
+        HexString += FString::Printf(TEXT("%02X "), buffer[i]);
+    }
+
+    UE_LOG(LogTemp, Log, TEXT("PrintBuffer: %s"), *HexString);
 }

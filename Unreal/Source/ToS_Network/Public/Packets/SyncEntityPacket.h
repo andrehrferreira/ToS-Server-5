@@ -24,8 +24,11 @@ struct FSyncEntityPacket
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 AnimationState;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    bool IsFalling;
 
-    int32 GetSize() const { return 41; }
+
+    int32 GetSize() const { return 42; }
 
     void Serialize(UFlatBuffer* Buffer)
     {
@@ -35,6 +38,7 @@ struct FSyncEntityPacket
         Buffer->Write<FRotator>(Rotator);
         Buffer->Write<FVector>(Velocity);
         Buffer->Write<uint16>(static_cast<uint16>(AnimationState));
+        Buffer->Write<bool>(IsFalling);
     }
 
 };

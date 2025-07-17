@@ -22,9 +22,11 @@
 */
 
 using NanoSockets;
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.Arm;
 using System.Threading.Channels;
 
 public unsafe struct SendPacket
@@ -334,7 +336,7 @@ public sealed class UDPServer
     {
         GlobalSendChannel = Channel.CreateUnbounded<SendPacket>(new UnboundedChannelOptions
         {
-            SingleReader = false,
+            SingleReader = true,
             SingleWriter = false
         });
 
@@ -346,17 +348,18 @@ public sealed class UDPServer
                 {
                     try
                     {
-                        var packet = await GlobalSendChannel.Reader.ReadAsync();
-
-                        if (packet.Length > 0)
+                        if (GlobalSendChannel.Reader.TryRead(out var packet))
                         {
                             var address = packet.Address;
                             unsafe
                             {
+                                var len = packet.Length;
+                                //PrintBuffer(packet.Buffer, packet.Length);
                                 int sent = UDP.Unsafe.Send(ServerSocket, &address, packet.Buffer, packet.Length);
-
+                                
                                 if (sent > 0)
                                 {
+                                    //Marshal.FreeHGlobal((IntPtr)packet.Buffer);
                                     Interlocked.Decrement(ref _sendQueueCount);
                                     Interlocked.Increment(ref _packetsSent);
                                     Interlocked.Add(ref _bytesSent, sent);
@@ -557,9 +560,7 @@ public sealed class UDPServer
         {
             uint crc32c = CRC32C.Compute(data, length);
             byte* result = (byte*)Marshal.AllocHGlobal(length + 4);
-
             Buffer.MemoryCopy(data, result, length + 4, length);
-
             *(uint*)(result + length) = crc32c;
 
             newLength = length + 4;
@@ -574,15 +575,13 @@ public sealed class UDPServer
     {
         if (length > 0 && socket != null)
         {
-            AddSignature(buffer._ptr, length, out int newLength);
-
-            if (newLength != length)
-                buffer.Resize(newLength);
+            var len = length;
+            var data = AddSignature(buffer.Data, length, out len);
 
             var packet = new SendPacket
             {
-                Buffer = buffer.Data,
-                Length = newLength,
+                Buffer = data,
+                Length = len,
                 Address = socket.RemoteAddress,
                 Pooled = true
             };

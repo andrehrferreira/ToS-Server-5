@@ -12,7 +12,8 @@ public enum EntityState : uint
     IsMoving = 1 << 2,
     IsCasting = 1 << 3,
     IsInvisible = 1 << 4,
-    IsStunned = 1 << 5
+    IsStunned = 1 << 5,
+    IsFalling = 1 << 6
 }
 
 [Flags]
@@ -153,11 +154,27 @@ public partial struct Entity
 
     public void SetVelocity(FVector velocity)
     {
-        if (velocity == velocity)
+        Velocity = velocity;
+        LastUpdate = DateTime.UtcNow;
+    }
+
+    public void SetFlags(EntityState flags)
+    {
+        if (flags == Flags)
             return;
 
         Snapshot();
-        Velocity = velocity;
+        Flags = flags;
+        LastUpdate = DateTime.UtcNow;
+    }
+
+    public void SetFlag(EntityState flag, bool value)
+    {
+        if (value)
+            Flags |= flag;
+        else
+            Flags &= ~flag;
+
         LastUpdate = DateTime.UtcNow;
     }
 

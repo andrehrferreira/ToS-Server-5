@@ -88,14 +88,12 @@ public partial class PlayerController
             Flags = (uint)entity.Flags
         };
 
+        //Console.WriteLine($"Sending update for entity {entity.Id} velocity {entity.Velocity.ToString()}.");
+
         foreach (var other in neighbours)
         {
-            if (EntitySocketMap.TryGet(other.Id, out var socket))
-            {
-                FlatBuffer buffer = new FlatBuffer(packet.Size);
-                packet.Serialize(ref buffer);
-                socket.Send(ref buffer);
-            }
+            if (EntitySocketMap.TryGet(other.Id, out var socket))            
+                packet.Serialize(ref socket.UnreliableBuffer);            
         }
     }
 }

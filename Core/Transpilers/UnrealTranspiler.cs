@@ -252,7 +252,7 @@ public class UnrealTranspiler : AbstractTranspiler
         "float" => $"        Buffer->Write<float>({name});",
         "long" => $"        Buffer->Write<int64>({name});",
         "ulong" => $"        Buffer->Write<int64>(static_cast<int64>({name}));",
-        "bool" or "boolean" => $"        Buffer->WriteBool({name});",
+        "bool" or "boolean" => $"        Buffer->Write<bool>({name});",
         "decimal" => $"        Buffer->Write<float>({name});",
         "FVector" => $"        Buffer->Write<FVector>({name});",
         "FRotator" => $"        Buffer->Write<FRotator>({name});",
@@ -271,7 +271,7 @@ public class UnrealTranspiler : AbstractTranspiler
         "float" => $"        {name} = Buffer->Read<float>();",
         "long" => $"        {name} = Buffer->Read<int64>();",
         "ulong" => $"        {name} = Buffer->Read<int64>();",
-        "bool" or "boolean" => $"        {name} = Buffer->ReadBool();",
+        "bool" or "boolean" => $"        {name} = Buffer->Read<bool>();",
         "decimal" => $"        {name} = Buffer->Read<float>();",
         "FVector" => $"        {name} = Buffer->Read<FVector>();",
         "FRotator" => $"        {name} = Buffer->Read<FRotator>();",
@@ -474,27 +474,28 @@ public class UnrealTranspiler : AbstractTranspiler
             )
             {
                 var fields = contract.GetFields(BindingFlags.Public | BindingFlags.Instance);
+                var ident = "                        ";
 
-                switchBuilder.AppendLine($"                case EServerPackets::{packet}:");
-                switchBuilder.AppendLine("                {");
+                switchBuilder.AppendLine($"{ident}case EServerPackets::{packet}:");
+                switchBuilder.AppendLine(ident + "{");
 
                 if (fields.Length == 1)
                 {
                     var fieldType = ConvertToUnrealType(fields[0].FieldType.Name);
                     var fieldName = fields[0].Name;
 
-                    switchBuilder.AppendLine($"                    F{packet}Packet f{packet} = F{packet}Packet();");
-                    switchBuilder.AppendLine($"                    f{packet}.Deserialize(Buffer);");
-                    switchBuilder.AppendLine($"                    On{packet}.Broadcast(f{packet}.{fieldName});");
+                    switchBuilder.AppendLine($"{ident}    F{packet}Packet f{packet} = F{packet}Packet();");
+                    switchBuilder.AppendLine($"{ident}    f{packet}.Deserialize(Buffer);");
+                    switchBuilder.AppendLine($"{ident}    On{packet}.Broadcast(f{packet}.{fieldName});");
                 }
                 else if (fields.Length == 0)
                 {
-                    switchBuilder.AppendLine($"                    On{packet}.Broadcast();");
+                    switchBuilder.AppendLine($"{ident}    On{packet}.Broadcast();");
                 }
                 else if (fields.Length < 6)
                 {
-                    switchBuilder.AppendLine($"                    F{packet}Packet f{packet} = F{packet}Packet();");
-                    switchBuilder.AppendLine($"                    f{packet}.Deserialize(Buffer);");
+                    switchBuilder.AppendLine($"{ident}    F{packet}Packet f{packet} = F{packet}Packet();");
+                    switchBuilder.AppendLine($"{ident}    f{packet}.Deserialize(Buffer);");
                     var parameters = new List<string>();
 
                     foreach (var field in fields)
@@ -504,17 +505,17 @@ public class UnrealTranspiler : AbstractTranspiler
                         parameters.Add($"f{packet}.{fieldName}");
                     }
 
-                    switchBuilder.AppendLine($"                    On{packet}.Broadcast({string.Join(", ", parameters)});");
+                    switchBuilder.AppendLine($"{ident}    On{packet}.Broadcast({string.Join(", ", parameters)});");
                 }
                 else
                 {
-                    switchBuilder.AppendLine($"                    F{packet}Packet f{packet} = F{packet}Packet();");
-                    switchBuilder.AppendLine($"                    f{packet}.Deserialize(Buffer);");
-                    switchBuilder.AppendLine($"                    On{packet}.Broadcast(f{packet});");
+                    switchBuilder.AppendLine($"{ident}    F{packet}Packet f{packet} = F{packet}Packet();");
+                    switchBuilder.AppendLine($"{ident}    f{packet}.Deserialize(Buffer);");
+                    switchBuilder.AppendLine($"{ident}    On{packet}.Broadcast(f{packet});");
                 }
 
-                switchBuilder.AppendLine("                }");
-                switchBuilder.AppendLine("                break;");
+                switchBuilder.AppendLine(ident + "}");
+                switchBuilder.AppendLine(ident + "break;");
             }            
         }
 
