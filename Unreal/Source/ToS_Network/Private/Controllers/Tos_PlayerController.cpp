@@ -135,7 +135,8 @@ void ATOSPlayerController::ApplyDeltaData(ASyncEntity* Entity, const FDeltaUpdat
 
     if (EnumHasAnyFlags(Data.EntitiesMask, EEntityDelta::Position))
     {
-        const FVector CurrentLocation = Entity->GetActorLocation();
+        Entity->SetActorLocation(Data.Positon);
+        /*const FVector CurrentLocation = Entity->GetActorLocation();
         const float Distance = FVector::Dist(CurrentLocation, Data.Positon);
 
         if (Distance > MaxTeleportDistance)
@@ -146,12 +147,13 @@ void ATOSPlayerController::ApplyDeltaData(ASyncEntity* Entity, const FDeltaUpdat
         else
         {
             Entity->TargetLocation = Data.Positon;
-        }
+        }*/
     }
 
     if (EnumHasAnyFlags(Data.EntitiesMask, EEntityDelta::Rotation))
     {
-        const FRotator CurrentRotation = Entity->GetActorRotation();
+        Entity->SetActorRotation(Data.Rotator);
+        /*const FRotator CurrentRotation = Entity->GetActorRotation();
         const float DeltaAngle = FMath::Abs((CurrentRotation - Data.Rotator).GetNormalized().Yaw);
 
         if (DeltaAngle > MaxTeleportAngle)
@@ -162,7 +164,7 @@ void ATOSPlayerController::ApplyDeltaData(ASyncEntity* Entity, const FDeltaUpdat
         else
         {
             Entity->TargetRotation = Data.Rotator;
-        }
+        }*/
     }
 
     EEntityState Flags = static_cast<EEntityState>(Data.Flags);
