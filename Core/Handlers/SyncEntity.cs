@@ -10,8 +10,6 @@ namespace Packets.Handler
             SyncEntityPacket syncEntityPacket = new SyncEntityPacket();
             syncEntityPacket.Deserialize(ref buffer);
 
-            Console.WriteLine($"[ASyncEntity] Velocity set: {syncEntityPacket.Velocity.ToString()} | Speed: {syncEntityPacket.Velocity.Size()}");
-
             ctrl.Entity.SetVelocity(syncEntityPacket.Velocity);
             ctrl.Entity.Move(syncEntityPacket.Positon);
             ctrl.Entity.Rotate(syncEntityPacket.Rotator);

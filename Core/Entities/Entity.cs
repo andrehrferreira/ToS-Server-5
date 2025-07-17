@@ -23,6 +23,7 @@ public enum EntityDelta
     Rotation = 1 << 1,
     AnimState = 1 << 2,
     Flags = 1 << 3,
+    Velocity = 1 << 4,
     All = Position | Rotation | AnimState | Flags
 }
 
@@ -151,8 +152,8 @@ public partial struct Entity
 
     public void SetVelocity(FVector velocity)
     {
-        //if (velocity == velocity)
-        //    return;
+        if (velocity == velocity)
+            return;
 
         Snapshot();
         Velocity = velocity;
@@ -169,6 +170,7 @@ public partial struct Entity
         if(Position != last.Position) delta |= EntityDelta.Position;
         if(Rotation != last.Rotation) delta |= EntityDelta.Rotation;
         if(AnimState != last.AnimState) delta |= EntityDelta.AnimState;
+        if(Velocity != last.Velocity) delta |= EntityDelta.Velocity;
         if(Flags != last.Flags) delta |= EntityDelta.Flags;
 
         return delta;
@@ -309,15 +311,24 @@ public partial struct DeltaSyncPacket
     public void Delta(Entity entity, ref FlatBuffer buffer)
     {
         var delta = entity.Delta();
-        buffer.Write((byte)delta);
 
-        if(delta.HasFlag(EntityDelta.Position))
-            buffer.Write(entity.Position);
-        if (delta.HasFlag(EntityDelta.Rotation))
-            buffer.Write(entity.Rotation);
-        if (delta.HasFlag(EntityDelta.AnimState))
-            buffer.Write(entity.AnimState);
-        if (delta.HasFlag(EntityDelta.Flags))
-            buffer.Write(entity.Flags);
+        if(delta != EntityDelta.None)
+        {
+            buffer.Write(PacketType.Unreliable);
+            buffer.Write((ushort)ServerPackets.DeltaSync);
+            buffer.Write(entity.Id);
+            buffer.Write((byte)delta);
+
+            if (delta.HasFlag(EntityDelta.Position))
+                buffer.Write(entity.Position);
+            if (delta.HasFlag(EntityDelta.Rotation))
+                buffer.Write(entity.Rotation);
+            if (delta.HasFlag(EntityDelta.AnimState))
+                buffer.Write(entity.AnimState);
+            if (delta.HasFlag(EntityDelta.Velocity))
+                buffer.Write(entity.Velocity);
+            if (delta.HasFlag(EntityDelta.Flags))
+                buffer.Write(entity.Flags);
+        }        
     }
 }

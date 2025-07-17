@@ -180,8 +180,8 @@ void UDPClient::PollIncomingPackets()
                 Buffer->CopyFromMemory(ReceivedData.GetData(), BytesRead);
 
                 EPacketType PacketType = static_cast<EPacketType>(Buffer->ReadByte());
-                FString PacketName = StaticEnum<EPacketType>()->GetNameStringByValue(static_cast<int64>(PacketType));
-                UE_LOG(LogTemp, Warning, TEXT("UDPClient: Received %s."), *PacketName);
+                //FString PacketName = StaticEnum<EPacketType>()->GetNameStringByValue(static_cast<int64>(PacketType));
+                //UE_LOG(LogTemp, Warning, TEXT("UDPClient: Received %s."), *PacketName);
 
                 switch(PacketType)
                 {
@@ -197,14 +197,14 @@ void UDPClient::PollIncomingPackets()
                         
                         int32 BytesSent = 0;
                         Socket->SendTo(PongBuffer->GetRawBuffer(), PongBuffer->GetLength(), BytesSent, *RemoteEndpoint);
-
-                        break;
                     }
+                    break;
                     case EPacketType::Unreliable:
                     {
                         if (OnDataReceive)
                             OnDataReceive(Buffer);
                     }
+                    break;
                     case EPacketType::Reliable:
                     {
                         //uint16 Seq = Buffer->ReadUInt16();
@@ -212,9 +212,8 @@ void UDPClient::PollIncomingPackets()
 
                         if (OnDataReceive)
                             OnDataReceive(Buffer);
-
-                        break;
                     }
+                    break;
                     case EPacketType::ConnectionAccepted:
                     {
                         StopRetryTimer();

@@ -27,52 +27,41 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         if (Buffer && Buffer->Position == 1)
         {
             EServerPackets ServerPacketType = static_cast<EServerPackets>(Buffer->ReadInt16());
-
-            FString PacketName = StaticEnum<EServerPackets>()->GetNameStringByValue(static_cast<int64>(ServerPacketType));
-            UE_LOG(LogTemp, Warning, TEXT("UENetSubsystem: Received %s."), *PacketName);
+            //FString PacketName = StaticEnum<EServerPackets>()->GetNameStringByValue(static_cast<int64>(ServerPacketType));
+            //UE_LOG(LogTemp, Warning, TEXT("UENetSubsystem: Received %s."), *PacketName);
 
             switch (ServerPacketType) {
-                case EServerPackets::Benchmark:
-                {
-                    FBenchmarkPacket fBenchmark = FBenchmarkPacket();
-                    fBenchmark.Deserialize(Buffer);
-                    OnBenchmark.Broadcast(fBenchmark.Id, fBenchmark.Positon, fBenchmark.Rotator);
-                    break;
-                }
                 case EServerPackets::CreateEntity:
                 {
                     FCreateEntityPacket fCreateEntity = FCreateEntityPacket();
                     fCreateEntity.Deserialize(Buffer);
                     OnCreateEntity.Broadcast(fCreateEntity.EntityId, fCreateEntity.Positon, fCreateEntity.Rotator, fCreateEntity.Flags);
-                    break;
                 }
+                break;
                 case EServerPackets::UpdateEntity:
                 {
                     FUpdateEntityPacket fUpdateEntity = FUpdateEntityPacket();
                     fUpdateEntity.Deserialize(Buffer);
                     OnUpdateEntity.Broadcast(fUpdateEntity);
-                    break;
                 }
+                break;
                 case EServerPackets::RemoveEntity:
                 {
                     FRemoveEntityPacket fRemoveEntity = FRemoveEntityPacket();
                     fRemoveEntity.Deserialize(Buffer);
                     OnRemoveEntity.Broadcast(fRemoveEntity.EntityId);
-                    break;
                 }
-                case EServerPackets::DeltaSync:
-                {
-                    FDeltaSyncPacket fDeltaSync = FDeltaSyncPacket();
-                    fDeltaSync.Deserialize(Buffer);
-                    OnDeltaSync.Broadcast(fDeltaSync.Index, fDeltaSync.EntitiesMask);
-                    break;
-                }
+                break;
                 case EServerPackets::SyncStateInt:
                 {
                     OnSyncStateInt.Broadcast();
-                    break;
                 }
+                break;
 
+                case EServerPackets::DeltaSync:
+                {
+                }
+                break;
             }
         }
     };

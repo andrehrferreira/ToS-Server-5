@@ -467,7 +467,11 @@ public class UnrealTranspiler : AbstractTranspiler
             var contract = GetContractByName(packet + "Packet");
             var attribute = contract.GetCustomAttribute<ContractAttribute>();
 
-            if (attribute.LayerType == PacketLayerType.Server && attribute.PacketType == PacketType.None)
+            if (
+                attribute.LayerType == PacketLayerType.Server && 
+                attribute.PacketType == PacketType.None &&
+                attribute.Flags != ContractPacketFlags.None
+            )
             {
                 var fields = contract.GetFields(BindingFlags.Public | BindingFlags.Instance);
 
@@ -509,8 +513,8 @@ public class UnrealTranspiler : AbstractTranspiler
                     switchBuilder.AppendLine($"                    On{packet}.Broadcast(f{packet});");
                 }
 
-                switchBuilder.AppendLine("                    break;");
                 switchBuilder.AppendLine("                }");
+                switchBuilder.AppendLine("                break;");
             }            
         }
 
