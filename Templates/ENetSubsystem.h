@@ -34,6 +34,7 @@
 #include "IPAddress.h"
 #include "Modules/ModuleManager.h"
 //%INCLUDES%
+#include "Enum/EntityDelta.h"
 #include "ENetSubsystem.generated.h"
 
 UCLASS(DisplayName = "ENetSubSystem")
@@ -49,8 +50,36 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUDPConnectionError);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDataReceived, UFlatBuffer*, Buffer);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConnect, const int32&, ClientID);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnConnectDenied);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnConnectDenied);
 //%DELEGATES%
+    USTRUCT(BlueprintType)
+    struct FDeltaUpdateData
+    {
+        GENERATED_USTRUCT_BODY();
+
+        UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        int32 Index;
+
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = "EEntityDelta"))
+        EEntityDelta EntitiesMask;
+
+        UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        FVector Positon;
+
+        UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        FRotator Rotator;
+
+        UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        FVector Velocity;
+
+        UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        int32 AnimationState;
+
+        UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        uint32 Flags;
+    };
+
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDeltaUpdateHandler, FDeltaUpdateData, Data);
 
 	UPROPERTY(BlueprintAssignable, Category = "UDP")
 	FOnUDPConnectionError OnConnectionError;
@@ -98,9 +127,12 @@ public:
 	float GetRetryInterval() const;
 
 	UFUNCTION(BlueprintCallable, Category = "UDP")
-	bool IsRetryEnabled() const;
+    bool IsRetryEnabled() const;
 
     void SendEntitySync(FVector Position, FRotator Rotation, int32 AnimID, FVector Velocity, bool IsFalling) const;
+
+    UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnDeltaUpdate", Keywords = "Server Events"), Category = "UDP")
+    FDeltaUpdateHandler OnDeltaUpdate;
 
 //%EVENTS%
 

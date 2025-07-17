@@ -31,6 +31,11 @@ public:
     void HandleUpdateEntity(FUpdateEntityPacket data);
 
     UFUNCTION()
+    void HandleDeltaUpdate(FDeltaUpdateData data);
+
+    void ApplyDeltaData(ASyncEntity* Entity, const FDeltaUpdateData& Data);
+
+    UFUNCTION()
     void HandleRemoveEntity(int32 EntityId);
 
 protected:
