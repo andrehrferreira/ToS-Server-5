@@ -607,10 +607,8 @@ public sealed class UDPServer
 
     public static void Flush()
     {
-        if (SendEvent != null)
-        {
+        if (SendEvent != null)        
             SendEvent.Set();
-        }
     }
 
     public static void Update(float delta)

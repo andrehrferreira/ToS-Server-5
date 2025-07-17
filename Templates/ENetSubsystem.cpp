@@ -15,9 +15,12 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
     UdpClient->OnDataReceive = [this](UFlatBuffer* Buffer)
     {
-        if (Buffer)
+        if (Buffer && Buffer->Position == 1)
         {
             EServerPackets ServerPacketType = static_cast<EServerPackets>(Buffer->ReadInt16());
+
+            FString PacketName = StaticEnum<EServerPackets>()->GetNameStringByValue(static_cast<int64>(ServerPacketType));
+            UE_LOG(LogTemp, Warning, TEXT("UENetSubsystem: Received %s."), *PacketName);
 
             switch (ServerPacketType) {
 //%DATASWITCH%

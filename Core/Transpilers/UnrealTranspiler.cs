@@ -92,7 +92,8 @@ public class UnrealTranspiler : AbstractTranspiler
         writer.WriteLine();
         writer.WriteLine("#include \"CoreMinimal.h\"");
         writer.WriteLine();
-        writer.WriteLine($"enum class E{enumName} : uint16");
+        writer.WriteLine("UENUM(BlueprintType)");
+        writer.WriteLine($"enum class E{enumName} : uint8");
         writer.WriteLine("{");
         int index = 0;
 
@@ -103,6 +104,10 @@ public class UnrealTranspiler : AbstractTranspiler
         }
 
         writer.WriteLine("};");
+        writer.WriteLine();
+        writer.WriteLine($"template<> TOS_NETWORK_API UEnum* StaticEnum<E{enumName}>();");
+
+        
     }
 
     private static void GenerateHeader(string directory, string structName, string rawName, FieldInfo[] fields, ContractAttribute attribute)

@@ -232,13 +232,14 @@ public:
         return Value;
     }
 
+	int32 Capacity;
+	int32 Position;
+
 protected:
 	virtual void BeginDestroy() override;
 
 private:
-    uint8* Data;
-    int32 Capacity;
-    int32 Position;
+    uint8* Data;     
     bool bDisposed;
     uint8 WriteBits = 0;
     uint8 WriteBitIndex = 0;

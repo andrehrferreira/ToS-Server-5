@@ -2,7 +2,8 @@
 
 #include "CoreMinimal.h"
 
-enum class EServerPackets : uint16
+UENUM(BlueprintType)
+enum class EServerPackets : uint8
 {
     Benchmark = 0,
     CreateEntity = 1,
@@ -11,3 +12,5 @@ enum class EServerPackets : uint16
     DeltaSync = 4,
     SyncStateInt = 5,
 };
+
+template<> TOS_NETWORK_API UEnum* StaticEnum<EServerPackets>();
