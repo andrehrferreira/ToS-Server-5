@@ -42,9 +42,9 @@ public partial struct Entity
     public FixedString32 Name;
     public FVector Position;
     public FRotator Rotation;
+    public FVector Velocity;
     public uint AnimState;
-    public uint Speed;
-
+    
     //AIO Control
     public uint WorldId;
     public (int, int, int) CurrentCell;
@@ -142,13 +142,13 @@ public partial struct Entity
         AnimState = animState;
     }
 
-    public void SetSpeed(uint speed)
+    public void SetVelocity(FVector velocity)
     {
-        if (speed == Speed)
+        if (velocity == velocity)
             return;
 
         Snapshot();
-        Speed = speed;
+        Velocity = velocity;
     }
 
     public EntityDelta Delta()

@@ -23,8 +23,8 @@ public partial struct SyncEntityPacket
     [ContractField("FRotator")]
     public FRotator Rotator;
 
-    [ContractField("uint")]
-    public uint Speed;
+    [ContractField("FVector")]
+    public FVector Velocity;
 
     [ContractField("ushort")]
     public ushort AnimationState;
@@ -42,8 +42,8 @@ public partial struct UpdateEntityPacket
     [ContractField("FRotator")]
     public FRotator Rotator;
 
-    [ContractField("uint")]
-    public uint Speed;
+    [ContractField("FVector")]
+    public FVector Velocity;
 
     [ContractField("ushort")]
     public ushort AnimationState;

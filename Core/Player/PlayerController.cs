@@ -77,7 +77,7 @@ public partial class PlayerController
             EntityId = entity.Id,
             Positon = entity.Position,
             Rotator = entity.Rotation,
-            Speed = entity.Speed,
+            Velocity = entity.Velocity,
             AnimationState = (ushort)entity.AnimState,
             Flags = (uint)entity.Flags
         };

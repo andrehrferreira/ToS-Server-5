@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 public partial struct SyncEntityPacket: INetworkPacketRecive
 {
-    public int Size => 21;
+    public int Size => 23;
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -12,7 +12,7 @@ public partial struct SyncEntityPacket: INetworkPacketRecive
     {
         Positon = buffer.ReadFVector(0.1f);
         Rotator = buffer.ReadFRotator(0.1f);
-        Speed = buffer.Read<uint>();
+        Velocity = buffer.ReadFVector(0.1f);
         AnimationState = buffer.Read<ushort>();
     }
 }

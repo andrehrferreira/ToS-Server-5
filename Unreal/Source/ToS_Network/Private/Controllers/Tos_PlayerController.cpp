@@ -76,7 +76,7 @@ void ATOSPlayerController::HandleUpdateEntity(FUpdateEntityPacket data)
         }
 
         Entity->AnimationState = data.AnimationState;
-        Entity->UpdateAnimationFromNetwork(data.Speed, data.AnimationState);
+        Entity->UpdateAnimationFromNetwork(data.Velocity, data.AnimationState);
     }
     else if (EntityClass)
     {
@@ -94,7 +94,7 @@ void ATOSPlayerController::HandleUpdateEntity(FUpdateEntityPacket data)
         {
             NewEntity->EntityId = data.EntityId;
             NewEntity->AnimationState = data.AnimationState;
-            NewEntity->UpdateAnimationFromNetwork(data.Speed, data.AnimationState);
+            NewEntity->UpdateAnimationFromNetwork(data.Velocity, data.AnimationState);
             SpawnedEntities.Add(data.EntityId, NewEntity);
         }
     }

@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 public partial struct UpdateEntityPacket: INetworkPacket
 {
-    public int Size => 29;
+    public int Size => 31;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
@@ -14,7 +14,7 @@ public partial struct UpdateEntityPacket: INetworkPacket
         buffer.Write(EntityId);
         buffer.Write(Positon, 0.1f);
         buffer.Write(Rotator, 0.1f);
-        buffer.Write(Speed);
+        buffer.Write(Velocity, 0.1f);
         buffer.Write(AnimationState);
         buffer.Write(Flags);
     }
@@ -25,7 +25,7 @@ public partial struct UpdateEntityPacket: INetworkPacket
         EntityId = buffer.Read<uint>();
         Positon = buffer.ReadFVector(0.1f);
         Rotator = buffer.ReadFRotator(0.1f);
-        Speed = buffer.Read<uint>();
+        Velocity = buffer.ReadFVector(0.1f);
         AnimationState = buffer.Read<ushort>();
         Flags = buffer.Read<uint>();
     }

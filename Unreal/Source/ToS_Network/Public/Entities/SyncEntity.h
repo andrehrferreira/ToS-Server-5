@@ -17,7 +17,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Entity)
     int32 EntityId;
 
-    void UpdateAnimationFromNetwork(uint32 Speed, uint32 Animation);
+    void UpdateAnimationFromNetwork(FVector Velocity, uint32 Animation);
 
     UFUNCTION(BlueprintImplementableEvent, Category = "Network")
     void SetSpeed(float Speed);

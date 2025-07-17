@@ -10,10 +10,7 @@ namespace Packets.Handler
             SyncEntityPacket syncEntityPacket = new SyncEntityPacket();
             syncEntityPacket.Deserialize(ref buffer);
 
-            if(syncEntityPacket.Speed > 0)
-                Console.WriteLine($"SyncEntity: {ctrl.Entity.Id} - Speed: {syncEntityPacket.Speed}, Position: {syncEntityPacket.Positon}, Rotation: {syncEntityPacket.Rotator}, AnimationState: {syncEntityPacket.AnimationState}");
-
-            ctrl.Entity.SetSpeed(syncEntityPacket.Speed);
+            ctrl.Entity.SetVelocity(syncEntityPacket.Velocity);
             ctrl.Entity.Move(syncEntityPacket.Positon);
             ctrl.Entity.Rotate(syncEntityPacket.Rotator);
             ctrl.Entity.SetAnimState(syncEntityPacket.AnimationState);
