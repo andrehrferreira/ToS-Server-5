@@ -13,6 +13,8 @@
 
 ASyncPlayer::ASyncPlayer()
 {
+    LocalControl = true;
+
     GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
     bUseControllerRotationPitch = false;

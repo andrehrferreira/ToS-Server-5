@@ -6,7 +6,7 @@
 
 ASyncEntity::ASyncEntity()
 {
-        PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bCanEverTick = true;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -25,7 +25,7 @@ ASyncEntity::ASyncEntity()
 
 void ASyncEntity::BeginPlay()
 {
-        Super::BeginPlay();
+    Super::BeginPlay();
 
     TargetLocation = GetActorLocation();
     TargetRotation = GetActorRotation();
@@ -55,13 +55,15 @@ void ASyncEntity::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    const float InterpSpeed = 10.0f;
+	if (!LocalControl) {
+		const float InterpSpeed = 10.0f;
 
-    FVector NewLocation = FMath::VInterpTo(GetActorLocation(), TargetLocation, DeltaTime, InterpSpeed);
-    SetActorLocation(NewLocation);
+		FVector NewLocation = FMath::VInterpTo(GetActorLocation(), TargetLocation, DeltaTime, InterpSpeed);
+		SetActorLocation(NewLocation);
 
-    FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaTime, InterpSpeed);
-    SetActorRotation(NewRotation);
+		FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaTime, InterpSpeed);
+		SetActorRotation(NewRotation);
+	}
 }
 
 void ASyncEntity::UpdateAnimationFromNetwork(FVector Velocity, uint32 Animation, bool IsFalling)

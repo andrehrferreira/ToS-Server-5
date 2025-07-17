@@ -30,6 +30,8 @@ public:
 
 	int32 AnimationState = 0;
 
+	bool LocalControl = false;
+
 protected:
     virtual void Tick(float DeltaTime) override;
     virtual void BeginPlay() override;
