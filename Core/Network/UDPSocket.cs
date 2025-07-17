@@ -96,13 +96,8 @@ public class UDPSocket
         ServerSocket = serverSocket;
 
         ReliableBuffer = new FlatBuffer(UDPServer.Mtu);
-        ReliableBuffer.Write((ushort)PacketType.Reliable);
-
         UnreliableBuffer = new FlatBuffer(UDPServer.Mtu);
-        UnreliableBuffer.Write((ushort)PacketType.Unreliable);
-
         AckBuffer = new FlatBuffer(UDPServer.Mtu);
-        AckBuffer.Write((ushort)PacketType.Ack);
 
         EventQueue = Channel.CreateUnbounded<FlatBuffer>(new UnboundedChannelOptions
         {
@@ -152,19 +147,13 @@ public class UDPSocket
         {
             ref FlatBuffer buffer = ref UnreliableBuffer;
 
-            if (buffer.Position + networkPacket.Size > buffer.Capacity)
-            {
+            if (buffer.Position + networkPacket.Size > buffer.Capacity)            
                 Send(ref buffer);
-                buffer.Write((ushort)PacketType.Unreliable);
-            }
-                
+                            
             networkPacket.Serialize(ref buffer);
 
-            if (buffer.Position > UDPServer.Mtu * 0.8)
-            {
-                Send(ref buffer);
-                buffer.Write((ushort)PacketType.Unreliable);
-            }                
+            if (buffer.Position > UDPServer.Mtu * 0.8)            
+                Send(ref buffer);              
         }
     }
 
@@ -213,18 +202,12 @@ public class UDPSocket
             }
         }
 
-        if (UnreliableBuffer.Position > 1)
-        {
+        if (UnreliableBuffer.Position > 1)        
             Send(ref UnreliableBuffer);
-            UnreliableBuffer.Write((ushort)PacketType.Unreliable);
-        }
-            
+                    
         if (AckBuffer.Position > 1)
-        {
             Send(ref AckBuffer);
-            AckBuffer.Write((ushort)PacketType.Ack);
-        }
-            
+                    
         ProcessPacket();
 
         return true;

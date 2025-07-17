@@ -332,6 +332,7 @@ public partial struct DeltaSyncPacket
 
         if(delta != EntityDelta.None)
         {
+            buffer.Write(PacketType.Unreliable);
             buffer.Write((ushort)ServerPackets.DeltaSync);
             buffer.Write(entity.Id);
             buffer.Write((byte)delta);

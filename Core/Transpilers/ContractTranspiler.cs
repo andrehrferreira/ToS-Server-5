@@ -202,6 +202,11 @@ public class ContractTranspiler : AbstractTranspiler
                     writer.WriteLine($"        buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
                 else
                 {
+                    if (contractAttribute.Flags.HasFlag(ContractPacketFlags.Reliable))
+                        writer.WriteLine($"        buffer.Write(PacketType.Reliable);");
+                    else
+                        writer.WriteLine($"        buffer.Write(PacketType.Unreliable);");
+
                     writer.WriteLine($"        buffer.Write((ushort)ServerPackets.{rawName});");
                 }
 

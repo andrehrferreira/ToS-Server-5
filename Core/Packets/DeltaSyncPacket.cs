@@ -9,6 +9,7 @@ public partial struct DeltaSyncPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
+        buffer.Write(PacketType.Unreliable);
         buffer.Write((ushort)ServerPackets.DeltaSync);
         buffer.Write(Index);
         buffer.Write(EntitiesMask);

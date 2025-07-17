@@ -24,6 +24,9 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
             if (bufferSign == sign) {
                 do {
+                    if(Buffer->Position > 2)
+                        EPacketType PacketType = static_cast<EPacketType>(Buffer->ReadByte());
+
                     EServerPackets ServerPacketType = static_cast<EServerPackets>(Buffer->ReadInt16());
                     //FString PacketName = StaticEnum<EServerPackets>()->GetNameStringByValue(static_cast<int64>(ServerPacketType));
                     //UE_LOG(LogTemp, Warning, TEXT("UENetSubsystem: Received %s."), *PacketName);
