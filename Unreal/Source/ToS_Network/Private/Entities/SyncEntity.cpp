@@ -57,7 +57,7 @@ void ASyncEntity::UpdateAnimationFromNetwork(FVector Velocity, uint32 Animation,
 		Movement->SetMovementMode(IsFalling ? MOVE_Falling : MOVE_Walking);
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("UpdateAnimationFromNetwork: %s."), *Velocity.ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("UpdateAnimationFromNetwork: %s."), *Velocity.ToString());
 
     AnimationState = static_cast<int32>(Animation);
     SetSpeed(Velocity.Size());

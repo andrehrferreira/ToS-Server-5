@@ -151,7 +151,7 @@ public class UDPSocket
 
             networkPacket.Serialize(ref buffer);
 
-            if (buffer.Position > UDPServer.Mtu / 2)
+            if (buffer.Position > UDPServer.Mtu * 0.8)
                 Send(ref buffer);
         }
     }

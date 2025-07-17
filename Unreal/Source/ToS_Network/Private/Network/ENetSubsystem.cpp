@@ -77,7 +77,7 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
                             if (EnumHasAnyFlags(data.EntitiesMask, EEntityDelta::Velocity))
                                 data.Velocity = Buffer->Read<FVector>();
                             if (EnumHasAnyFlags(data.EntitiesMask, EEntityDelta::Flags))
-                                data.Flags = static_cast<int32>(Buffer->Read<uint32>());
+                                data.Flags = Buffer->Read<uint32>();
 
                             OnDeltaSync.Broadcast(data.Index, static_cast<uint8>(data.EntitiesMask));
                             OnDeltaUpdate.Broadcast(data);

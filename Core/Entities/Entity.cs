@@ -183,13 +183,13 @@ public partial struct Entity
         Entity last;
         EntityManager.TryGetSnapshot(Id, out last);
 
-        EntityDelta delta = EntityDelta.None;
+        EntityDelta delta = EntityDelta.Flags | EntityDelta.Velocity;
 
         if(Position != last.Position) delta |= EntityDelta.Position;
         if(Rotation != last.Rotation) delta |= EntityDelta.Rotation;
         if(AnimState != last.AnimState) delta |= EntityDelta.AnimState;
-        if(Velocity != last.Velocity) delta |= EntityDelta.Velocity;
-        if(Flags != last.Flags) delta |= EntityDelta.Flags;
+        //if(Velocity != last.Velocity) delta |= EntityDelta.Velocity;
+        //if(Flags != last.Flags) delta |= EntityDelta.Flags;
 
         return delta;
     }

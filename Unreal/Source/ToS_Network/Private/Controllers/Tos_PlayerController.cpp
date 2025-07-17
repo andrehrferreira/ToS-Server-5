@@ -107,6 +107,25 @@ void ATOSPlayerController::HandleDeltaUpdate(FDeltaUpdateData data)
         if (!Entity) return;
         ApplyDeltaData(Entity, data);
     }
+    else if (EntityClass)
+    {
+        UWorld* World = GetWorld();
+
+        if (!World)
+            return;
+
+        FActorSpawnParameters Params;
+        Params.Owner = nullptr;
+        Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        auto NewEntity = World->SpawnActor<ASyncEntity>(EntityClass, data.Positon, data.Rotator, Params);
+
+        if (NewEntity)
+        {
+            NewEntity->EntityId = data.Index;
+            ApplyDeltaData(NewEntity, data);
+            SpawnedEntities.Add(data.Index, NewEntity);
+        }
+    }
 }
 
 void ATOSPlayerController::ApplyDeltaData(ASyncEntity* Entity, const FDeltaUpdateData& Data)
