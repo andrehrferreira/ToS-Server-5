@@ -9,7 +9,6 @@ public partial struct CreateEntityPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
-        buffer.Write(PacketType.Reliable);
         buffer.Write((ushort)ServerPackets.CreateEntity);
         buffer.Write(EntityId);
         buffer.Write(Positon, 0.1f);

@@ -9,7 +9,6 @@ public partial struct RemoveEntityPacket: INetworkPacket
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
-        buffer.Write(PacketType.Reliable);
         buffer.Write((ushort)ServerPackets.RemoveEntity);
         buffer.Write(EntityId);
     }
