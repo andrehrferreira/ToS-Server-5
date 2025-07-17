@@ -16,3 +16,30 @@ enum class EEntityDelta : uint8
 
 ENUM_CLASS_FLAGS(EEntityDelta)
 
+USTRUCT(BlueprintType)
+struct FDeltaUpdateData
+{
+    GENERATED_USTRUCT_BODY();
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 Index;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = "EEntityDelta"))
+    EEntityDelta EntitiesMask;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FVector Positon;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FRotator Rotator;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FVector Velocity;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 AnimationState;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 Flags;
+};
+

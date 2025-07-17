@@ -50,37 +50,12 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUDPConnectionError);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDataReceived, UFlatBuffer*, Buffer);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConnect, const int32&, ClientID);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnConnectDenied);
-//%DELEGATES%
-    USTRUCT(BlueprintType)
-    struct FDeltaUpdateData
-    {
-        GENERATED_USTRUCT_BODY();
-
-        UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        int32 Index;
-
-        UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = "EEntityDelta"))
-        EEntityDelta EntitiesMask;
-
-        UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        FVector Positon;
-
-        UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        FRotator Rotator;
-
-        UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        FVector Velocity;
-
-        UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        int32 AnimationState;
-
-        UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        uint32 Flags;
-    };
-
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnConnectDenied);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDeltaUpdateHandler, FDeltaUpdateData, Data);
 
+//%DELEGATES%
+    
+    
 	UPROPERTY(BlueprintAssignable, Category = "UDP")
 	FOnUDPConnectionError OnConnectionError;
 
