@@ -131,10 +131,10 @@ void ATOSPlayerController::HandleDeltaUpdate(FDeltaUpdateData data)
 void ATOSPlayerController::ApplyDeltaData(ASyncEntity* Entity, const FDeltaUpdateData& Data)
 {
     if (EnumHasAnyFlags(Data.EntitiesMask, EEntityDelta::Position))
-        Entity->SetActorLocation(Data.Positon);
+        Entity->TargetLocation = Data.Positon;
 
     if (EnumHasAnyFlags(Data.EntitiesMask, EEntityDelta::Rotation))
-        Entity->SetActorRotation(Data.Rotator);
+        Entity->TargetRotation = Data.Rotator;
 
     if (EnumHasAnyFlags(Data.EntitiesMask, EEntityDelta::AnimState | EEntityDelta::Velocity | EEntityDelta::Flags))
     {

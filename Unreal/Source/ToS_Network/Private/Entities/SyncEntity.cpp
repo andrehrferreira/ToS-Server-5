@@ -6,7 +6,7 @@
 
 ASyncEntity::ASyncEntity()
 {
-	PrimaryActorTick.bCanEverTick = true;
+        PrimaryActorTick.bCanEverTick = true;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -25,7 +25,10 @@ ASyncEntity::ASyncEntity()
 
 void ASyncEntity::BeginPlay()
 {
-	Super::BeginPlay();
+        Super::BeginPlay();
+
+    TargetLocation = GetActorLocation();
+    TargetRotation = GetActorRotation();
 
 	if (UWorld* World = GetWorld())
 	{
@@ -46,6 +49,19 @@ void ASyncEntity::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		GetWorld()->GetTimerManager().ClearTimer(NetSyncTimerHandle);
 
     Super::EndPlay(EndPlayReason);
+}
+
+void ASyncEntity::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    const float InterpSpeed = 10.0f;
+
+    FVector NewLocation = FMath::VInterpTo(GetActorLocation(), TargetLocation, DeltaTime, InterpSpeed);
+    SetActorLocation(NewLocation);
+
+    FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaTime, InterpSpeed);
+    SetActorRotation(NewRotation);
 }
 
 void ASyncEntity::UpdateAnimationFromNetwork(FVector Velocity, uint32 Animation, bool IsFalling)
