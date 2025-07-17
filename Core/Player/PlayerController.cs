@@ -2,6 +2,7 @@
 using NanoSockets;
 using Spectre.Console;
 using System.Collections.Concurrent;
+using System;
 
 public partial class PlayerController
 {
@@ -66,6 +67,12 @@ public partial class PlayerController
     {
         if (!EntityManager.TryGet(EntityId, out var entity))
             return;
+
+        if ((DateTime.UtcNow - entity.LastUpdate).TotalMilliseconds > 300)
+        {
+            entity.Snapshot();
+            entity.Velocity = FVector.Zero;
+        }
 
         var neighbours = EntityManager.GetNearestEntities(EntityId);
 

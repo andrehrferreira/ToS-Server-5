@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -44,6 +45,8 @@ public partial struct Entity
     public FRotator Rotation;
     public FVector Velocity;
     public uint AnimState;
+
+    public DateTime LastUpdate;
     
     //AIO Control
     public uint WorldId;
@@ -54,6 +57,7 @@ public partial struct Entity
     {
         Id = id;
         Type = type;
+        LastUpdate = DateTime.UtcNow;
     }
 
     public World World {
@@ -122,6 +126,7 @@ public partial struct Entity
 
         Snapshot();
         Position = position;
+        LastUpdate = DateTime.UtcNow;
     }
 
     public void Rotate(FRotator rotation)
@@ -131,6 +136,7 @@ public partial struct Entity
 
         Snapshot();
         Rotation = rotation;
+        LastUpdate = DateTime.UtcNow;
     }
 
     public void SetAnimState(uint animState)
@@ -140,6 +146,7 @@ public partial struct Entity
 
         Snapshot();
         AnimState = animState;
+        LastUpdate = DateTime.UtcNow;
     }
 
     public void SetVelocity(FVector velocity)
@@ -149,6 +156,7 @@ public partial struct Entity
 
         Snapshot();
         Velocity = velocity;
+        LastUpdate = DateTime.UtcNow;
     }
 
     public EntityDelta Delta()
