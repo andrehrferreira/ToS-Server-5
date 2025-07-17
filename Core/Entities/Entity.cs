@@ -134,8 +134,8 @@ public partial struct Entity
 
     public void Rotate(FRotator rotation)
     {
-        //if(rotation == Rotation)
-        //    return;
+        if(rotation == Rotation)
+            return;
 
         Snapshot();
         Rotation = rotation;

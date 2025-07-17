@@ -267,7 +267,7 @@ public class UnrealTranspiler : AbstractTranspiler
         "uint" => $"        {name} = static_cast<int32>(Buffer->Read<uint32>());",
         "ushort" => $"        {name} = static_cast<int32>(Buffer->Read<uint16>());",
         "short" => $"        {name} = static_cast<int32>(Buffer->Read<int16>());",
-        "byte" => $"        {name} = Buffer->Read<int8>();",
+        "byte" => $"        {name} = Buffer->Read<uint8>();",
         "float" => $"        {name} = Buffer->Read<float>();",
         "long" => $"        {name} = Buffer->Read<int64>();",
         "ulong" => $"        {name} = Buffer->Read<int64>();",

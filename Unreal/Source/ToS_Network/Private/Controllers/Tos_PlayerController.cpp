@@ -130,21 +130,47 @@ void ATOSPlayerController::HandleDeltaUpdate(FDeltaUpdateData data)
 
 void ATOSPlayerController::ApplyDeltaData(ASyncEntity* Entity, const FDeltaUpdateData& Data)
 {
+    constexpr float MaxTeleportDistance = 100.0f; 
+    constexpr float MaxTeleportAngle = 30.0f;     
+
     if (EnumHasAnyFlags(Data.EntitiesMask, EEntityDelta::Position))
-        Entity->TargetLocation = Data.Positon;
+    {
+        const FVector CurrentLocation = Entity->GetActorLocation();
+        const float Distance = FVector::Dist(CurrentLocation, Data.Positon);
+
+        if (Distance > MaxTeleportDistance)
+        {
+            Entity->SetActorLocation(Data.Positon);
+            Entity->TargetLocation = Data.Positon;
+        }
+        else
+        {
+            Entity->TargetLocation = Data.Positon;
+        }
+    }
 
     if (EnumHasAnyFlags(Data.EntitiesMask, EEntityDelta::Rotation))
-        Entity->TargetRotation = Data.Rotator;
-
-    if (EnumHasAnyFlags(Data.EntitiesMask, EEntityDelta::AnimState | EEntityDelta::Velocity | EEntityDelta::Flags))
     {
-        EEntityState Flags = static_cast<EEntityState>(Data.Flags);
-        bool bIsFalling = HasEntityState(Flags, EEntityState::IsFalling);
-        FVector Velocity = EnumHasAnyFlags(Data.EntitiesMask, EEntityDelta::Velocity) ? Data.Velocity : FVector::ZeroVector;
-        uint32 Anim = EnumHasAnyFlags(Data.EntitiesMask, EEntityDelta::AnimState) ? Data.AnimationState : Entity->AnimationState;
-        Entity->AnimationState = Anim;
-        Entity->UpdateAnimationFromNetwork(Velocity, Anim, bIsFalling);
+        const FRotator CurrentRotation = Entity->GetActorRotation();
+        const float DeltaAngle = FMath::Abs((CurrentRotation - Data.Rotator).GetNormalized().Yaw);
+
+        if (DeltaAngle > MaxTeleportAngle)
+        {
+            Entity->SetActorRotation(Data.Rotator);
+            Entity->TargetRotation = Data.Rotator;
+        }
+        else
+        {
+            Entity->TargetRotation = Data.Rotator;
+        }
     }
+
+    EEntityState Flags = static_cast<EEntityState>(Data.Flags);
+    bool bIsFalling = HasEntityState(Flags, EEntityState::IsFalling);
+    FVector Velocity = EnumHasAnyFlags(Data.EntitiesMask, EEntityDelta::Velocity) ? Data.Velocity : FVector::ZeroVector;
+    uint32 Anim = EnumHasAnyFlags(Data.EntitiesMask, EEntityDelta::AnimState) ? Data.AnimationState : Entity->AnimationState;
+    Entity->AnimationState = Anim;
+    Entity->UpdateAnimationFromNetwork(Velocity, Anim, bIsFalling);
 }
 
 void ATOSPlayerController::HandleRemoveEntity(int32 EntityId)
