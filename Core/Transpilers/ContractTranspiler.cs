@@ -51,13 +51,16 @@ public class ContractTranspiler : AbstractTranspiler
             var contractName = contract.Name;
             var rawName = contractName.Replace("Packet", "");
 
-            if (attribute.LayerType == PacketLayerType.Server)
+            if (attribute != null && attribute.LayerType == PacketLayerType.Server)
             {
                 string filePath = Path.Combine(baseDirectoryPath, $"{contractName}.cs");
 
-                serverPackets.Add(attribute.Name);
-                serverPacketType.Add(attribute.PacketType.ToString());
-                serverLowLevelPacket.Add(attribute.PacketType != PacketType.None);
+                if (attribute != null && attribute.LayerType == PacketLayerType.Server && attribute.PacketType == PacketType.None)
+                {
+                    serverPackets.Add(attribute.Name);
+                    serverPacketType.Add(attribute.PacketType.ToString());
+                    serverLowLevelPacket.Add(attribute.PacketType != PacketType.None);
+                }
 
                 using (var writer = new StreamWriter(filePath))
                 {
@@ -74,7 +77,7 @@ public class ContractTranspiler : AbstractTranspiler
                     writer.WriteLine("}");
                 }
             }
-            else if (attribute.LayerType == PacketLayerType.Client)
+            else if (attribute != null && attribute.LayerType == PacketLayerType.Client)
             {
                 string filePath = Path.Combine(baseDirectoryPath, $"{contractName}.cs");
 

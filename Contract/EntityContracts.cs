@@ -1,4 +1,4 @@
-[Contract("CreateEntity", PacketLayerType.Server, ContractPacketFlags.FromEntity_Reliable)]
+[Contract("CreateEntity", PacketLayerType.Server, ContractPacketFlags.FromEntity)]
 public partial struct CreateEntityPacket
 {
     [ContractField("uint")]
@@ -55,7 +55,7 @@ public partial struct UpdateEntityPacket
     public uint Flags;
 }
 
-[Contract("RemoveEntity", PacketLayerType.Server, ContractPacketFlags.FromEntity_Reliable)]
+[Contract("RemoveEntity", PacketLayerType.Server, ContractPacketFlags.FromEntity)]
 public partial struct RemoveEntityPacket
 {
     [ContractField("uint")]

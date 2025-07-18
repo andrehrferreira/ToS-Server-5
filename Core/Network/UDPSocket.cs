@@ -94,6 +94,7 @@ public class UDPSocket
         State = ConnectionState.Disconnected;
         RemoteAddress = default;
         ServerSocket = serverSocket;
+
         ReliableBuffer = new FlatBuffer(UDPServer.Mtu);
         UnreliableBuffer = new FlatBuffer(UDPServer.Mtu);
         AckBuffer = new FlatBuffer(UDPServer.Mtu);
@@ -146,13 +147,13 @@ public class UDPSocket
         {
             ref FlatBuffer buffer = ref UnreliableBuffer;
 
-            if (buffer.Position + networkPacket.Size > buffer.Capacity)
+            if (buffer.Position + networkPacket.Size > buffer.Capacity)            
                 Send(ref buffer);
-
+                            
             networkPacket.Serialize(ref buffer);
 
-            if (buffer.Position > UDPServer.Mtu / 2)
-                Send(ref buffer);
+            if (buffer.Position > UDPServer.Mtu * 0.8)            
+                Send(ref buffer);              
         }
     }
 
@@ -201,12 +202,12 @@ public class UDPSocket
             }
         }
 
-        if (UnreliableBuffer.Position > 0)
+        if (UnreliableBuffer.Position > 0)        
             Send(ref UnreliableBuffer);
-
+                    
         if (AckBuffer.Position > 0)
             Send(ref AckBuffer);
-
+                    
         ProcessPacket();
 
         return true;

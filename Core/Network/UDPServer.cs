@@ -353,7 +353,6 @@ public sealed class UDPServer
                             var address = packet.Address;
                             unsafe
                             {
-                                var len = packet.Length;
                                 //PrintBuffer(packet.Buffer, packet.Length);
                                 int sent = UDP.Unsafe.Send(ServerSocket, &address, packet.Buffer, packet.Length);
                                 
@@ -485,7 +484,6 @@ public sealed class UDPServer
 
                             if (signature == crc32c)
                             {
-                                //PrintBuffer(data._ptr, len);
                                 data.Resize(len - 4);
                                 conn.TimeoutLeft = 30f;
                                 ClientPackets clientPacket = (ClientPackets)data.Read<short>();
@@ -573,7 +571,7 @@ public sealed class UDPServer
 
     public static unsafe bool Send(ref FlatBuffer buffer, int length, UDPSocket socket, bool flush = true)
     {
-        if (length > 0 && socket != null)
+        if (length > 0 && socket != null && GlobalSendChannel != null)
         {
             var len = length;
             var data = AddSignature(buffer.Data, length, out len);

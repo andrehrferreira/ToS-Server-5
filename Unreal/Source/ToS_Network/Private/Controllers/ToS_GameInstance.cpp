@@ -19,6 +19,7 @@ void UTOSGameInstance::Init()
         Socket->OnCreateEntity.AddDynamic(this, &UTOSGameInstance::HandleCreateEntity);
         Socket->OnUpdateEntity.AddDynamic(this, &UTOSGameInstance::HandleUpdateEntity);
         Socket->OnRemoveEntity.AddDynamic(this, &UTOSGameInstance::HandleRemoveEntity);
+        Socket->OnDeltaUpdate.AddDynamic(this, &UTOSGameInstance::HandleDeltaUpdate);
     }
 }
 
@@ -33,6 +34,7 @@ void UTOSGameInstance::Shutdown()
         Socket->OnCreateEntity.RemoveDynamic(this, &UTOSGameInstance::HandleCreateEntity);
         Socket->OnUpdateEntity.RemoveDynamic(this, &UTOSGameInstance::HandleUpdateEntity);
         Socket->OnRemoveEntity.RemoveDynamic(this, &UTOSGameInstance::HandleRemoveEntity);
+        Socket->OnDeltaUpdate.RemoveDynamic(this, &UTOSGameInstance::HandleDeltaUpdate);
         Socket->Disconnect();
     }
 }
@@ -95,6 +97,20 @@ void UTOSGameInstance::HandleRemoveEntity(int32 EntityId)
         if (PlayerController)
         {
             PlayerController->HandleRemoveEntity(EntityId);
+        }
+    });
+}
+
+void UTOSGameInstance::HandleDeltaUpdate(FDeltaUpdateData data)
+{
+    if (!PlayerController)
+        return;
+
+    AsyncTask(ENamedThreads::GameThread, [this, data]()
+    {
+        if (PlayerController)
+        {
+            PlayerController->HandleDeltaUpdate(data);
         }
     });
 }

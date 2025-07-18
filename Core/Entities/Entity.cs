@@ -183,13 +183,13 @@ public partial struct Entity
         Entity last;
         EntityManager.TryGetSnapshot(Id, out last);
 
-        EntityDelta delta = EntityDelta.None;
+        EntityDelta delta = EntityDelta.Flags | EntityDelta.Velocity;
 
         if(Position != last.Position) delta |= EntityDelta.Position;
         if(Rotation != last.Rotation) delta |= EntityDelta.Rotation;
         if(AnimState != last.AnimState) delta |= EntityDelta.AnimState;
-        if(Velocity != last.Velocity) delta |= EntityDelta.Velocity;
-        if(Flags != last.Flags) delta |= EntityDelta.Flags;
+        //if(Velocity != last.Velocity) delta |= EntityDelta.Velocity;
+        //if(Flags != last.Flags) delta |= EntityDelta.Flags;
 
         return delta;
     }
@@ -330,12 +330,14 @@ public partial struct DeltaSyncPacket
     {
         var delta = entity.Delta();
 
-        if(delta != EntityDelta.None)
+        if (delta != EntityDelta.None)
         {
             buffer.Write(PacketType.Unreliable);
             buffer.Write((ushort)ServerPackets.DeltaSync);
             buffer.Write(entity.Id);
             buffer.Write((byte)delta);
+            buffer.Write(entity.Velocity);
+            buffer.Write(entity.Flags);
 
             if (delta.HasFlag(EntityDelta.Position))
                 buffer.Write(entity.Position);
@@ -343,10 +345,6 @@ public partial struct DeltaSyncPacket
                 buffer.Write(entity.Rotation);
             if (delta.HasFlag(EntityDelta.AnimState))
                 buffer.Write(entity.AnimState);
-            if (delta.HasFlag(EntityDelta.Velocity))
-                buffer.Write(entity.Velocity);
-            if (delta.HasFlag(EntityDelta.Flags))
-                buffer.Write(entity.Flags);
-        }        
+        }
     }
 }

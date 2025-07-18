@@ -51,5 +51,8 @@ private:
 
     UFUNCTION()
     void HandleRemoveEntity(int32 EntityId);
+
+    UFUNCTION()
+    void HandleDeltaUpdate(FDeltaUpdateData data);
 };
 

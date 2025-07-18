@@ -9,6 +9,7 @@
 #include "IPAddress.h"
 #include "Common/UdpSocketBuilder.h"
 //%INCLUDES%
+#include "Enum/EntityDelta.h"
 
 void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -23,6 +24,9 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
             if (bufferSign == sign) {
                 do {
+                    if(Buffer->Position > 2)
+                        EPacketType PacketType = static_cast<EPacketType>(Buffer->ReadByte());
+
                     EServerPackets ServerPacketType = static_cast<EServerPackets>(Buffer->ReadInt16());
                     //FString PacketName = StaticEnum<EServerPackets>()->GetNameStringByValue(static_cast<int64>(ServerPacketType));
                     //UE_LOG(LogTemp, Warning, TEXT("UENetSubsystem: Received %s."), *PacketName);
@@ -31,6 +35,24 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 //%DATASWITCH%
                         case EServerPackets::DeltaSync:
                         {
+                            FDeltaSyncPacket delta = FDeltaSyncPacket();
+                            delta.Deserialize(Buffer);
+
+                            FDeltaUpdateData data;
+                            data.Index = delta.Index;
+                            data.EntitiesMask = static_cast<EEntityDelta>(delta.EntitiesMask);
+                            data.Velocity = Buffer->Read<FVector>();
+                            data.Flags = Buffer->Read<uint32>();
+
+                            if (EnumHasAnyFlags(data.EntitiesMask, EEntityDelta::Position))
+                                data.Positon = Buffer->Read<FVector>();
+                            if (EnumHasAnyFlags(data.EntitiesMask, EEntityDelta::Rotation))
+                                data.Rotator = Buffer->Read<FRotator>();
+                            if (EnumHasAnyFlags(data.EntitiesMask, EEntityDelta::AnimState))
+                                data.AnimationState = static_cast<int32>(Buffer->Read<uint32>());                                
+
+                            OnDeltaSync.Broadcast(data.Index, static_cast<uint8>(data.EntitiesMask));
+                            OnDeltaUpdate.Broadcast(data);
                         }
                         break;
                     }

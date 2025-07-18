@@ -24,6 +24,6 @@ struct FDeltaSyncPacket
     void Deserialize(UFlatBuffer* Buffer)
     {
         Index = static_cast<int32>(Buffer->Read<uint32>());
-        EntitiesMask = Buffer->Read<int8>();
+        EntitiesMask = Buffer->Read<uint8>();
     }
 };
