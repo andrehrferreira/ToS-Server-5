@@ -422,6 +422,12 @@ public sealed class UDPServer
 
                         if (!Clients.TryGetValue(address, out conn))
                         {
+                            byte[] clientPub = new byte[32];
+                            for (int i = 0; i < 32; i++)
+                                clientPub[i] = data.Read<byte>();
+
+                            var (serverPub, salt, session) = SecureSession.CreateAsServer(clientPub);
+
                             var newSocket = new UDPSocket(ServerSocket)
                             {
                                 Id = GetRandomId(),
@@ -429,7 +435,8 @@ public sealed class UDPServer
                                 TimeoutLeft = 30f,
                                 State = ConnectionState.Connecting,
                                 Flags = _baseFlags,
-                                EnableIntegrityCheck = _options.EnableIntegrityCheck
+                                EnableIntegrityCheck = _options.EnableIntegrityCheck,
+                                Session = session
                             };
 
                             bool valid = _connectionHandler?.Invoke(newSocket, token) ?? true;
@@ -438,7 +445,12 @@ public sealed class UDPServer
                             {
                                 uint ID = GetRandomId();
 
-                                newSocket.Send(new ConnectionAcceptedPacket { Id = ID });
+                                newSocket.Send(new ConnectionAcceptedPacket
+                                {
+                                    Id = ID,
+                                    ServerPublicKey = serverPub,
+                                    Salt = salt
+                                });
 
                                 newSocket.State = ConnectionState.Connected;
                             }

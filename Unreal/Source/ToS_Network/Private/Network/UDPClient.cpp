@@ -14,6 +14,7 @@
 #include "Async/Async.h"
 
 #include "Packets/PongPacket.h"
+#include <sodium.h>
 
 UDPClient::UDPClient() {}
 UDPClient::~UDPClient() { Disconnect(); }
@@ -229,6 +230,13 @@ void UDPClient::PollIncomingPackets()
                             if (Buffer->GetLength() - Buffer->GetOffset() >= 4)
                                 clientID = Buffer->ReadInt32();
 
+                            ServerPublicKey.SetNumUninitialized(32);
+                            for (int32 i = 0; i < 32; ++i)
+                                ServerPublicKey[i] = Buffer->ReadByte();
+                            Salt.SetNumUninitialized(16);
+                            for (int32 i = 0; i < 16; ++i)
+                                Salt[i] = Buffer->ReadByte();
+
                             if (OnConnect)
                                 OnConnect(clientID);
                         }
@@ -327,8 +335,25 @@ bool UDPClient::Connect(const FString& Host, int32 Port)
         return false;
     }
 
+    if (sodium_init() < 0)
+    {
+        bIsConnected = false;
+        bIsConnecting = false;
+        ConnectionStatus = EConnectionStatus::ConnectionFailed;
+
+        if (OnConnectionError)
+            OnConnectionError();
+
+        return false;
+    }
+
+    ClientPublicKey.SetNumUninitialized(32);
+    ClientPrivateKey.SetNumUninitialized(32);
+    crypto_box_keypair(ClientPublicKey.GetData(), ClientPrivateKey.GetData());
+
     TArray<uint8> Packet;
     Packet.Add(static_cast<uint8>(EPacketType::Connect));
+    Packet.Append(ClientPublicKey.GetData(), ClientPublicKey.Num());
     int32 BytesSent = 0;
 
     if (Socket->SendTo(Packet.GetData(), Packet.Num(), BytesSent, *RemoteEndpoint))
@@ -343,7 +368,7 @@ bool UDPClient::Connect(const FString& Host, int32 Port)
         bIsConnecting = false;
         ConnectionStatus = EConnectionStatus::ConnectionFailed;
 
-        if (OnConnectionError) 
+        if (OnConnectionError)
             OnConnectionError();
 
         return false;

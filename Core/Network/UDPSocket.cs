@@ -72,6 +72,8 @@ public class UDPSocket
 
     public float TimeoutIntegrityCheck = 120f;
 
+    public SecureSession Session;
+
     internal class ReliablePacketInfo
     {
         public FlatBuffer Buffer;
