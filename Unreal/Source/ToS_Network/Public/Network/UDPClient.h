@@ -124,4 +124,9 @@ private:
     FRunnableThread* PacketPollThread = nullptr;
     void StartPacketPollThread();
     void StopPacketPollThread();
+
+    TArray<uint8> ClientPublicKey;
+    TArray<uint8> ClientPrivateKey;
+    TArray<uint8> ServerPublicKey;
+    TArray<uint8> Salt;
 };
