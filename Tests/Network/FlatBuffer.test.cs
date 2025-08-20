@@ -609,17 +609,24 @@ namespace Tests
 
             Describe("FlatBuffer Edge Cases", () =>
             {
-                It("should handle buffer overflow gracefully", () =>
+                It("should throw on buffer overflow", () =>
                 {
                     using var buffer = new FlatBuffer(8); // Very small buffer
 
                     buffer.Write<float>(42.0f);
                     buffer.Write<float>(43.0f);
 
-                    // This should not crash but may not write
-                    buffer.Write<float>(44.0f);
+                    bool threw = false;
+                    try
+                    {
+                        buffer.Write<float>(44.0f);
+                    }
+                    catch (IndexOutOfRangeException)
+                    {
+                        threw = true;
+                    }
 
-                    Expect(buffer.Position).ToBeLessThan(buffer.Capacity + 1);
+                    Expect(threw).ToBe(true);
                 });
 
                 It("should handle short values correctly", () =>
@@ -654,20 +661,20 @@ namespace Tests
                     }
                 });
 
-                It("should handle zero capacity buffer", () =>
+                It("should throw on zero capacity buffer writes", () =>
                 {
+                    bool threw = false;
                     try
                     {
                         using var buffer = new FlatBuffer(0);
                         buffer.Write<float>(42.0f);
-
-                        // Should not crash
-                        Expect(buffer.Position).ToBe(0);
                     }
-                    catch (Exception ex)
+                    catch (IndexOutOfRangeException)
                     {
-                        Expect(ex).NotToBeNull();
+                        threw = true;
                     }
+
+                    Expect(threw).ToBe(true);
                 });
 
                 It("should handle reading beyond buffer", () =>
