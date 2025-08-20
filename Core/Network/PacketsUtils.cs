@@ -33,6 +33,7 @@ public enum PacketType : byte
     ConnectionAccepted,
     CheckIntegrity,
     BenckmarkTest,
+    Fragment,
     None = 255
 }
 

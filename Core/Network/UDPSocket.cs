@@ -91,6 +91,39 @@ public class UDPSocket
     internal FlatBuffer UnreliableBuffer;
     internal FlatBuffer AckBuffer;
 
+    private ushort NextFragmentId = 1;
+
+    internal class FragmentInfo
+    {
+        public FlatBuffer Buffer;
+        public uint TotalSize;
+        public int Received;
+        public DateTime LastUpdate;
+    }
+
+    internal ConcurrentDictionary<ushort, FragmentInfo> Fragments =
+        new ConcurrentDictionary<ushort, FragmentInfo>();
+
+    internal ushort GetNextFragmentId()
+    {
+        ushort id = NextFragmentId++;
+        if (NextFragmentId == 0)
+            NextFragmentId = 1;
+        return id;
+    }
+
+    internal void CleanupFragments(TimeSpan timeout)
+    {
+        foreach (var kv in Fragments)
+        {
+            if (DateTime.UtcNow - kv.Value.LastUpdate > timeout)
+            {
+                kv.Value.Buffer.Free();
+                Fragments.TryRemove(kv.Key, out _);
+            }
+        }
+    }
+
     public UDPSocket(Socket serverSocket)
     {
         State = ConnectionState.Disconnected;

@@ -63,7 +63,7 @@ public class UDPServerOptions
     public int ReceiveBufferSize { get; set; } = 512 * 1024;
     public int SendBufferSize { get; set; } = 512 * 1024;
     public int SendThreadCount { get; set; } = 1;
-    public int MTU = 1500;
+    public int MTU = 1200;
 }
 
 public sealed class UDPServer
@@ -127,7 +127,7 @@ public sealed class UDPServer
     {
         get
         {
-            return _options?.MTU ?? 1500;
+            return _options?.MTU ?? 1200;
         }
     }
 
@@ -305,6 +305,8 @@ public sealed class UDPServer
                                         client.OnDisconnect();
                                     }
                                 }
+
+                                kv.Value.CleanupFragments(TimeSpan.FromSeconds(10));
                             }
                         }
 
@@ -385,11 +387,14 @@ public sealed class UDPServer
 
             if (len > 0)
             {
-                PacketType packetType = (PacketType)buffer.Read<byte>();
-                HandlePacket(packetType, buffer, len, address);
+                ProcessPacket(buffer, len, address);
                 Interlocked.Increment(ref _packetsReceived);
                 Interlocked.Add(ref _bytesReceived, len);
                 received = true;
+            }
+            else
+            {
+                buffer.Free();
             }
 
             return received;
@@ -541,6 +546,62 @@ public sealed class UDPServer
         }
     }
 
+    private static unsafe void HandleFragment(FlatBuffer data, int len, Address address)
+    {
+        if (!Clients.TryGetValue(address, out var conn))
+        {
+            data.Free();
+            return;
+        }
+
+        ushort fragmentId = data.Read<ushort>();
+        ushort offset = data.Read<ushort>();
+        uint totalSize = data.Read<uint>();
+        int payloadLen = len - data.Position;
+
+        var fragment = conn.Fragments.GetOrAdd(fragmentId, _ => new UDPSocket.FragmentInfo
+        {
+            Buffer = new FlatBuffer((int)totalSize),
+            TotalSize = totalSize,
+            Received = 0,
+            LastUpdate = DateTime.UtcNow
+        });
+
+        unsafe
+        {
+            Buffer.MemoryCopy(data.Data + data.Position, fragment.Buffer.Data + offset, fragment.Buffer.Capacity - offset, payloadLen);
+        }
+
+        fragment.Received += payloadLen;
+        fragment.LastUpdate = DateTime.UtcNow;
+
+        if (fragment.Received >= fragment.TotalSize)
+        {
+            fragment.Buffer.RestorePosition(0);
+            PacketType original = (PacketType)fragment.Buffer.Read<byte>();
+            HandlePacket(original, fragment.Buffer, (int)fragment.TotalSize, address);
+            fragment.Buffer.Free();
+            conn.Fragments.TryRemove(fragmentId, out _);
+        }
+
+        data.Free();
+    }
+
+    internal static void ProcessPacket(FlatBuffer buffer, int len, Address address)
+    {
+        PacketType packetType = (PacketType)buffer.Read<byte>();
+
+        if (packetType == PacketType.Fragment)
+        {
+            HandleFragment(buffer, len, address);
+        }
+        else
+        {
+            HandlePacket(packetType, buffer, len, address);
+            buffer.Free();
+        }
+    }
+
     private static unsafe byte* AddSignature(byte* data, int length, out int newLength)
     {
         if (data == null || length == 0)
@@ -570,29 +631,78 @@ public sealed class UDPServer
     {
         if (length > 0 && socket != null && GlobalSendChannel != null)
         {
-            var len = length;
-            var data = AddSignature(buffer.Data, length, out len);
-
-            PrintBuffer(buffer.Data, length);
-
-            var packet = new SendPacket
+            if (length > Mtu)
             {
-                Buffer = data,
-                Length = len,
-                Address = socket.RemoteAddress,
-                Pooled = true
-            };
+                const int headerSize = 1 + 2 + 2 + 4;
+                int maxPayload = Mtu - headerSize;
+                ushort fragmentId = socket.GetNextFragmentId();
+                uint totalSize = (uint)length;
+                int offset = 0;
 
-            GlobalSendChannel.Writer.TryWrite(packet);
+                while (offset < length)
+                {
+                    int chunk = Math.Min(maxPayload, length - offset);
+                    var frag = new FlatBuffer(chunk + headerSize);
+                    frag.Write(PacketType.Fragment);
+                    frag.Write(fragmentId);
+                    frag.Write((ushort)offset);
+                    frag.Write(totalSize);
 
-            Interlocked.Increment(ref _sendQueueCount);
+                    byte[] chunkData = new byte[chunk];
+                    Marshal.Copy((IntPtr)(buffer.Data + offset), chunkData, 0, chunk);
+                    frag.WriteBytes(chunkData);
 
-            if (flush)
-                buffer.Reset();
+                    int fragLen = frag.Position;
+                    var fragData = AddSignature(frag.Data, fragLen, out fragLen);
 
-            Flush();
+                    var packet = new SendPacket
+                    {
+                        Buffer = fragData,
+                        Length = fragLen,
+                        Address = socket.RemoteAddress,
+                        Pooled = true
+                    };
 
-            return true;
+                    GlobalSendChannel.Writer.TryWrite(packet);
+
+                    Interlocked.Increment(ref _sendQueueCount);
+
+                    offset += chunk;
+                }
+
+                if (flush)
+                    buffer.Reset();
+
+                Flush();
+
+                return true;
+            }
+            else
+            {
+                var len = length;
+                var data = AddSignature(buffer.Data, length, out len);
+
+                PrintBuffer(buffer.Data, length);
+
+                var packet = new SendPacket
+                {
+                    Buffer = data,
+                    Length = len,
+                    Address = socket.RemoteAddress,
+                    Pooled = true
+                };
+
+                GlobalSendChannel.Writer.TryWrite(packet);
+
+                Interlocked.Increment(ref _sendQueueCount);
+
+                if (flush)
+                    buffer.Reset();
+
+                Flush();
+
+                return true;
+            }
         }
         else
         {
