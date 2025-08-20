@@ -418,18 +418,15 @@ public sealed class UDPServer
                     {
                         if (!Clients.TryGetValue(address, out conn))
                         {
-                            if (data.Position + 32 == len) // Only public key, no cookie
+                            if (data.Position + 32 == len) 
                             {
                                 byte[] clientPub = new byte[32];
                                 for (int i = 0; i < 32; i++)
                                     clientPub[i] = data.Read<byte>();
 
-                                // Generate anti-spoof cookie
                                 var cookie = CookieManager.GenerateCookie(address);
-
-                                // Send ServerHello with cookie
                                 var helloBuffer = new FlatBuffer(1 + 48);
-                                helloBuffer.Write(PacketType.ConnectionDenied); // Reuse as ServerHello
+                                helloBuffer.Write(PacketType.ConnectionDenied);
                                 helloBuffer.WriteBytes(cookie);
 
                                 var helloLen = helloBuffer.Position;
@@ -462,7 +459,6 @@ public sealed class UDPServer
                                     break;
                                 }
 
-                                // Create secure session with connection ID
                                 uint connectionId = GetRandomId();
                                 var (serverPub, salt, session) = SecureSession.CreateAsServer(clientPub, connectionId);
 
