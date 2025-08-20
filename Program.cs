@@ -1,12 +1,26 @@
 using System.Reflection;
-
-
+using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 
 class Program
 {
-
     public static void Main(string[] args)
     {
+        AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"[FATAL] Unhandled exception: {e.ExceptionObject}");
+            Console.ResetColor();
+        };
+
+        TaskScheduler.UnobservedTaskException += (sender, e) =>
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"[FATAL] Unobserved task exception: {e.Exception}");
+            Console.ResetColor();
+            e.SetObserved();
+        };
+                
         string projectDirectory = GetProjectDirectory();
         string packageJsonPath = Path.Combine(projectDirectory, "package.json");
         string unrealPath = Path.Combine(projectDirectory, "Unreal");
@@ -20,7 +34,7 @@ class Program
         int portArg = int.Parse(args.Length > 1 ? args[1] : "3565");
         int port = portArg;
 
-#if DEBUG
+    #if DEBUG
         //System tests
         var testRunner = new TestTool();
         var testPassed = testRunner.RunAllTests();
@@ -45,50 +59,85 @@ class Program
 #else
         Console.WriteLine("Running in release mode. Tests and transpilers are skipped.");
 #endif
-        UDPServer.Init(port, (UDPSocket socket, string token) =>
+
+        Guard(() =>
         {
-            if (!string.IsNullOrEmpty(token))
+            UDPServer.Init(port, (UDPSocket socket, string token) =>
             {
-                /*if (token == "valid-token")
+                if (!string.IsNullOrEmpty(token))
                 {
-                    int entityId = UDPServer.GetWorld().SpawnEntity($"Player_{socket.Id}", new FVector(), new FRotator());
+                    /*if (token == "valid-token")
+                    {
+                        int entityId = UDPServer.GetWorld().SpawnEntity($"Player_{socket.Id}", new FVector(), new FRotator());
 
-                    socket.EntityId = entityId;
+                        socket.EntityId = entityId;
 
-                    return true;
-                }*/
+                        return true;
+                    }*/
+
+                    return false;
+                }
+
+                var map = World.GetOrCreate("Sample2");
+
+                PlayerController controller;
+
+                if(!PlayerController.TryGet(socket.Id, out controller))
+                {
+                    controller = new PlayerController(socket, token);
+                    PlayerController.Add(socket.Id, controller);
+                }
+
+                map.AddPlayer(controller);
 
                 return false;
-            }
-
-            var map = World.GetOrCreate("Sample2");
-
-            PlayerController controller;
-
-            if(!PlayerController.TryGet(socket.Id, out controller))
+            }, new UDPServerOptions()
             {
-                controller = new PlayerController(socket, token);
-                PlayerController.Add(socket.Id, controller);
-            }
+                Version = VersionReader.ToUInt(currentVersion),
+                EnableWAF = false,
+                EnableIntegrityCheck = true,
+                MaxConnections = 15000,
+                ReceiveBufferSize = 512 * 1024,
+                SendBufferSize = 512 * 1024,
+            });
 
-            map.AddPlayer(controller);
-
-            return false;
-        }, new UDPServerOptions()
-        {
-            Version = VersionReader.ToUInt(currentVersion),
-            EnableWAF = false,
-            EnableIntegrityCheck = true,
-            MaxConnections = 15000,
-            ReceiveBufferSize = 512 * 1024,
-            SendBufferSize = 512 * 1024,
+            ServerMonitor.Start();
         });
-
-        //ServerMonitor.Start();
 
         while (true)
         {
             Thread.Sleep(1000);
+        }
+    }
+
+    [HandleProcessCorruptedStateExceptions]
+    public static void Guard(Action action)
+    {
+        try
+        {
+            action();
+        }
+        catch (AccessViolationException ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"[FATAL] Access violation: {ex.Message}");
+            Console.WriteLine(ex);
+            Console.ResetColor();
+        }
+        catch (SEHException ex)
+        {
+            Thread.Sleep(1000);
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"[FATAL] SEH exception: {ex.Message}");
+            Console.WriteLine(ex);
+            Console.ResetColor();
+        }
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"[FATAL] {ex.Message}");
+            Console.WriteLine(ex);
+            Console.ResetColor();
         }
     }
 

@@ -418,7 +418,6 @@ public sealed class UDPServer
                     {
                         if (!Clients.TryGetValue(address, out conn))
                         {
-                            // Check if this is a first contact (no cookie) - send ServerHello with cookie
                             if (data.Position + 32 == len) // Only public key, no cookie
                             {
                                 byte[] clientPub = new byte[32];
@@ -447,7 +446,7 @@ public sealed class UDPServer
                                 GlobalSendChannel.Writer.TryWrite(helloPacket);
                                 helloBuffer.Free();
                             }
-                            else if (data.Position + 32 + 48 == len) // Public key + cookie
+                            else if (data.Position + 32 + 48 == len) 
                             {
                                 byte[] clientPub = new byte[32];
                                 for (int i = 0; i < 32; i++)
@@ -457,7 +456,6 @@ public sealed class UDPServer
                                 for (int i = 0; i < 48; i++)
                                     cookie[i] = data.Read<byte>();
 
-                                // Validate cookie
                                 if (!CookieManager.ValidateCookie(cookie, address))
                                 {
                                     data.Free();
@@ -638,15 +636,10 @@ public sealed class UDPServer
     {
         PacketType packetType = (PacketType)buffer.Read<byte>();
 
-        if (packetType == PacketType.Fragment)
-        {
-            HandleFragment(buffer, len, address);
-        }
-        else
-        {
+        if (packetType == PacketType.Fragment)        
+            HandleFragment(buffer, len, address);        
+        else        
             HandlePacket(packetType, buffer, len, address);
-            buffer.Free();
-        }
     }
 
     private static unsafe byte* AddSignature(byte* data, int length, out int newLength)
@@ -827,13 +820,15 @@ public sealed class UDPServer
                 return false;
 
             int ciphertextLen = data.Position - PacketHeader.Size;
+
             if (ciphertextLen <= 16) 
                 return false;
 
             var ciphertext = new ReadOnlySpan<byte>(data.Data + PacketHeader.Size, ciphertextLen);
             var aad = header.GetAAD();
 
-            Span<byte> plaintext = stackalloc byte[ciphertextLen - 16]; 
+            Span<byte> plaintext = stackalloc byte[ciphertextLen - 16];
+
             if (!conn.Session.DecryptPayload(ciphertext, aad, header.Sequence, plaintext, out int plaintextLen))
             {
                 ServerMonitor.Log($"Failed to decrypt packet from {conn.RemoteAddress}");
