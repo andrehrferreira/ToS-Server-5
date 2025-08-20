@@ -58,8 +58,11 @@ enum class EPacketType : uint8
     Error               UMETA(DisplayName = "Error"),
     ConnectionDenied    UMETA(DisplayName = "ConnectionDenied"),
     ConnectionAccepted  UMETA(DisplayName = "ConnectionAccepted"),
-    CheckIntegrity      UMETA(DisplayName = "CheckIntegrity")
-};
+    CheckIntegrity      UMETA(DisplayName = "CheckIntegrity"),
+    BenckmarkTest       UMETA(DisplayName = "BenckmarkTest"),
+    Fragment            UMETA(DisplayName = "Fragment"),
+    Cookie              UMETA(DisplayName = "Cookie")
+  };
 
 class FPacketPollRunnable : public FRunnable
 {

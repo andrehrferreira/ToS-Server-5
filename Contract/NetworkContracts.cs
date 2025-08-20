@@ -28,6 +28,13 @@ public partial struct ConnectionAcceptedPacket
 [Contract("ConnectionDenied", PacketLayerType.Server, ContractPacketFlags.ToEntity, PacketType.ConnectionDenied)]
 public partial struct ConnectionDeniedPacket { }
 
+[Contract("Cookie", PacketLayerType.Server, ContractPacketFlags.ToEntity, PacketType.Cookie)]
+public partial struct CookiePacket
+{
+    [ContractField("byte[]", 48)]
+    public byte[] Cookie;
+}
+
 [Contract("Disconnect",PacketLayerType.Server, ContractPacketFlags.ToEntity, PacketType.Disconnect)]
 public partial struct DisconnectPacket { }
 
