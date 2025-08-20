@@ -151,8 +151,7 @@ public class UDPSocket
 
     public void Send(INetworkPacket networkPacket, bool reliable = false)
     {
-        // Check if encryption is enabled (after handshake completed)
-        bool useEncryption = State == ConnectionState.Connected;
+        bool useEncryption = (State == ConnectionState.Connected);
 
         if (useEncryption)
         {
@@ -166,11 +165,9 @@ public class UDPSocket
 
     private void SendEncrypted(INetworkPacket networkPacket, bool reliable)
     {
-        // Serialize payload
         var payload = new FlatBuffer(networkPacket.Size);
         networkPacket.Serialize(ref payload);
 
-        // Create packet header
         var header = new PacketHeader
         {
             ConnectionId = Session.ConnectionId,
@@ -179,11 +176,9 @@ public class UDPSocket
             Sequence = Session.SeqTx
         };
 
-        // Calculate total packet size: header + encrypted payload + AEAD tag
         int totalSize = PacketHeader.Size + payload.Position + 16;
         var packet = new FlatBuffer(totalSize);
 
-        // Write header
         unsafe
         {
             byte[] headerBytes = new byte[PacketHeader.Size];
@@ -194,7 +189,6 @@ public class UDPSocket
             packet.WriteBytes(headerBytes);
         }
 
-        // Encrypt payload
         var aad = header.GetAAD();
         Span<byte> ciphertext = stackalloc byte[payload.Position + 16];
 
@@ -202,7 +196,6 @@ public class UDPSocket
         {
             if (Session.EncryptPayload(new ReadOnlySpan<byte>(payload.Data, payload.Position), aad, ciphertext, out int ciphertextLen))
             {
-                // Write encrypted payload
                 packet.WriteBytes(ciphertext.Slice(0, ciphertextLen).ToArray());
 
                 if (reliable)

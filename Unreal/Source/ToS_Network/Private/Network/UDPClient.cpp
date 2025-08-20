@@ -155,36 +155,30 @@ void UDPClient::Send(UFlatBuffer* buffer)
 
 void UDPClient::SendEncrypted(UFlatBuffer* buffer)
 {
-    // Extract payload (skip packet type)
     TArray<uint8> Payload;
     Payload.SetNumUninitialized(buffer->GetLength() - 1);
     FMemory::Memcpy(Payload.GetData(), buffer->GetRawBuffer() + 1, buffer->GetLength() - 1);
 
-    // Create packet header
     FPacketHeader Header;
     Header.ConnectionId = SecureSession.GetConnectionId();
-    Header.Channel = EPacketChannel::Unreliable; // Default to unreliable
+    Header.Channel = EPacketChannel::Unreliable; 
     Header.Flags = EPacketHeaderFlags::Encrypted | EPacketHeaderFlags::AEAD_ChaCha20Poly1305;
     Header.Sequence = SecureSession.GetSeqTx();
 
-    // Get AAD from header
     TArray<uint8> AAD = Header.GetAAD();
-
-    // Encrypt payload
     TArray<uint8> Ciphertext;
+
     if (!SecureSession.EncryptPayload(Payload, AAD, Ciphertext))
     {
         UE_LOG(LogTemp, Error, TEXT("Failed to encrypt payload"));
         return;
     }
 
-    // Create final packet: header + ciphertext
     TArray<uint8> FinalPacket;
     FinalPacket.SetNumUninitialized(FPacketHeader::Size + Ciphertext.Num());
     Header.Serialize(FinalPacket.GetData());
     FMemory::Memcpy(FinalPacket.GetData() + FPacketHeader::Size, Ciphertext.GetData(), Ciphertext.Num());
 
-    // Add signature and send
     uint32 Sign = FCRC32C::Compute(FinalPacket.GetData(), FinalPacket.Num());
     FinalPacket.Append(reinterpret_cast<uint8*>(&Sign), sizeof(uint32));
 
@@ -306,17 +300,13 @@ void UDPClient::PollIncomingPackets()
                     break;
                     case EPacketType::ConnectionDenied:
                     {
-                        // Check if this is a ServerHello with cookie (reusing ConnectionDenied packet type)
-                        if (BytesRead == 1 + 48 && !bCookieReceived) // 1 byte packet type + 48 byte cookie
+                        if (BytesRead == 1 + 48 && !bCookieReceived) 
                         {
-                            // Extract cookie
                             ServerCookie.SetNumUninitialized(48);
                             for (int32 i = 0; i < 48; ++i)
                                 ServerCookie[i] = Buffer->ReadByte();
 
                             bCookieReceived = true;
-
-                            // Send connect packet with cookie
                             TArray<uint8> ConnectWithCookie;
                             ConnectWithCookie.Add(static_cast<uint8>(EPacketType::Connect));
                             ConnectWithCookie.Append(ClientPublicKey.GetData(), ClientPublicKey.Num());

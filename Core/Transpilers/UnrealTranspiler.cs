@@ -312,6 +312,10 @@ public class UnrealTranspiler : AbstractTranspiler
             "float" => "float",
             "str" => "FString",
             "string" => "FString",
+            "long" => "int64",
+            "ulong" => "int64",
+            "int64" => "int64",
+            "uint64" => "int64",
             "id" => "FString",
             "byte" => "uint8",
             "boolean" => "bool",
@@ -362,6 +366,13 @@ public class UnrealTranspiler : AbstractTranspiler
                     for (int i = 0; i < fields.Length; i++)
                     {
                         var fieldType = ConvertToUnrealType(fields[i].FieldType.Name);
+
+                        if(fieldType == "UnsupportedType")
+                        {
+                            result.AppendLine($"// Unsupported type: {fields[i].FieldType.Name}");
+                            continue;
+                        }
+
                         result.Append($"{fieldType}, {fields[i].Name}");
 
                         if (i < fields.Length - 1)

@@ -1,8 +1,6 @@
-﻿[Contract("CreateEntity", PacketLayerType.Client)]
+[Contract("CreateEntity", PacketLayerType.Client)]
 public partial struct EnterToWorldPacket
 {
     [ContractField("uint")]
-    public uint CharacterId;
-
-    
+    public uint CharacterId;    
 }

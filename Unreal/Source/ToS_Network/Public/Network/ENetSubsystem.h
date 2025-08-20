@@ -66,7 +66,7 @@ public:
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FCreateEntityHandler, int32, EntityId, FVector, Positon, FRotator, Rotator, int32, Flags);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUpdateEntityHandler, FUpdateEntityPacket, Data);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRemoveEntityHandler, int32, EntityId);
-    DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FRekeyRequestHandler, UnsupportedType, CurrentSequence, TArray<uint8>, NewSalt);
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FRekeyRequestHandler, int64, CurrentSequence, TArray<uint8>, NewSalt);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FDeltaSyncHandler, int32, Index, uint8, EntitiesMask);
 
     

@@ -538,15 +538,12 @@ public sealed class UDPServer
                                 data.Resize(len - 4);
                                 conn.TimeoutLeft = 30f;
 
-                                // Check if packet is encrypted (new format with header)
-                                if (len >= PacketHeader.Size + 16) // Header + minimum AEAD overhead
+                                if (len >= PacketHeader.Size + 16) 
                                 {
-                                    // Try to decrypt as new encrypted format
                                     if (ProcessEncryptedPacket(data, conn))
-                                        return; // Successfully processed
+                                        return;
                                 }
 
-                                // Fall back to legacy format
                                 ClientPackets clientPacket = (ClientPackets)data.Read<short>();
 
                                 if(PlayerController.TryGet(conn.Id, out var controller))
@@ -820,40 +817,33 @@ public sealed class UDPServer
     {
         try
         {
-            // Parse packet header
             var header = PacketHeader.Deserialize(data.Data);
 
-            // Verify connection ID matches
             if (header.ConnectionId != conn.Session.ConnectionId)
                 return false;
 
-            // Check if encrypted flag is set
             if (!header.Flags.HasFlag(PacketHeaderFlags.Encrypted) ||
                 !header.Flags.HasFlag(PacketHeaderFlags.AEAD_ChaCha20Poly1305))
                 return false;
 
-            // Extract ciphertext (everything after header)
             int ciphertextLen = data.Position - PacketHeader.Size;
-            if (ciphertextLen <= 16) // Must have at least AEAD tag
+            if (ciphertextLen <= 16) 
                 return false;
 
             var ciphertext = new ReadOnlySpan<byte>(data.Data + PacketHeader.Size, ciphertextLen);
             var aad = header.GetAAD();
 
-            // Decrypt payload
-            Span<byte> plaintext = stackalloc byte[ciphertextLen - 16]; // Remove AEAD tag size
+            Span<byte> plaintext = stackalloc byte[ciphertextLen - 16]; 
             if (!conn.Session.DecryptPayload(ciphertext, aad, header.Sequence, plaintext, out int plaintextLen))
             {
                 ServerMonitor.Log($"Failed to decrypt packet from {conn.RemoteAddress}");
                 return false;
             }
 
-            // Create new buffer with decrypted payload
             var decryptedBuffer = new FlatBuffer(plaintextLen + 2);
-            decryptedBuffer.Write((byte)header.Channel); // Channel as packet type
+            decryptedBuffer.Write((byte)header.Channel); 
             decryptedBuffer.WriteBytes(plaintext.Slice(0, plaintextLen).ToArray());
 
-            // Process decrypted packet
             ClientPackets clientPacket = (ClientPackets)decryptedBuffer.Read<short>();
 
             if (PlayerController.TryGet(conn.Id, out var controller))

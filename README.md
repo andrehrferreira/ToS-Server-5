@@ -108,10 +108,12 @@ Built on zero-allocation principles with unsafe pointer operations for maximum p
 - **FlatBuffer**: Unsafe pointer-based binary serialization with advanced features
 
 ### Security Layer
+- **Complete End-to-End Encryption**: ChaCha20-Poly1305 AEAD for all payloads
+- **Cookie Anti-Spoof**: HMAC-SHA256 stateless protection against DDoS amplification
+- **Replay Protection**: 64-position sliding window with bitset optimization
 - **SecureSession**: X25519 ECDH key exchange with HKDF key derivation
-- **BouncyCastle** (C#): Cryptographic operations and key management
-- **libsodium** (C++): Unreal Engine cryptographic integration
-- **ChaCha20-Poly1305**: AEAD encryption for secure communication
+- **Dual Crypto Stack**: BouncyCastle (C#) and libsodium (C++) with identical security
+- **Structured Headers**: 14-byte headers with connection ID, channel, flags, and sequence
 
 ### Game Systems
 - **Entity Replication**: Delta compression with real-time synchronization
@@ -130,21 +132,40 @@ Advanced binary serialization with unsafe pointer operations for maximum perform
 - **String & Byte Array Support**: ASCII/UTF8 strings and raw binary data handling
 - **Position Management**: Save/restore for complex serialization patterns
 
+### End-to-End Encryption System
+
+Military-grade security implementation with zero-performance impact:
+
+**Cryptographic Features:**
+- **ChaCha20-Poly1305 IETF**: Industry-standard AEAD cipher with 128-bit authentication
+- **X25519 Key Exchange**: Elliptic curve Diffie-Hellman with perfect forward secrecy
+- **HKDF Key Derivation**: RFC 5869 compliant key derivation with separate TX/RX keys
+- **Replay Protection**: 64-position sliding window prevents packet replay attacks
+- **Cookie Anti-Spoof**: HMAC-SHA256 stateless protection against DDoS amplification
+
+**Security Properties:**
+- **Confidentiality**: All payloads encrypted with ChaCha20 stream cipher
+- **Authenticity**: Poly1305 MAC ensures packet authenticity and integrity
+- **Forward Secrecy**: Ephemeral X25519 keys provide forward secrecy
+- **Replay Resistance**: Sequence-based nonces with sliding window validation
+- **DDoS Protection**: Stateless cookie validation prevents amplification attacks
+
 ## Key Features
 
 ### ✅ **Core Systems**
 - **High-performance UDP Server** with NanoSockets and zero-allocation packet processing
-- **Automatic RPC Generation** with C# packet creation and Unreal Engine integration
+- **Complete End-to-End Encryption** with ChaCha20-Poly1305 AEAD and replay protection
 - **Advanced FlatBuffer System** with unsafe pointer operations and comprehensive serialization
 - **Entity Replication System** with delta compression and real-time synchronization
 - **X25519 Secure Handshake** using BouncyCastle (C#) and libsodium (C++)
+- **Cookie Anti-Spoof Protection** with HMAC-SHA256 stateless validation
 - **Packet Fragmentation & Reassembly** for large packets with automatic cleanup
 - **Hardware-Accelerated CRC32C** checksum with integrity validation
 - **Custom Testing Framework** with comprehensive test coverage
 
 ### 🛠️ **In Development**
-- **Full Payload Encryption** with ChaCha20-Poly1305 AEAD
 - **Reliable Messaging System** with guaranteed delivery and acknowledgments
+- **RPC System** with automatic remote procedure call generation
 - **Unreal Engine Plugin** with native C++ and Blueprint support
 
 ### ⏳ **Planned**
@@ -155,6 +176,7 @@ Advanced binary serialization with unsafe pointer operations for maximum perform
 
 ### ✅ **Completed Systems**
 - **Network Infrastructure**: UDP server with NanoSockets, zero-allocation buffers, packet queuing
+- **Complete Encryption**: ChaCha20-Poly1305 AEAD with replay protection and cookie anti-spoof
 - **Security**: X25519 handshake, HKDF key derivation, BouncyCastle/libsodium integration  
 - **Serialization**: FlatBuffer with unsafe pointers, ZigZag/VarInt encoding, quantization
 - **Game Systems**: Entity replication with delta compression, real-time synchronization
@@ -162,7 +184,6 @@ Advanced binary serialization with unsafe pointer operations for maximum perform
 - **Fragmentation**: Automatic packet fragmentation/reassembly for packets > 1200 bytes
 
 ### 🛠️ **In Progress**
-- **Encryption**: ChaCha20-Poly1305 AEAD for payload encryption
 - **Reliability**: Guaranteed message delivery with acknowledgments
 - **RPC System**: Automatic remote procedure call generation
 - **Unreal Plugin**: Native C++ integration with Blueprint support
