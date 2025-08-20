@@ -149,7 +149,7 @@ public class UnrealTranspiler : AbstractTranspiler
         foreach (var field in fields)
         {
             var attr = field.GetCustomAttribute<ContractFieldAttribute>();
-            totalBytes += TypeSize(attr.Type);
+            totalBytes += TypeSize(attr.Type, attr.ByteCount);
 
             if (totalBytes == 3600)
                 break;
@@ -182,7 +182,7 @@ public class UnrealTranspiler : AbstractTranspiler
             {
                 var attr = field.GetCustomAttribute<ContractFieldAttribute>();
                 string name = field.Name;
-                writer.WriteLine(GetSerializeLine(attr.Type, name));
+                writer.WriteLine(GetSerializeLine(attr.Type, name, attr.ByteCount));
             }
 
             writer.WriteLine("    }");
@@ -199,7 +199,7 @@ public class UnrealTranspiler : AbstractTranspiler
             {
                 var attr = field.GetCustomAttribute<ContractFieldAttribute>();
                 string name = field.Name;
-                writer.WriteLine(GetDeserializeLine(attr.Type, name));
+                writer.WriteLine(GetDeserializeLine(attr.Type, name, attr.ByteCount));
             }
 
             //writer.WriteLine("        }");
@@ -228,11 +228,11 @@ public class UnrealTranspiler : AbstractTranspiler
         "FVector" => "FVector",
         "FRotator" => "FRotator",
         "id" or "str" or "string" => "FString",
-        "byte[]" => "TArray<uint8>&",
+        "byte[]" => "TArray<uint8>",
         _ => "int32",
     };
 
-    private static int TypeSize(string type) => type switch
+    private static int TypeSize(string type, int byteCount) => type switch
     {
         "integer" or "int" or "int32" or "uint" or "float" or "decimal" or "id" => 4,
         "ushort" or "short" => 2,
@@ -240,10 +240,11 @@ public class UnrealTranspiler : AbstractTranspiler
         "long" or "ulong" => 8,
         "FVector" or "FRotator" => 12,
         "str" or "string" => 3600,
+        "byte[]" => byteCount,
         _ => 0,
     };
 
-    private static string GetSerializeLine(string type, string name) => type switch
+    private static string GetSerializeLine(string type, string name, int byteCount) => type switch
     {
         "integer" or "int" or "int32" => $"        Buffer->Write<int32>({name});",
         "uint" => $"        Buffer->Write<uint32>(static_cast<uint32>({name}));",
@@ -259,12 +260,13 @@ public class UnrealTranspiler : AbstractTranspiler
         "FRotator" => $"        Buffer->Write<FRotator>({name});",
         "id" => $"        Buffer->WriteInt32(UBase36::Base36ToInt({name}));",
         "str" or "string" => $"        Buffer->WriteString({name});",
+        "byte[]" => $"        Buffer->WriteBytes({name}.GetData(), {byteCount});",
         _ => $"    // Unsupported type: {type}",
     };
 
-    private static string GetDeserializeLine(string type, string name) => type switch
+    private static string GetDeserializeLine(string type, string name, int byteCount) => type switch
     {
-        "integer" or "int" or "int32" => $"    {name} = Buffer->Read<int32>();",
+        "integer" or "int" or "int32" => $"        {name} = Buffer->Read<int32>();",
         "uint" => $"        {name} = static_cast<int32>(Buffer->Read<uint32>());",
         "ushort" => $"        {name} = static_cast<int32>(Buffer->Read<uint16>());",
         "short" => $"        {name} = static_cast<int32>(Buffer->Read<int16>());",
@@ -278,6 +280,7 @@ public class UnrealTranspiler : AbstractTranspiler
         "FRotator" => $"        {name} = Buffer->Read<FRotator>();",
         "id" => $"        {name} = UBase36::IntToBase36(Buffer->ReadInt32());",
         "str" or "string" => $"        {name} = Buffer->ReadString();",
+        "byte[]" => $"        {name}.SetNumUninitialized({byteCount});\n        Buffer->ReadBytes({name}.GetData(), {byteCount});",
         _ => $"    // Unsupported type: {type}",
     };
 
@@ -318,6 +321,7 @@ public class UnrealTranspiler : AbstractTranspiler
             "rotator" => "FRotator",
             "frotator" => "FRotator",
             "buffer" => "TArray<uint8>&",
+            "byte[]" => "TArray<uint8>",
             _ => "UnsupportedType"
         };
     }

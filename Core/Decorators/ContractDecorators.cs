@@ -77,9 +77,11 @@ public class ContractAttribute : Attribute
 public class ContractFieldAttribute : Attribute
 {
     public string Type { get; }
+    public int ByteCount { get; }
 
-    public ContractFieldAttribute(string type)
+    public ContractFieldAttribute(string type, int byteCount = 0)
     {
         Type = type;
+        ByteCount = byteCount;
     }
 }
