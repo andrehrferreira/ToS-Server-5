@@ -421,25 +421,25 @@ public sealed class UDPServer
                         {
                             if (data.Position + 32 == len) 
                             {
-                                byte[] clientPub = new byte[32];
-                                for (int i = 0; i < 32; i++)
-                                    clientPub[i] = data.Read<byte>();
-
                                 var cookie = CookieManager.GenerateCookie(address);
                                 var helloBuffer = new FlatBuffer(49);
                                 helloBuffer.Write(PacketType.Cookie);
                                 helloBuffer.WriteBytes(cookie);
 
                                 var helloLen = helloBuffer.Position;
-                                var helloData = AddSignature(helloBuffer.Data, helloLen, out helloLen);
-                                UDP.Unsafe.Send(ServerSocket, &address, helloData, helloLen);
+                                UDP.Unsafe.Send(ServerSocket, &address, helloBuffer.Data, helloLen);
                                 helloBuffer.Free();
                             }
                             else if (data.Position + 32 + 48 == len) 
                             {
-                                byte[] clientPub = data.ReadBytes(32);             
-                                byte[] cookie = data.ReadBytes(48);
-                                
+                                byte[] clientPub = new byte[32];
+                                for (int i = 0; i < 32; i++)
+                                    clientPub[i] = data.Read<byte>();
+
+                                byte[] cookie = new byte[48];
+                                for (int i = 0; i < 48; i++)
+                                    cookie[i] = data.Read<byte>();
+
                                 if (!CookieManager.ValidateCookie(cookie, address))
                                 {
                                     data.Free();

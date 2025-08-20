@@ -302,15 +302,28 @@ void UDPClient::PollIncomingPackets()
                     {
                         if (BytesRead == 1 + 48 && !bCookieReceived)
                         {
+                            const int32 Remaining = Buffer->Remaining();
+
+                            if (Remaining < 48)
+                            {
+                                UE_LOG(LogTemp, Warning, TEXT("Cookie truncated: remaining=%d"), Remaining);
+                                return;
+                            }
+                           
                             ServerCookie.SetNumUninitialized(48);
                             for (int32 i = 0; i < 48; ++i)
                                 ServerCookie[i] = Buffer->ReadByte();
 
+                            UE_LOG(LogTemp, Log, TEXT("Cookie[0..3]=%02X %02X %02X %02X  Cookie[44..47]=%02X %02X %02X %02X"),
+                                ServerCookie[0], ServerCookie[1], ServerCookie[2], ServerCookie[3],
+                                ServerCookie[44], ServerCookie[45], ServerCookie[46], ServerCookie[47]);
+
                             bCookieReceived = true;
+
                             TArray<uint8> ConnectWithCookie;
                             ConnectWithCookie.Add(static_cast<uint8>(EPacketType::Connect));
                             ConnectWithCookie.Append(ClientPublicKey.GetData(), ClientPublicKey.Num());
-                            ConnectWithCookie.Append(ServerCookie.GetData(), ServerCookie.Num());
+                            ConnectWithCookie.Append(ServerCookie.GetData(), ServerCookie.Num());    
 
                             int32 BytesSent = 0;
                             Socket->SendTo(ConnectWithCookie.GetData(), ConnectWithCookie.Num(), BytesSent, *RemoteEndpoint);

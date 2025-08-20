@@ -74,7 +74,7 @@ public static class CookieManager
         data.AddRange(random.ToArray());
 
         using var hmac = new HMACSHA256(ServerSecret);
-        var expectedSignature = hmac.ComputeHash(data.ToArray());
+        var expectedSignature = hmac.ComputeHash(data.ToArray()).AsSpan(0, 32).ToArray();
 
         return providedSignature.SequenceEqual(expectedSignature);
     }

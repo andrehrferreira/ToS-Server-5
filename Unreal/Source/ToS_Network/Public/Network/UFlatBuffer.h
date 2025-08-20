@@ -68,13 +68,15 @@ public:
 
 		int32 Size = sizeof(T);
 
-		if (Position + Size > Capacity)		
+		if (Position + Size > Capacity) {
 			UE_LOG(LogTemp, Error, TEXT("UFlatBuffer::Read - Buffer underflow. Cannot read value of size %d"), Size);
-		
+			return T{};
+		}
+					
 		T Value;
 		FMemory::Memcpy(&Value, Data + Position, Size);
 		Position += Size;
-		return (Position + Size > Capacity) ? T{} : Value;
+		return Value;
 	}
 
 	UFUNCTION(BlueprintCallable, Category = "FlatBuffer")
@@ -203,6 +205,7 @@ public:
 	FORCEINLINE int32 GetPosition() const { return Position; }
 	FORCEINLINE int32 GetCapacity() const { return Capacity; }
 	FORCEINLINE bool IsDisposed() const { return bDisposed; }
+	FORCEINLINE int32 Remaining() const { return Capacity - Position; }
 
 	FORCEINLINE void SetPosition(int32 NewPosition)
 	{
