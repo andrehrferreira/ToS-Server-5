@@ -237,11 +237,6 @@ void UDPClient::PollIncomingPackets()
                             for (int32 i = 0; i < 16; ++i)
                                 Salt[i] = Buffer->ReadByte();
 
-                            FString ServerPublicKeyBase64 = FBase64::Encode(ServerPublicKey);
-                            UE_LOG(LogTemp, Log, TEXT("ServerPublicKey: %s"), *ServerPublicKeyBase64);
-                            FString SaltBase64 = FBase64::Encode(Salt);
-                            UE_LOG(LogTemp, Log, TEXT("Salt: %s"), *SaltBase64);
-
                             if (OnConnect)
                                 OnConnect(clientID);
                         }
