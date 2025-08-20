@@ -15,6 +15,7 @@ struct FCookiePacket
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TArray<uint8> Cookie;
 
+
     int32 GetSize() const { return 49; }
 
     void Deserialize(UFlatBuffer* Buffer)

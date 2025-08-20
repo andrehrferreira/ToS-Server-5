@@ -22,6 +22,7 @@
 */
 
 using NanoSockets;
+using Org.BouncyCastle.Bcpg;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -425,34 +426,20 @@ public sealed class UDPServer
                                     clientPub[i] = data.Read<byte>();
 
                                 var cookie = CookieManager.GenerateCookie(address);
-                                var helloBuffer = new FlatBuffer(1 + 48);
+                                var helloBuffer = new FlatBuffer(49);
                                 helloBuffer.Write(PacketType.Cookie);
                                 helloBuffer.WriteBytes(cookie);
 
                                 var helloLen = helloBuffer.Position;
                                 var helloData = AddSignature(helloBuffer.Data, helloLen, out helloLen);
-
-                                var helloPacket = new SendPacket
-                                {
-                                    Buffer = helloData,
-                                    Length = helloLen,
-                                    Address = address,
-                                    Pooled = true
-                                };
-
-                                GlobalSendChannel.Writer.TryWrite(helloPacket);
+                                UDP.Unsafe.Send(ServerSocket, &address, helloData, helloLen);
                                 helloBuffer.Free();
                             }
                             else if (data.Position + 32 + 48 == len) 
                             {
-                                byte[] clientPub = new byte[32];
-                                for (int i = 0; i < 32; i++)
-                                    clientPub[i] = data.Read<byte>();
-
-                                byte[] cookie = new byte[48];
-                                for (int i = 0; i < 48; i++)
-                                    cookie[i] = data.Read<byte>();
-
+                                byte[] clientPub = data.ReadBytes(32);             
+                                byte[] cookie = data.ReadBytes(48);
+                                
                                 if (!CookieManager.ValidateCookie(cookie, address))
                                 {
                                     data.Free();
