@@ -31,6 +31,7 @@
 #include "HAL/Runnable.h"
 #include "HAL/RunnableThread.h"
 #include "HAL/ThreadSafeBool.h"
+#include "Network/SecureSession.h"
 
 class UFlatBuffer;
 class UDPClient;
@@ -90,6 +91,8 @@ public:
     void Disconnect();
     void SendAck(uint16 Sequence);
     void Send(UFlatBuffer* buffer);
+    void SendEncrypted(UFlatBuffer* buffer);
+    void SendLegacy(UFlatBuffer* buffer);
     void PollIncomingPackets();
     void SetConnectTimeout(float Seconds) { ConnectTimeout = Seconds; }
     void SetRetryInterval(float Seconds) { RetryInterval = Seconds; }
@@ -129,4 +132,12 @@ private:
     TArray<uint8> ClientPrivateKey;
     TArray<uint8> ServerPublicKey;
     TArray<uint8> Salt;
+
+    // Cookie anti-spoof support
+    bool bCookieReceived = false;
+    TArray<uint8> ServerCookie;
+
+    // Encryption support
+    bool bEncryptionEnabled = false;
+    FSecureSession SecureSession;
 };

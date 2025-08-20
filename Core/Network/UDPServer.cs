@@ -212,9 +212,9 @@ public sealed class UDPServer
     {
         Running = false;
 
-        if (ServerSocket.IsCreated)        
+        if (ServerSocket.IsCreated)
             UDP.Destroy(ref ServerSocket);
-        
+
         UDP.Deinitialize();
     }
 
@@ -351,7 +351,7 @@ public sealed class UDPServer
                             unsafe
                             {
                                 int sent = UDP.Unsafe.Send(ServerSocket, &address, packet.Buffer, packet.Length);
-                                
+
                                 if (sent > 0)
                                 {
                                     Interlocked.Decrement(ref _sendQueueCount);
@@ -416,42 +416,82 @@ public sealed class UDPServer
             {
                 case PacketType.Connect:
                     {
-                        string token = null;
-
                         if (!Clients.TryGetValue(address, out conn))
                         {
-                            byte[] clientPub = new byte[32];
-
-                            for (int i = 0; i < 32; i++)
-                                clientPub[i] = data.Read<byte>();
-
-                            var (serverPub, salt, session) = SecureSession.CreateAsServer(clientPub);
-
-                            var newSocket = new UDPSocket(ServerSocket)
+                            // Check if this is a first contact (no cookie) - send ServerHello with cookie
+                            if (data.Position + 32 == len) // Only public key, no cookie
                             {
-                                Id = GetRandomId(),
-                                RemoteAddress = address,
-                                TimeoutLeft = 30f,
-                                State = ConnectionState.Connecting,
-                                Flags = _baseFlags,
-                                EnableIntegrityCheck = _options.EnableIntegrityCheck,
-                                Session = session
-                            };
+                                byte[] clientPub = new byte[32];
+                                for (int i = 0; i < 32; i++)
+                                    clientPub[i] = data.Read<byte>();
 
-                            bool valid = _connectionHandler?.Invoke(newSocket, token) ?? true;
+                                // Generate anti-spoof cookie
+                                var cookie = CookieManager.GenerateCookie(address);
 
-                            if (Clients.TryAdd(address, newSocket))
-                            {
-                                uint ID = GetRandomId();
+                                // Send ServerHello with cookie
+                                var helloBuffer = new FlatBuffer(1 + 48);
+                                helloBuffer.Write(PacketType.ConnectionDenied); // Reuse as ServerHello
+                                helloBuffer.WriteBytes(cookie);
 
-                                newSocket.Send(new ConnectionAcceptedPacket
+                                var helloLen = helloBuffer.Position;
+                                var helloData = AddSignature(helloBuffer.Data, helloLen, out helloLen);
+
+                                var helloPacket = new SendPacket
                                 {
-                                    Id = ID,
-                                    ServerPublicKey = serverPub,
-                                    Salt = salt
-                                });
+                                    Buffer = helloData,
+                                    Length = helloLen,
+                                    Address = address,
+                                    Pooled = true
+                                };
 
-                                newSocket.State = ConnectionState.Connected;
+                                GlobalSendChannel.Writer.TryWrite(helloPacket);
+                                helloBuffer.Free();
+                            }
+                            else if (data.Position + 32 + 48 == len) // Public key + cookie
+                            {
+                                byte[] clientPub = new byte[32];
+                                for (int i = 0; i < 32; i++)
+                                    clientPub[i] = data.Read<byte>();
+
+                                byte[] cookie = new byte[48];
+                                for (int i = 0; i < 48; i++)
+                                    cookie[i] = data.Read<byte>();
+
+                                // Validate cookie
+                                if (!CookieManager.ValidateCookie(cookie, address))
+                                {
+                                    data.Free();
+                                    break;
+                                }
+
+                                // Create secure session with connection ID
+                                uint connectionId = GetRandomId();
+                                var (serverPub, salt, session) = SecureSession.CreateAsServer(clientPub, connectionId);
+
+                                var newSocket = new UDPSocket(ServerSocket)
+                                {
+                                    Id = connectionId,
+                                    RemoteAddress = address,
+                                    TimeoutLeft = 30f,
+                                    State = ConnectionState.Connecting,
+                                    Flags = _baseFlags,
+                                    EnableIntegrityCheck = _options.EnableIntegrityCheck,
+                                    Session = session
+                                };
+
+                                bool valid = _connectionHandler?.Invoke(newSocket, null) ?? true;
+
+                                if (valid && Clients.TryAdd(address, newSocket))
+                                {
+                                    newSocket.Send(new ConnectionAcceptedPacket
+                                    {
+                                        Id = connectionId,
+                                        ServerPublicKey = serverPub,
+                                        Salt = salt
+                                    });
+
+                                    newSocket.State = ConnectionState.Connected;
+                                }
                             }
                         }
 
@@ -464,7 +504,7 @@ public sealed class UDPServer
                         {
                             ushort sentTimestampMs = data.Read<ushort>();
                             ushort nowMs = (ushort)(Stopwatch.GetTimestamp() / (Stopwatch.Frequency / 1000) % 65536);
-                            ushort rttMs = (ushort)((nowMs - sentTimestampMs) & 0xFFFF); 
+                            ushort rttMs = (ushort)((nowMs - sentTimestampMs) & 0xFFFF);
                             conn.Ping = rttMs;
                             conn.TimeoutLeft = 30f;
                         }
@@ -490,17 +530,27 @@ public sealed class UDPServer
                     {
                         if (Clients.TryGetValue(address, out conn))
                         {
-                            uint signature = data.ReadSign(len);                            
+                            uint signature = data.ReadSign(len);
                             uint crc32c = CRC32C.Compute(data.Data, len - 4);
 
                             if (signature == crc32c)
                             {
                                 data.Resize(len - 4);
                                 conn.TimeoutLeft = 30f;
+
+                                // Check if packet is encrypted (new format with header)
+                                if (len >= PacketHeader.Size + 16) // Header + minimum AEAD overhead
+                                {
+                                    // Try to decrypt as new encrypted format
+                                    if (ProcessEncryptedPacket(data, conn))
+                                        return; // Successfully processed
+                                }
+
+                                // Fall back to legacy format
                                 ClientPackets clientPacket = (ClientPackets)data.Read<short>();
-                                
-                                if(PlayerController.TryGet(conn.Id, out var controller))                                
-                                    PacketHandler.HandlePacket(controller, ref data, clientPacket);                                
+
+                                if(PlayerController.TryGet(conn.Id, out var controller))
+                                    PacketHandler.HandlePacket(controller, ref data, clientPacket);
                             }
                         }
 
@@ -712,7 +762,7 @@ public sealed class UDPServer
 
     public static void Flush()
     {
-        if (SendEvent != null)        
+        if (SendEvent != null)
             SendEvent.Set();
     }
 
@@ -724,7 +774,7 @@ public sealed class UDPServer
 
     public static void RunMainLoop()
     {
-        const float deltaTime = 1.0f / 32.0f; 
+        const float deltaTime = 1.0f / 32.0f;
         TimeSpan frameTime = TimeSpan.FromSeconds(deltaTime);
         TimeSpan targetTime = frameTime;
 
@@ -766,13 +816,66 @@ public sealed class UDPServer
         }
     }
 
+    private static unsafe bool ProcessEncryptedPacket(FlatBuffer data, UDPSocket conn)
+    {
+        try
+        {
+            // Parse packet header
+            var header = PacketHeader.Deserialize(data.Data);
+
+            // Verify connection ID matches
+            if (header.ConnectionId != conn.Session.ConnectionId)
+                return false;
+
+            // Check if encrypted flag is set
+            if (!header.Flags.HasFlag(PacketHeaderFlags.Encrypted) ||
+                !header.Flags.HasFlag(PacketHeaderFlags.AEAD_ChaCha20Poly1305))
+                return false;
+
+            // Extract ciphertext (everything after header)
+            int ciphertextLen = data.Position - PacketHeader.Size;
+            if (ciphertextLen <= 16) // Must have at least AEAD tag
+                return false;
+
+            var ciphertext = new ReadOnlySpan<byte>(data.Data + PacketHeader.Size, ciphertextLen);
+            var aad = header.GetAAD();
+
+            // Decrypt payload
+            Span<byte> plaintext = stackalloc byte[ciphertextLen - 16]; // Remove AEAD tag size
+            if (!conn.Session.DecryptPayload(ciphertext, aad, header.Sequence, plaintext, out int plaintextLen))
+            {
+                ServerMonitor.Log($"Failed to decrypt packet from {conn.RemoteAddress}");
+                return false;
+            }
+
+            // Create new buffer with decrypted payload
+            var decryptedBuffer = new FlatBuffer(plaintextLen + 2);
+            decryptedBuffer.Write((byte)header.Channel); // Channel as packet type
+            decryptedBuffer.WriteBytes(plaintext.Slice(0, plaintextLen).ToArray());
+
+            // Process decrypted packet
+            ClientPackets clientPacket = (ClientPackets)decryptedBuffer.Read<short>();
+
+            if (PlayerController.TryGet(conn.Id, out var controller))
+                PacketHandler.HandlePacket(controller, ref decryptedBuffer, clientPacket);
+
+            decryptedBuffer.Free();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ServerMonitor.Log($"Error processing encrypted packet: {ex.Message}");
+            return false;
+        }
+    }
+
     private static unsafe void PrintBuffer(byte* buffer, int len)
     {
         var sb = new System.Text.StringBuilder(len * 3);
 
-        for (int i = 0; i < len; i++)        
+        for (int i = 0; i < len; i++)
             sb.AppendFormat("{0:X2} ", buffer[i]);
-        
+
         ServerMonitor.Log(sb.ToString());
     }
 }

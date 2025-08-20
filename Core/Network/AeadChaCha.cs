@@ -12,28 +12,23 @@ public static unsafe class AeadChaCha
     private const int MacSize = 16;
     private const int KeySize = 32;
     private const int NonceSize = 12;
-    private const int HeaderSize = 16;         // sizeof(NetHeader)
+    private const int HeaderSize = 14;         // sizeof(PacketHeader)
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void CopyHeader(in NetHeader hdr, byte[] dest)
+    private static void CopyHeader(in PacketHeader hdr, byte[] dest)
     {
         if (dest.Length < HeaderSize) throw new ArgumentException("Header dest too small");
-        fixed (NetHeader* p = &hdr)
-        {
-            new ReadOnlySpan<byte>((byte*)p, HeaderSize).CopyTo(dest);
-        }
+        var aad = hdr.GetAAD();
+        aad.CopyTo(dest);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static uint ReadHeaderSeq(in NetHeader hdr)
+    private static ulong ReadHeaderSeq(in PacketHeader hdr)
     {
-        fixed (NetHeader* p = &hdr)
-        {
-            return BinaryPrimitives.ReadUInt32BigEndian(new ReadOnlySpan<byte>(((byte*)p) + 4, 4));
-        }
+        return hdr.Sequence;
     }
 
-    public static bool Seal(SecureSession* s, in NetHeader hdr,
+    public static bool Seal(SecureSession* s, in PacketHeader hdr,
                             byte* plain, int plainLen,
                             byte* outBuf, int outCap, out int outLen)
     {
@@ -51,9 +46,16 @@ public static unsafe class AeadChaCha
 
         try
         {
-            new Span<byte>(s->TxKey, KeySize).CopyTo(keyArr);
-            new Span<byte>(s->DirSalt, 4).CopyTo(nonceArr);
-            BinaryPrimitives.WriteUInt64BigEndian(nonceArr.AsSpan(4), s->SeqTx);
+            unsafe
+            {
+                fixed (byte* txKeyPtr = s->TxKey)
+                {
+                    new Span<byte>(txKeyPtr, KeySize).CopyTo(keyArr);
+                }
+            }
+            // Generate nonce: conn_id (4B LE) || seq (8B LE)
+            BinaryPrimitives.WriteUInt32LittleEndian(nonceArr, s->ConnectionId);
+            BinaryPrimitives.WriteUInt64LittleEndian(nonceArr.AsSpan(4), s->SeqTx);
             CopyHeader(in hdr, aadArr);
             new Span<byte>(plain, plainLen).CopyTo(plainArr);
 
@@ -84,7 +86,7 @@ public static unsafe class AeadChaCha
         }
     }
 
-    public static bool Open(SecureSession* s, in NetHeader hdr,
+    public static bool Open(SecureSession* s, in PacketHeader hdr,
                             byte* cipherText, int cipherLen,
                             byte* outBuf, int outCap, out int outLen)
     {
@@ -94,7 +96,7 @@ public static unsafe class AeadChaCha
         int plainLen = cipherLen - MacSize;
         if (outCap < plainLen) return false;
 
-        if ((uint)s->SeqRx != ReadHeaderSeq(in hdr)) return false;
+        if (s->SeqRx != ReadHeaderSeq(in hdr)) return false;
 
         byte[] keyArr = ArrayPool<byte>.Shared.Rent(KeySize);
         byte[] nonceArr = ArrayPool<byte>.Shared.Rent(NonceSize);
@@ -104,9 +106,16 @@ public static unsafe class AeadChaCha
 
         try
         {
-            new Span<byte>(s->RxKey, KeySize).CopyTo(keyArr);
-            new Span<byte>(s->DirSalt, 4).CopyTo(nonceArr);
-            BinaryPrimitives.WriteUInt64BigEndian(nonceArr.AsSpan(4), s->SeqRx);
+            unsafe
+            {
+                fixed (byte* rxKeyPtr = s->RxKey)
+                {
+                    new Span<byte>(rxKeyPtr, KeySize).CopyTo(keyArr);
+                }
+            }
+            // Generate nonce: conn_id (4B LE) || seq (8B LE)
+            BinaryPrimitives.WriteUInt32LittleEndian(nonceArr, s->ConnectionId);
+            BinaryPrimitives.WriteUInt64LittleEndian(nonceArr.AsSpan(4), s->SeqRx);
             CopyHeader(in hdr, aadArr);
             new Span<byte>(cipherText, cipherLen).CopyTo(cipherArr);
 

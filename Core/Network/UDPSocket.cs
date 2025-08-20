@@ -151,6 +151,79 @@ public class UDPSocket
 
     public void Send(INetworkPacket networkPacket, bool reliable = false)
     {
+        // Check if encryption is enabled (after handshake completed)
+        bool useEncryption = State == ConnectionState.Connected;
+
+        if (useEncryption)
+        {
+            SendEncrypted(networkPacket, reliable);
+        }
+        else
+        {
+            SendLegacy(networkPacket, reliable);
+        }
+    }
+
+    private void SendEncrypted(INetworkPacket networkPacket, bool reliable)
+    {
+        // Serialize payload
+        var payload = new FlatBuffer(networkPacket.Size);
+        networkPacket.Serialize(ref payload);
+
+        // Create packet header
+        var header = new PacketHeader
+        {
+            ConnectionId = Session.ConnectionId,
+            Channel = reliable ? PacketChannel.ReliableOrdered : PacketChannel.Unreliable,
+            Flags = PacketHeaderFlags.Encrypted | PacketHeaderFlags.AEAD_ChaCha20Poly1305,
+            Sequence = Session.SeqTx
+        };
+
+        // Calculate total packet size: header + encrypted payload + AEAD tag
+        int totalSize = PacketHeader.Size + payload.Position + 16;
+        var packet = new FlatBuffer(totalSize);
+
+        // Write header
+        unsafe
+        {
+            byte[] headerBytes = new byte[PacketHeader.Size];
+            fixed (byte* headerPtr = headerBytes)
+            {
+                header.Serialize(headerPtr);
+            }
+            packet.WriteBytes(headerBytes);
+        }
+
+        // Encrypt payload
+        var aad = header.GetAAD();
+        Span<byte> ciphertext = stackalloc byte[payload.Position + 16];
+
+        unsafe
+        {
+            if (Session.EncryptPayload(new ReadOnlySpan<byte>(payload.Data, payload.Position), aad, ciphertext, out int ciphertextLen))
+            {
+                // Write encrypted payload
+                packet.WriteBytes(ciphertext.Slice(0, ciphertextLen).ToArray());
+
+                if (reliable)
+                {
+                    short seq = Sequence++;
+                    if (Sequence == short.MaxValue)
+                        Sequence = 1;
+
+                    AddReliablePacket(seq, packet);
+                }
+
+                UDPServer.Send(ref packet, packet.Position, this, !reliable);
+            }
+        }
+
+        payload.Free();
+        if (!reliable) packet.Free();
+    }
+
+    private void SendLegacy(INetworkPacket networkPacket, bool reliable)
+    {
         if (reliable)
         {
             var tmp = new FlatBuffer(networkPacket.Size);
@@ -169,10 +242,15 @@ public class UDPSocket
             {
                 unsafe
                 {
-                    packet.WriteBytes(tmp.Data + 1, tmp.Position - 1);
+                    byte[] payloadData = new byte[tmp.Position - 1];
+                    fixed (byte* payloadPtr = payloadData)
+                    {
+                        Buffer.MemoryCopy(tmp.Data + 1, payloadPtr, payloadData.Length, tmp.Position - 1);
+                    }
+                    packet.WriteBytes(payloadData);
                 }
             }
-                
+
             AddReliablePacket(seq, packet);
             UDPServer.Send(ref packet, packet.Position, this, false);
 
@@ -182,13 +260,13 @@ public class UDPSocket
         {
             ref FlatBuffer buffer = ref UnreliableBuffer;
 
-            if (buffer.Position + networkPacket.Size > buffer.Capacity)            
+            if (buffer.Position + networkPacket.Size > buffer.Capacity)
                 Send(ref buffer);
-                            
+
             networkPacket.Serialize(ref buffer);
 
-            if (buffer.Position > UDPServer.Mtu * 0.8)            
-                Send(ref buffer);              
+            if (buffer.Position > UDPServer.Mtu * 0.8)
+                Send(ref buffer);
         }
     }
 
@@ -237,12 +315,12 @@ public class UDPSocket
             }
         }
 
-        if (UnreliableBuffer.Position > 0)        
+        if (UnreliableBuffer.Position > 0)
             Send(ref UnreliableBuffer);
-                    
+
         if (AckBuffer.Position > 0)
             Send(ref AckBuffer);
-                    
+
         ProcessPacket();
 
         return true;

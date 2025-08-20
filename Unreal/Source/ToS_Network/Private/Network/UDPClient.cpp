@@ -16,8 +16,9 @@
 #include "Packets/PongPacket.h"
 #include <sodium.h>
 #include "Misc/Base64.h"
+#include "Network/SecureSession.h"
 
-UDPClient::UDPClient() {}
+UDPClient::UDPClient() : bCookieReceived(false) {}
 UDPClient::~UDPClient() { Disconnect(); }
 
 void UDPClient::StartRetryTimer()
@@ -101,10 +102,10 @@ void UDPClient::OnRetryTimerTick()
             bIsConnecting = false;
             ConnectionStatus = EConnectionStatus::ConnectionFailed;
 
-            if (OnConnectionError) 
+            if (OnConnectionError)
                 OnConnectionError();
 
-            if (bRetryEnabled)            
+            if (bRetryEnabled)
                 TimeSinceLastRetry = 0.0f;
         }
     }
@@ -141,7 +142,58 @@ void UDPClient::Send(UFlatBuffer* buffer)
 
     if (buffer->GetLength() <= 0)
         return;
-        
+
+    if (bEncryptionEnabled && bIsConnected)
+    {
+        SendEncrypted(buffer);
+    }
+    else
+    {
+        SendLegacy(buffer);
+    }
+}
+
+void UDPClient::SendEncrypted(UFlatBuffer* buffer)
+{
+    // Extract payload (skip packet type)
+    TArray<uint8> Payload;
+    Payload.SetNumUninitialized(buffer->GetLength() - 1);
+    FMemory::Memcpy(Payload.GetData(), buffer->GetRawBuffer() + 1, buffer->GetLength() - 1);
+
+    // Create packet header
+    FPacketHeader Header;
+    Header.ConnectionId = SecureSession.GetConnectionId();
+    Header.Channel = EPacketChannel::Unreliable; // Default to unreliable
+    Header.Flags = EPacketHeaderFlags::Encrypted | EPacketHeaderFlags::AEAD_ChaCha20Poly1305;
+    Header.Sequence = SecureSession.GetSeqTx();
+
+    // Get AAD from header
+    TArray<uint8> AAD = Header.GetAAD();
+
+    // Encrypt payload
+    TArray<uint8> Ciphertext;
+    if (!SecureSession.EncryptPayload(Payload, AAD, Ciphertext))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to encrypt payload"));
+        return;
+    }
+
+    // Create final packet: header + ciphertext
+    TArray<uint8> FinalPacket;
+    FinalPacket.SetNumUninitialized(FPacketHeader::Size + Ciphertext.Num());
+    Header.Serialize(FinalPacket.GetData());
+    FMemory::Memcpy(FinalPacket.GetData() + FPacketHeader::Size, Ciphertext.GetData(), Ciphertext.Num());
+
+    // Add signature and send
+    uint32 Sign = FCRC32C::Compute(FinalPacket.GetData(), FinalPacket.Num());
+    FinalPacket.Append(reinterpret_cast<uint8*>(&Sign), sizeof(uint32));
+
+    int32 BytesSent = 0;
+    Socket->SendTo(FinalPacket.GetData(), FinalPacket.Num(), BytesSent, *RemoteEndpoint);
+}
+
+void UDPClient::SendLegacy(UFlatBuffer* buffer)
+{
     int len = buffer->GetLength();
     uint32 sign = FCRC32C::Compute(buffer->GetRawBuffer(), len);
     buffer->Write<uint32>(sign);
@@ -197,7 +249,7 @@ void UDPClient::PollIncomingPackets()
                         FPongPacket pongPacket = FPongPacket();
                         pongPacket.SentTimestamp = PingTime;
                         pongPacket.Serialize(PongBuffer);
-                        
+
                         int32 BytesSent = 0;
                         Socket->SendTo(PongBuffer->GetRawBuffer(), PongBuffer->GetLength(), BytesSent, *RemoteEndpoint);
                     }
@@ -226,8 +278,7 @@ void UDPClient::PollIncomingPackets()
                         TimeSinceConnect = 0.0f;
                         LastPingTime = FPlatformTime::Seconds();
                         {
-                            int32 clientID = 0;
-                            clientID = Buffer->ReadInt32();
+                            uint32 connectionID = Buffer->ReadUInt32();
 
                             ServerPublicKey.SetNumUninitialized(32);
                             for (int32 i = 0; i < 32; ++i)
@@ -237,22 +288,56 @@ void UDPClient::PollIncomingPackets()
                             for (int32 i = 0; i < 16; ++i)
                                 Salt[i] = Buffer->ReadByte();
 
-                            if (OnConnect)
-                                OnConnect(clientID);
+                            // Initialize secure session
+                            if (SecureSession.InitializeAsClient(ClientPrivateKey, ServerPublicKey, Salt, connectionID))
+                            {
+                                bEncryptionEnabled = true;
+
+                                if (OnConnect)
+                                    OnConnect(connectionID);
+                            }
+                            else
+                            {
+                                UE_LOG(LogTemp, Error, TEXT("Failed to initialize secure session"));
+                                Disconnect();
+                            }
                         }
                     }
                     break;
                     case EPacketType::ConnectionDenied:
                     {
-                        bIsConnected = false;
-                        bIsConnecting = false;
-                        ConnectionStatus = EConnectionStatus::ConnectionFailed;
+                        // Check if this is a ServerHello with cookie (reusing ConnectionDenied packet type)
+                        if (BytesRead == 1 + 48 && !bCookieReceived) // 1 byte packet type + 48 byte cookie
+                        {
+                            // Extract cookie
+                            ServerCookie.SetNumUninitialized(48);
+                            for (int32 i = 0; i < 48; ++i)
+                                ServerCookie[i] = Buffer->ReadByte();
 
-                        if (OnConnectDenied)
-                            OnConnectDenied();
+                            bCookieReceived = true;
 
-                        StopPacketPollThread();
-                        StartRetryTimer();
+                            // Send connect packet with cookie
+                            TArray<uint8> ConnectWithCookie;
+                            ConnectWithCookie.Add(static_cast<uint8>(EPacketType::Connect));
+                            ConnectWithCookie.Append(ClientPublicKey.GetData(), ClientPublicKey.Num());
+                            ConnectWithCookie.Append(ServerCookie.GetData(), ServerCookie.Num());
+
+                            int32 BytesSent = 0;
+                            Socket->SendTo(ConnectWithCookie.GetData(), ConnectWithCookie.Num(), BytesSent, *RemoteEndpoint);
+                        }
+                        else
+                        {
+                            // Actual connection denied
+                            bIsConnected = false;
+                            bIsConnecting = false;
+                            ConnectionStatus = EConnectionStatus::ConnectionFailed;
+
+                            if (OnConnectDenied)
+                                OnConnectDenied();
+
+                            StopPacketPollThread();
+                            StartRetryTimer();
+                        }
                     }
                     break;
                     case EPacketType::Disconnect:
@@ -287,7 +372,7 @@ bool UDPClient::Connect(const FString& Host, int32 Port)
 {
     if (bIsConnected || bIsConnecting)
         return false;
-	
+
     Disconnect();
     bIsConnecting = true;
     ConnectionStatus = EConnectionStatus::Connecting;
@@ -305,14 +390,14 @@ bool UDPClient::Connect(const FString& Host, int32 Port)
     RemoteEndpoint = TSharedPtr<FInternetAddr>(SocketSubsystem->CreateInternetAddr());
     RemoteEndpoint->SetIp(*Host, bIsValid);
     RemoteEndpoint->SetPort(Port);
-    
+
     if (!bIsValid)
     {
         bIsConnected = false;
         bIsConnecting = false;
         ConnectionStatus = EConnectionStatus::ConnectionFailed;
 
-        if (OnConnectionError) 
+        if (OnConnectionError)
             OnConnectionError();
 
         return false;
@@ -329,7 +414,7 @@ bool UDPClient::Connect(const FString& Host, int32 Port)
         bIsConnecting = false;
         ConnectionStatus = EConnectionStatus::ConnectionFailed;
 
-        if (OnConnectionError) 
+        if (OnConnectionError)
             OnConnectionError();
 
         return false;
@@ -351,6 +436,7 @@ bool UDPClient::Connect(const FString& Host, int32 Port)
     ClientPrivateKey.SetNumUninitialized(32);
     crypto_box_keypair(ClientPublicKey.GetData(), ClientPrivateKey.GetData());
 
+    // Send initial connect packet (no cookie yet)
     TArray<uint8> Packet;
     Packet.Add(static_cast<uint8>(EPacketType::Connect));
     Packet.Append(ClientPublicKey.GetData(), ClientPublicKey.Num());

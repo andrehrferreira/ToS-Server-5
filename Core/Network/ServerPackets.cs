@@ -6,5 +6,6 @@ public enum ServerPackets: ushort
     CreateEntity = 1,
     UpdateEntity = 2,
     RemoveEntity = 3,
-    DeltaSync = 4,
+    RekeyRequest = 4,
+    DeltaSync = 5,
 }

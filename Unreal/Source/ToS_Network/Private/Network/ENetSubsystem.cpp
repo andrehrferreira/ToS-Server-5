@@ -12,9 +12,11 @@
 #include "Packets/CreateEntityPacket.h"
 #include "Packets/UpdateEntityPacket.h"
 #include "Packets/RemoveEntityPacket.h"
+#include "Packets/RekeyRequestPacket.h"
 #include "Packets/DeltaSyncPacket.h"
 #include "Packets/SyncEntityPacket.h"
 #include "Packets/EnterToWorldPacket.h"
+#include "Packets/RekeyResponsePacket.h"
 
 #include "Enum/EntityDelta.h"
 
@@ -58,6 +60,13 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
                             FRemoveEntityPacket fRemoveEntity = FRemoveEntityPacket();
                             fRemoveEntity.Deserialize(Buffer);
                             OnRemoveEntity.Broadcast(fRemoveEntity.EntityId);
+                        }
+                        break;
+                        case EServerPackets::RekeyRequest:
+                        {
+                            FRekeyRequestPacket fRekeyRequest = FRekeyRequestPacket();
+                            fRekeyRequest.Deserialize(Buffer);
+                            OnRekeyRequest.Broadcast(fRekeyRequest.CurrentSequence, fRekeyRequest.NewSalt);
                         }
                         break;
 
