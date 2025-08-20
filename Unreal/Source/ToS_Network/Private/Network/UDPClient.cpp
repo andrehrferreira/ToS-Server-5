@@ -227,13 +227,12 @@ void UDPClient::PollIncomingPackets()
                         LastPingTime = FPlatformTime::Seconds();
                         {
                             int32 clientID = 0;
-
-                            if (Buffer->GetLength() - Buffer->GetOffset() >= 4)
-                                clientID = Buffer->ReadInt32();
+                            clientID = Buffer->ReadInt32();
 
                             ServerPublicKey.SetNumUninitialized(32);
                             for (int32 i = 0; i < 32; ++i)
                                 ServerPublicKey[i] = Buffer->ReadByte();
+
                             Salt.SetNumUninitialized(16);
                             for (int32 i = 0; i < 16; ++i)
                                 Salt[i] = Buffer->ReadByte();

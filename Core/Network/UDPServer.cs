@@ -22,7 +22,6 @@
 */
 
 using NanoSockets;
-using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -153,7 +152,6 @@ public sealed class UDPServer
             {
                 _integrityKeyTable = table;
 
-                // Initialize NanoSockets
                 if (UDP.Initialize() != Status.OK)
                 {
 #if DEBUG
@@ -162,7 +160,6 @@ public sealed class UDPServer
                     return false;
                 }
 
-                // Create NanoSockets socket
                 ServerSocket = UDP.Create(_options.SendBufferSize, _options.ReceiveBufferSize);
 
                 if (!ServerSocket.IsCreated)
@@ -173,7 +170,6 @@ public sealed class UDPServer
                     return false;
                 }
 
-                // Create address and bind
                 var bindAddress = Address.CreateFromIpPort("0.0.0.0", (ushort)port);
 
                 if (UDP.Bind(ServerSocket, ref bindAddress) != 0)
@@ -184,7 +180,6 @@ public sealed class UDPServer
                     return false;
                 }
 
-                // Set socket to non-blocking
                 UDP.SetNonBlocking(ServerSocket, false);
 
                 Running = true;
@@ -353,12 +348,10 @@ public sealed class UDPServer
                             var address = packet.Address;
                             unsafe
                             {
-                                //PrintBuffer(packet.Buffer, packet.Length);
                                 int sent = UDP.Unsafe.Send(ServerSocket, &address, packet.Buffer, packet.Length);
                                 
                                 if (sent > 0)
                                 {
-                                    //Marshal.FreeHGlobal((IntPtr)packet.Buffer);
                                     Interlocked.Decrement(ref _sendQueueCount);
                                     Interlocked.Increment(ref _packetsSent);
                                     Interlocked.Add(ref _bytesSent, sent);
@@ -423,6 +416,7 @@ public sealed class UDPServer
                         if (!Clients.TryGetValue(address, out conn))
                         {
                             byte[] clientPub = new byte[32];
+
                             for (int i = 0; i < 32; i++)
                                 clientPub[i] = data.Read<byte>();
 
@@ -542,15 +536,6 @@ public sealed class UDPServer
                         data.Free();
                     }
                     break;
-                /*case PacketType.BenckmarkTest:
-                    {
-                        if (Clients.TryGetValue(address, out conn))
-                        {
-                            data.Reset();
-                            conn.EventQueue.Writer.TryWrite(data);
-                        }
-                    }
-                    break;*/
             }
         }
         catch (Exception ex)
@@ -590,6 +575,8 @@ public sealed class UDPServer
         {
             var len = length;
             var data = AddSignature(buffer.Data, length, out len);
+
+            PrintBuffer(buffer.Data, length);
 
             var packet = new SendPacket
             {
@@ -679,6 +666,6 @@ public sealed class UDPServer
         for (int i = 0; i < len; i++)        
             sb.AppendFormat("{0:X2} ", buffer[i]);
         
-        Console.WriteLine(sb.ToString());
+        ServerMonitor.Log(sb.ToString());
     }
 }

@@ -145,17 +145,17 @@ void UFlatBuffer::WriteInt16(int16 Value)
 
 void UFlatBuffer::WriteInt32(int32 Value)
 {
-    WriteVarInt(Value);
+    Write<int32>(Value);
 }
 
 void UFlatBuffer::WriteUInt32(uint32 Value)
 {
-    WriteVarUInt(Value);
+    Write<uint32>(Value);
 }
 
 void UFlatBuffer::WriteInt64(int64 Value)
 {
-    WriteVarLong(Value);
+    Write<int64>(Value);
 }
 
 void UFlatBuffer::WriteVarInt(int32 Value)
@@ -341,17 +341,17 @@ int16 UFlatBuffer::ReadInt16()
 
 int32 UFlatBuffer::ReadInt32()
 {
-    return ReadVarInt();
+    return Read<int32>();
 }
 
 uint32 UFlatBuffer::ReadUInt32()
 {
-    return ReadVarUInt();
+    return Read<uint32>();
 }
 
 int64 UFlatBuffer::ReadInt64()
 {
-    return ReadVarLong();
+    return Read<int64>();
 }
 
 int32 UFlatBuffer::ReadVarInt()
