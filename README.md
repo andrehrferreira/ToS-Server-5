@@ -1,24 +1,16 @@
-﻿# Tales Of Shadowland MMO Server 5
+# Tales Of Shadowland MMO Server 5
 
 This is a multiplayer server based on .NET 8, which automatically generates RPC communication packages and .cpp files for use with Unreal Engine, supporting both C++ and Blueprints. Follow the steps below to set up and start the project.
 
 ## Prerequisites
 
 - **Windows 10 or higher**
-- **Unreal Engine 5.0 or higher**
+- **Unreal Engine 5.5+ (recommended)**
 - **.NET SDK 8.0 or higher**
 - **Visual Studio 2022** 
+- Windows **Developer Mode** (to create symlinks)
 
-Before setting up the project, make sure to install the following NuGet packages:
-
-1. **DotNetEnv**  
-    [Download DotNetEnv](https://www.nuget.org/packages/DotNetEnv)
-2. **Microsoft.VisualStudio.Interop**  
-    [Download Microsoft.VisualStudio.Interop](https://www.nuget.org/packages/Microsoft.VisualStudio.Interop)
-3. **System.Reactive**  
-    [Download System.Reactive](https://www.nuget.org/packages/System.Reactive)
-4. **Newtonsoft.Json**
-    [Download Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json)
+**Dependencies:** All NuGet packages are automatically installed via `dotnet restore` including Newtonsoft.Json, Spectre.Console, BouncyCastle.Cryptography, FsCheck, and SharpFuzz.
 
 ### Enable unsafe code in Visual Studio
 
@@ -84,9 +76,11 @@ The project is actively under development with multiple core systems being imple
 - **C# Packet Creation** - Dynamic packet creation and serialization
 - **Unreal Plugin** - Native Unreal Engine integration
 - **Base Replication** - Entity synchronization system
+- **Full Payload Encryption** - Applying AEAD to reliable/unreliable channels
 - **Network Event System** - Event-driven network communication
 - **Reliable Messaging** - Guaranteed delivery system with acknowledgments
 - **Packet Queue System** - Per-connection fixed buffer transmission queuing
+- **Fragment Reliability Policies** - Integration with reliable resend & congestion metrics
 
 ### ✅ **Completed**
 - **Testing Framework** - Custom testing system with descriptive structure
@@ -98,193 +92,86 @@ The project is actively under development with multiple core systems being imple
 - **Buffer Management** - Zero-allocation buffer system using unsafe memory operations
 - **Integrity System** - Key table store with simplified client-side access
 - **Packet Reception Queue** - Efficient packet reception and processing system
+- **X25519 Secure Handshake** - Hybrid implementation using BouncyCastle (C#) and libsodium (C++)
+- **Packet Fragmentation** - Automatic fragmentation for packets > 1200 bytes with reassembly
+- **FlatBuffer byte[] Support** - Native byte array serialization with customizable length
+- **Contract System byte[] Fields** - Transpiler support for raw byte arrays
 
-## UDP Server Architecture
+## System Architecture
 
-The UDP server has been completely redesigned for maximum performance using unsafe pointers and zero-allocation principles:
+### High-Performance Network Stack
+Built on zero-allocation principles with unsafe pointer operations for maximum performance:
 
-### Core Components
-- **UDPServer**: Main server class with NanoSockets integration and unsafe operations
-- **UDPSocket**: Enhanced socket wrapper with fixed transmission buffers per connection
-- **FlatBuffer**: High-performance unsafe pointer-based binary serialization (replaces ByteBuffer)
-- **NanoSockets**: Low-level UDP operations using unsafe pointers for maximum performance
-- **Packet Queue System**: Per-connection fixed buffers for efficient packet transmission
-- **IntegrityKeyTableStore**: Version-based key table management with simplified client access
+- **NanoSockets**: Low-level UDP operations with direct memory access
+- **UDPServer/UDPSocket**: Enhanced connection management with per-connection fixed buffers
+- **Packet Queue System**: Efficient reception and transmission queuing
+- **FlatBuffer**: Unsafe pointer-based binary serialization with advanced features
 
-### FlatBuffer System - Advanced Features
-
-The FlatBuffer system provides a comprehensive set of high-performance serialization features:
-
-#### Core Operations
-- **Unsafe Pointer Management**: Direct `byte*` operations with `Marshal.AllocHGlobal/FreeHGlobal`
-- **Template Operations**: Generic `Read<T>()` and `Write<T>()` for all unmanaged types
-- **Zero-Allocation**: No managed memory allocations during serialization/deserialization
-- **Position Management**: `SavePosition()` and `RestorePosition()` for complex serialization patterns
-- **Peek Operations**: Non-destructive `Peek<T>()` for data inspection without advancing position
-
-#### Variable-Length Encoding
-- **ZigZag Encoding**: Efficient signed integer compression using ZigZag encoding/decoding
-- **VarInt Support**: Variable-length integer encoding for `int`, `uint`, `long`, `ulong`
-- **Space Optimization**: Reduces packet size by up to 75% for small integer values
-- **Overflow Protection**: Built-in overflow detection for corrupted data handling
-
-#### Bit-Level Operations
-- **Bit Manipulation**: `WriteBit()` and `ReadBit()` for boolean and flag serialization
-- **Bit Alignment**: `AlignBits()` for proper byte boundary alignment
-- **Compact Storage**: Efficient boolean array storage with bit-level precision
-- **Mixed Mode**: Seamless transition between bit and byte operations
-
-#### Quantization System
-- **Float Quantization**: `WriteQuantized()` and `ReadQuantizedFloat()` for compressed float values
-- **FVector Quantization**: 3D vector compression with configurable min/max ranges
-- **FRotator Quantization**: Rotation compression for Unreal Engine integration
-- **Precision Control**: Configurable quantization ranges for optimal space/precision trade-offs
-
-#### String Operations
-- **ASCII Support**: `WriteAsciiString()` and `ReadAsciiString()` for basic text
-- **UTF8 Support**: `WriteUtf8String()` and `ReadUtf8String()` for internationalization
-- **Length Prefixing**: Automatic length encoding for safe string deserialization
-- **Memory Safety**: Bounds checking and buffer overflow prevention
-
-#### Data Integrity
-- **Hash Generation**: `GetHashFast()` for quick data integrity checks
-- **Hex Conversion**: `ToHex()` for debugging and data inspection
-- **Bounds Checking**: Automatic buffer overflow prevention
-- **Exception Safety**: Graceful handling of malformed data
-
-#### Memory Management
-- **Manual Control**: Direct memory allocation and deallocation control
-- **Dispose Pattern**: Proper `IDisposable` implementation for resource cleanup
-- **Buffer Reuse**: Reset functionality for buffer reuse without reallocation
-- **Capacity Management**: Dynamic capacity tracking and overflow prevention
-
-### Performance Optimizations
-- **Zero Allocation**: Unsafe pointer operations eliminate memory allocations
-- **Fixed Buffers**: Per-connection transmission buffers reduce memory fragmentation
-- **Direct Memory Access**: NanoSockets provides direct memory operations
-- **Packet Queuing**: Efficient reception and transmission packet queuing
-- **Hardware Acceleration**: CRC32C with SSE4.2 and ARM Crypto support
-- **Bit-Level Efficiency**: Optimal space utilization with bit-level operations
-- **Quantization Compression**: Significant bandwidth reduction for floating-point data
-
-### Network Features
-- **Connection Management**: NanoSockets-based UDP client connection handling ✅
-- **Buffer Management**: Zero-allocation unsafe pointer buffer system ✅
-- **Packet Serialization**: FlatBuffer unsafe pointer-based serialization ✅
-- **Integrity System**: Version-based key table management ✅
-- **Reception Queue**: Efficient packet reception queuing system ✅
-- **Transmission Queue**: Per-connection fixed buffer transmission system ✅
-- **Reliable Messaging**: Guaranteed delivery with acknowledgment system 🛠️
-- **Packet Validation**: Integrity checking and validation ⏳
-- **Encryption**: Secure packet transmission ⏳
-- **Heartbeat System**: Client connectivity monitoring ✅
-
-## Features
-
-- **Automatic RPC generation** ✅
-- **Unreal Engine plugin integration** (in development)
-- **High-performance UDP server with NanoSockets** ✅
-- **Zero-allocation packet processing** ✅
-- **C# packet creation system** ✅
-- **Entity replication system** ✅
-- **Network event system** ✅
-- **WebSocket support** (planned)
-- **Automated testing framework** ✅
-- **High-performance binary communication with FlatBuffer** ✅
-- **Unsafe pointer-based buffer management** ✅
-- **XOR encoding and ECC/AES encryption** (planned)
-- **Base36 encoding/decoding utilities** ✅
-- **Hardware-accelerated CRC32C checksum** ✅
-- **Integrity key table system** ✅
-
-### FlatBuffer Advanced Features ✅
-- **ZigZag Encoding**: Efficient signed integer compression (30-50% size reduction)
-- **Variable-Length Integers**: VarInt/VarLong encoding (up to 75% size reduction for small values)
-- **Bit-Level Operations**: Boolean and flag storage with single-bit precision
-- **Quantization System**: Float/FVector/FRotator compression (50-75% bandwidth reduction)
-- **String Operations**: ASCII and UTF8 string handling with length prefixing
-- **Template Operations**: Generic read/write operations with compile-time optimization
-- **Position Management**: Save/restore positions for complex serialization patterns
-- **Data Integrity**: Fast hash generation and hex conversion for debugging
-- **Memory Management**: Direct unsafe pointer control with proper disposal patterns
-
-## Checklist
-
-### Core Utilities
-| Feature                             | Status            | Notes                                                       |
-|------------------------------------|-------------------|-------------------------------------------------------------|
-| Base36 Encoding/Decoding           | ✅ Implemented     | Base36 utility for encoding/decoding integers with tests.  |
-| CRC32C Checksum                    | ✅ Implemented     | Hardware-accelerated CRC32C with unsafe pointer support.   |
-| LZ4 Compression                    | ✅ Implemented     | Fast compression/decompression with byte pointer support.   |
-| Testing Framework                  | ✅ Implemented     | Custom testing framework with descriptive test structure.   |
-| Integrity Key Table Store          | ✅ Implemented     | Version-based key table management with simple client access. |
-
-### Network & Communication
-| Feature                             | Status            | Notes                                                       |
-|------------------------------------|-------------------|-------------------------------------------------------------|
-| RPC                                | 🛠 In Progress     | RPC system in development.                                  |
-| C# Packet Creation                 | ✅ Implemented     | C# packet creation system in development.                   |
-| Unreal Plugin                      | 🛠 In Progress     | Unreal Engine plugin development in progress.               |
-| WebSocket                          | ⏳ Not Implemented | WebSocket support not implemented yet.                      |
-| XOR Encoding                       | ⏳ Not Implemented | XOR encoding system not implemented yet.                    |
-| ECC and AES256 Encryption          | ⏳ Not Implemented | ECC/AES256 encryption not implemented yet.                  |
-
-#### UDP Server Implementation
-| Feature                             | Status            | Notes                                                       |
-|------------------------------------|-------------------|-------------------------------------------------------------|
-| NanoSockets Integration            | ✅ Implemented     | Complete migration to NanoSockets for maximum performance. |
-| Basic Connection                   | ✅ Implemented     | Enhanced UDP connection with NanoSockets.Address support.  |
-| FlatBuffer System                  | ✅ Implemented     | Unsafe pointer-based binary serialization system.         |
-| Zero-Allocation Buffers            | ✅ Implemented     | Direct memory management without allocations or pooling.   |
-| Packet Reception Queue             | ✅ Implemented     | Efficient packet reception and processing queuing.         |
-| Per-Connection Buffers             | ✅ Implemented     | Fixed transmission buffers for each connection.            |
-| Integrity Key Table Store          | ✅ Implemented     | Version-based key management with simple client-side access. |
-| Reliable Messaging                 | 🛠 In Progress     | Guaranteed delivery system with acknowledgments in development. |
-| Packet Validation                  | ✅ Implemented     | CRC32C flipflop packet integrity validation system.        |
-| Packet Encryption                  | ⏳ Planned         | Packet encryption system to be implemented.                |
-| Client Heartbeat                   | ✅ Implemented     | Client validation heartbeat system with timeout detection.  |
-
-##### FlatBuffer Advanced Features
-| Feature                             | Status            | Notes                                                       |
-|------------------------------------|-------------------|-------------------------------------------------------------|
-| ZigZag Encoding                    | ✅ Implemented     | Efficient signed integer compression (30-50% size reduction). |
-| Variable-Length Integers           | ✅ Implemented     | VarInt/VarLong encoding (up to 75% size reduction for small values). |
-| Bit-Level Operations               | ✅ Implemented     | Boolean and flag storage with single-bit precision.        |
-| Quantization System                | ✅ Implemented     | Float/FVector/FRotator compression (50-75% bandwidth reduction). |
-| String Operations                  | ✅ Implemented     | ASCII and UTF8 string handling with length prefixing.      |
-| Template Operations                | ✅ Implemented     | Generic read/write operations with compile-time optimization. |
-| Position Management                | ✅ Implemented     | Save/restore positions for complex serialization patterns. |
-| Data Integrity                     | ✅ Implemented     | Fast hash generation and hex conversion for debugging.     |
-| Memory Management                  | ✅ Implemented     | Direct unsafe pointer control with proper disposal patterns. |
+### Security Layer
+- **SecureSession**: X25519 ECDH key exchange with HKDF key derivation
+- **BouncyCastle** (C#): Cryptographic operations and key management
+- **libsodium** (C++): Unreal Engine cryptographic integration
+- **ChaCha20-Poly1305**: AEAD encryption for secure communication
 
 ### Game Systems
-| Feature                             | Status            | Notes                                                       |
-|------------------------------------|-------------------|-------------------------------------------------------------|
-| Entity Replication                 | ✅ Implemented     | Complete entity replication with position, rotation, velocity, flags sync. |
-| Network Event System               | ✅ Implemented     | Per-connection event queuing system with delta synchronization. |
-| JWT Authentication                 | ⏳ Not Implemented | JWT authentication not implemented yet.                     |
-| Reactive System                    | ⏳ Not Implemented | Reactive system not implemented yet.                        |
-| Reactive Request Handlers          | ⏳ Not Implemented | Reactive request handlers not implemented yet.              |
+- **Entity Replication**: Delta compression with real-time synchronization
+- **Packet Fragmentation**: Automatic handling of large packets (>1200 bytes)
+- **Integrity System**: CRC32C validation with hardware acceleration
 
-#### Entity Synchronization System
-| Feature                             | Status            | Notes                                                       |
-|------------------------------------|-------------------|-------------------------------------------------------------|
-| Position Synchronization           | ✅ Implemented     | Real-time position sync with quantization optimization.    |
-| Rotation Synchronization           | ✅ Implemented     | Rotation sync with FRotator support and delta compression. |
-| Velocity Synchronization           | ✅ Implemented     | Velocity tracking with automatic timeout and reset.       |
-| Entity State Flags                 | ✅ Implemented     | Complete flag system: Alive, Combat, Moving, Casting, Invisible, Stunned, Falling. |
-| Delta Compression                  | ✅ Implemented     | Only changed properties are synchronized to reduce bandwidth. |
-| Automatic Snapshots                | ✅ Implemented     | Previous state tracking for delta comparison.              |
-| Socket Cleanup                     | ✅ Implemented     | Automatic entity cleanup when socket disconnects.          |
-| Packet Validation                  | ✅ Implemented     | CRC32C flipflop validation for all entity packets.        |
+### FlatBuffer Serialization System
 
-#### Upcoming Features
-| Feature                             | Status            | Notes                                                       |
-|------------------------------------|-------------------|-------------------------------------------------------------|
-| Reliable Updates                   | 🛠 Next            | Testing reliable messaging for critical entity updates.    |
-| Animation Montage Sync             | 🛠 Next            | Synchronization of Unreal Engine animation montages.       |
-| Physics Replication                | ⏳ Planned         | Advanced physics state synchronization.                    |
-| Area of Interest (AOI)             | ⏳ Planned         | Spatial optimization for large-scale multiplayer.         |
+Advanced binary serialization with unsafe pointer operations for maximum performance:
+
+**Core Features:**
+- **Zero-Allocation Operations**: Direct memory management without garbage collection overhead
+- **Variable-Length Encoding**: ZigZag/VarInt compression (up to 75% size reduction)
+- **Bit-Level Operations**: Efficient boolean and flag storage
+- **Quantization System**: Float/Vector compression (50-75% bandwidth reduction)
+- **String & Byte Array Support**: ASCII/UTF8 strings and raw binary data handling
+- **Position Management**: Save/restore for complex serialization patterns
+
+## Key Features
+
+### ✅ **Core Systems**
+- **High-performance UDP Server** with NanoSockets and zero-allocation packet processing
+- **Automatic RPC Generation** with C# packet creation and Unreal Engine integration
+- **Advanced FlatBuffer System** with unsafe pointer operations and comprehensive serialization
+- **Entity Replication System** with delta compression and real-time synchronization
+- **X25519 Secure Handshake** using BouncyCastle (C#) and libsodium (C++)
+- **Packet Fragmentation & Reassembly** for large packets with automatic cleanup
+- **Hardware-Accelerated CRC32C** checksum with integrity validation
+- **Custom Testing Framework** with comprehensive test coverage
+
+### 🛠️ **In Development**
+- **Full Payload Encryption** with ChaCha20-Poly1305 AEAD
+- **Reliable Messaging System** with guaranteed delivery and acknowledgments
+- **Unreal Engine Plugin** with native C++ and Blueprint support
+
+### ⏳ **Planned**
+- **WebSocket Support** for web clients
+- **Area of Interest (AOI)** for large-scale multiplayer optimization
+
+## Development Roadmap
+
+### ✅ **Completed Systems**
+- **Network Infrastructure**: UDP server with NanoSockets, zero-allocation buffers, packet queuing
+- **Security**: X25519 handshake, HKDF key derivation, BouncyCastle/libsodium integration  
+- **Serialization**: FlatBuffer with unsafe pointers, ZigZag/VarInt encoding, quantization
+- **Game Systems**: Entity replication with delta compression, real-time synchronization
+- **Utilities**: Base36 encoding, CRC32C checksums, LZ4 compression, testing framework
+- **Fragmentation**: Automatic packet fragmentation/reassembly for packets > 1200 bytes
+
+### 🛠️ **In Progress**
+- **Encryption**: ChaCha20-Poly1305 AEAD for payload encryption
+- **Reliability**: Guaranteed message delivery with acknowledgments
+- **RPC System**: Automatic remote procedure call generation
+- **Unreal Plugin**: Native C++ integration with Blueprint support
+
+### ⏳ **Planned**
+- **Authentication**: JWT token system
+- **Optimization**: Area of Interest (AOI) for large-scale multiplayer
+- **WebSocket**: Support for web clients
+- **Physics**: Advanced physics state replication
 
 ## Scripts Reference
 

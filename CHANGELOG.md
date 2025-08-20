@@ -5,6 +5,37 @@ All notable changes to the Tales Of Shadowland MMO Server will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.3.0] - 2024-12-20 - Secure Handshake & Fragmentation Foundations
+
+### 🚀 Added
+- **X25519 Secure Handshake (Hybrid)**: Implemented Diffie-Hellman key exchange using X25519
+  - C# side uses BouncyCastle for curve operations and ChaCha20-Poly1305 AEAD
+  - C++ (Unreal) side uses libsodium for X25519 + shared secret derivation
+- **AEAD Layer (Initial)**: ChaCha20-Poly1305 sealing/unsealing helpers (C#) prepared for encrypted payload path
+- **Packet Fragmentation (Initial)**: Added fragmentation path for packets > 1200 bytes
+  - Fragment header layout: `[PacketType.Fragment | ushort FragmentId | ushort Offset | uint TotalSize | Payload]`
+  - Automatic reassembly with timeout cleanup
+- **FlatBuffer byte[] Support**: Added `WriteBytes(byte[] data)` and `ReadBytes(int len)` utilities
+- **Contract System byte[] Field Type**: `ContractField(Type="byte[]", ByteCount=...)` now supported with customizable length
+- **Transpiler Support for byte[]**: Code generation now emits proper serialization/deserialization for raw byte arrays
+
+### 🔧 Changed
+- **Encryption Roadmap**: Moved handshake from Planned to Implemented (encryption of regular gameplay packets still progressive)
+- **Documentation**: Updated README with handshake, fragmentation, and byte[] contract support
+
+### 🛠 Fixed
+- **C++ Serialization**: Corrected read/write implementations for `int32`, `uint32`, and `int64` ensuring endianness & size safety
+- **FlatBuffer Size Accounting**: Adjusted contract size estimation logic to include configurable `byte[]` fields
+
+### 🧪 In Progress
+- **Full Payload Encryption**: Applying AEAD to reliable/unreliable channels (currently handshake established keys)
+- **Fragment Reliability Policies**: Future integration with reliable resend & congestion metrics
+
+### 🔮 Next
+- Integrate encryption flags into packet pipeline
+- Reliable fragmentation & retransmission strategy
+- Comprehensive fuzz tests for fragment reassembly & overflow handling
+
 ## [5.2.0] - 2024-12-19 - Complete Entity Synchronization & Validation
 
 ### 🚀 Added
@@ -200,9 +231,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🔄 Migration Guide
 
-#### From ByteBuffer to FlatBuffer
-```csharp
-// Old ByteBuffer approach
+#### From ByteBuffer to FlatBuffer// Old ByteBuffer approach
 var buffer = ByteBufferPool.Acquire();
 buffer.WriteInt(value);
 var result = buffer.ReadInt();
@@ -213,11 +242,7 @@ var buffer = new FlatBuffer(capacity);
 buffer.Write(value);
 var result = buffer.Read<int>();
 buffer.Dispose(); // or use using statement
-```
-
-#### Template Operations
-```csharp
-// Generic template operations
+#### Template Operations// Generic template operations
 var buffer = new FlatBuffer(1024);
 buffer.Write<float>(3.14f);
 buffer.Write<int>(42);
@@ -226,22 +251,14 @@ buffer.Write<bool>(true);
 float floatValue = buffer.Read<float>();
 int intValue = buffer.Read<int>();
 bool boolValue = buffer.Read<bool>();
-```
-
-#### Variable-Length Encoding
-```csharp
-// VarInt encoding for space optimization
+#### Variable-Length Encoding// VarInt encoding for space optimization
 var buffer = new FlatBuffer(1024);
 buffer.WriteVarInt(1000);     // Uses less bytes than fixed int
 buffer.WriteVarLong(1000000L); // Uses less bytes than fixed long
 
 int value = buffer.ReadVarInt();
 long longValue = buffer.ReadVarLong();
-```
-
-#### Bit-Level Operations
-```csharp
-// Bit manipulation for flags and booleans
+#### Bit-Level Operations// Bit manipulation for flags and booleans
 var buffer = new FlatBuffer(1024);
 buffer.WriteBit(true);
 buffer.WriteBit(false);
@@ -251,11 +268,7 @@ buffer.AlignBits(); // Align to byte boundary
 bool flag1 = buffer.ReadBit();
 bool flag2 = buffer.ReadBit();
 bool flag3 = buffer.ReadBit();
-```
-
-#### Quantization for Game Data
-```csharp
-// Float quantization for position data
+#### Quantization for Game Data// Float quantization for position data
 var buffer = new FlatBuffer(1024);
 buffer.WriteQuantized(3.14159f, -100.0f, 100.0f);
 
@@ -271,51 +284,33 @@ buffer.WriteQuantized(rotation, -180.0f, 180.0f);
 float quantizedFloat = buffer.ReadQuantizedFloat(-100.0f, 100.0f);
 FVector quantizedVector = buffer.ReadQuantizedFVector(-1000.0f, 1000.0f);
 FRotator quantizedRotation = buffer.ReadQuantizedFRotator(-180.0f, 180.0f);
-```
-
-#### String Operations
-```csharp
-// ASCII and UTF8 string handling
+#### String Operations// ASCII and UTF8 string handling
 var buffer = new FlatBuffer(1024);
 buffer.WriteAsciiString("Hello World");
 buffer.WriteUtf8String("Olá Mundo! 🌍");
 
 string asciiText = buffer.ReadAsciiString();
 string utf8Text = buffer.ReadUtf8String();
-```
-
-#### Position Management
-```csharp
-// Save and restore positions for complex serialization
+#### Position Management// Save and restore positions for complex serialization
 var buffer = new FlatBuffer(1024);
 buffer.Write(42);
 int savedPos = buffer.SavePosition();
 buffer.Write(100);
 buffer.RestorePosition(savedPos);
 int value = buffer.Read<int>(); // Reads 100
-```
-
-#### Data Integrity
-```csharp
-// Hash generation for data integrity
+#### Data Integrity// Hash generation for data integrity
 var buffer = new FlatBuffer(1024);
 buffer.Write(42);
 buffer.Write(3.14f);
 uint hash = buffer.GetHashFast();
 string hexHash = buffer.ToHex();
-```
-
-#### From System.Net to NanoSockets
-```csharp
-// Old System.Net approach
+#### From System.Net to NanoSockets// Old System.Net approach
 EndPoint endPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8080);
 socket.SendTo(data, endPoint);
 
 // New NanoSockets approach
 var address = Address.CreateFromIpPort("127.0.0.1", 8080);
 UDP.Unsafe.Send(socket, &address, dataPtr, length);
-```
-
 ### 🎯 Performance Improvements
 
 #### Memory & Allocation
