@@ -5,6 +5,9 @@ public class ToS_Network : ModuleRules
 {
     public ToS_Network(ReadOnlyTargetRules Target) : base(Target)
     {
+        PublicDefinitions.Add("SODIUM_STATIC=1");
+        PublicDefinitions.Add("SODIUM_EXPORT=");
+
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PublicDependencyModuleNames.AddRange(new[]
@@ -26,24 +29,8 @@ public class ToS_Network : ModuleRules
 
         PublicIncludePaths.Add(IncludePath);
 
-        if (Target.Platform == UnrealTargetPlatform.Win64)
-        {
-            string LibDir = Path.Combine(SodiumRoot, "Build", "Release", "x64");
-            string ImportLib = Path.Combine(LibDir, "libsodium.lib");
-            string DllPath = Path.Combine(LibDir, "libsodium.dll");
-
-            if (!File.Exists(ImportLib))
-                throw new BuildException($"libsodium import lib not found: {ImportLib}");
-            
-            PublicAdditionalLibraries.Add(ImportLib);
-
-            if (File.Exists(DllPath))
-            {
-                PublicDelayLoadDLLs.Add("libsodium.dll");
-                RuntimeDependencies.Add($"$(TargetOutputDir)/libsodium.dll", DllPath);
-            }
-                
-            //PublicSystemLibraries.AddRange(new[] { "ws2_32", "advapi32", "user32", "bcrypt" });
-        }
+        string PlatformString = (Target.Platform == UnrealTargetPlatform.Win64) ? "x64" : "Win32";
+        string path = Path.Combine(ModuleDirectory, "../ThirdParty/libsodium/Build/Release/" + PlatformString + "/libsodium.lib");
+        PublicAdditionalLibraries.Add(path);
     }
 }
