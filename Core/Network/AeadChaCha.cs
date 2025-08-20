@@ -48,12 +48,9 @@ public static unsafe class AeadChaCha
         {
             unsafe
             {
-                fixed (byte* txKeyPtr = s->TxKey)
-                {
-                    new Span<byte>(txKeyPtr, KeySize).CopyTo(keyArr);
-                }
+                new Span<byte>(s->TxKey, KeySize).CopyTo(keyArr);                
             }
-            // Generate nonce: conn_id (4B LE) || seq (8B LE)
+            
             BinaryPrimitives.WriteUInt32LittleEndian(nonceArr, s->ConnectionId);
             BinaryPrimitives.WriteUInt64LittleEndian(nonceArr.AsSpan(4), s->SeqTx);
             CopyHeader(in hdr, aadArr);
@@ -106,13 +103,11 @@ public static unsafe class AeadChaCha
 
         try
         {
-            unsafe
+            unsafe 
             {
-                fixed (byte* rxKeyPtr = s->RxKey)
-                {
-                    new Span<byte>(rxKeyPtr, KeySize).CopyTo(keyArr);
-                }
+                new Span<byte>(s->RxKey, KeySize).CopyTo(keyArr);             
             }
+
             // Generate nonce: conn_id (4B LE) || seq (8B LE)
             BinaryPrimitives.WriteUInt32LittleEndian(nonceArr, s->ConnectionId);
             BinaryPrimitives.WriteUInt64LittleEndian(nonceArr.AsSpan(4), s->SeqRx);
