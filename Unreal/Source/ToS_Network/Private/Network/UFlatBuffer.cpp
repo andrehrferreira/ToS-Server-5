@@ -275,6 +275,21 @@ void UFlatBuffer::WriteBytes(const uint8* Source, int32 Length)
     Position += Length;
 }
 
+void UFlatBuffer::ReadBytes(uint8* Dest, int32 Length)
+{
+    if (!Dest || Length <= 0)
+        return;
+
+    if (Position + Length > Capacity)
+    {
+        UE_LOG(LogTemp, Error, TEXT("UFlatBuffer::ReadBytes - Buffer underflow. Length: %d"), Length);
+        return;
+    }
+
+    FMemory::Memcpy(Dest, Data + Position, Length);
+    Position += Length;
+}
+
 void UFlatBuffer::WriteUtf8String(const FString& Value)
 {
     WriteString(Value);

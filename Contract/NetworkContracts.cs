@@ -18,10 +18,10 @@ public partial struct ConnectionAcceptedPacket
     [ContractField("uint")]
     public uint Id;
 
-    [ContractField("byte[]")]
+    [ContractField("byte[]", 32)]
     public byte[] ServerPublicKey;
 
-    [ContractField("byte[]")]
+    [ContractField("byte[]", 16)]
     public byte[] Salt;
 }
 

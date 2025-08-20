@@ -22,6 +22,7 @@
 * SOFTWARE.
 */
 
+using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -138,6 +139,32 @@ public unsafe struct FlatBuffer : IDisposable
         T val = *(T*)(_ptr + _offset);
         _offset += size;
         return val;
+    }
+
+    public void WriteBytes(byte[] value)
+    {
+        int len = value.Length;
+
+        if (_offset + len > _capacity)
+            return;
+
+        fixed (byte* src = value)
+        {
+            Buffer.MemoryCopy(src, _ptr + _offset, _capacity - _offset, len);
+        }
+
+        _offset += len;
+    }
+
+    public byte[] ReadBytes(int length)
+    {
+        if (_offset + length > _capacity)
+            throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {length}");
+
+        byte[] value = new byte[length];
+        Marshal.Copy((IntPtr)(_ptr + _offset), value, 0, length);
+        _offset += length;
+        return value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

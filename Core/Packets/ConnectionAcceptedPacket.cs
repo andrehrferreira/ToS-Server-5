@@ -4,22 +4,22 @@ using System.Runtime.CompilerServices;
 
 public partial struct ConnectionAcceptedPacket: INetworkPacket
 {
-    public int Size => 5;
+    public int Size => 53;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
         buffer.Write(PacketType.ConnectionAccepted);
         buffer.Write(Id);
-        // Unsupported type: byte[]
-        // Unsupported type: byte[]
+        buffer.WriteBytes(ServerPublicKey);
+        buffer.WriteBytes(Salt);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deserialize(ref FlatBuffer buffer)
     {
         Id = buffer.Read<uint>();
-        // Unsupported type: byte[]
-        // Unsupported type: byte[]
+        ServerPublicKey = buffer.ReadBytes(32);
+        Salt = buffer.ReadBytes(16);
     }
 }

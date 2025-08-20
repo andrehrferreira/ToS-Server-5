@@ -173,6 +173,8 @@ public class ContractTranspiler : AbstractTranspiler
                     case "fvector":
                     case "frotator":
                         totalBytes += 6; break; // quantized (assumed)
+                    case "byte[]":
+                        totalBytes += fieldAttr?.ByteCount ?? 0; break;
                     default:
                         // unknown: skip size increment
                         break;
@@ -229,6 +231,9 @@ public class ContractTranspiler : AbstractTranspiler
                         case "id":
                             writer.WriteLine($"        buffer.Write(Base36.ToInt({fieldName}));");
                             break;
+                        case "byte[]":
+                            writer.WriteLine($"        buffer.WriteBytes({fieldName});");
+                            break;
                         default:
                             writer.WriteLine($"        // Unsupported type: {fieldType}");
                             break;
@@ -278,6 +283,8 @@ public class ContractTranspiler : AbstractTranspiler
                         writer.WriteLine($"        {fieldName} = buffer.ReadFRotator(0.1f);"); break;
                     case "id":
                         writer.WriteLine($"        {fieldName} = Base36.ToString(buffer.Read<int>());"); break;
+                    case "byte[]":
+                        writer.WriteLine($"        {fieldName} = buffer.ReadBytes({fieldAttr?.ByteCount ?? 0});"); break;
                     default:
                         writer.WriteLine($"        // Unsupported type: {fieldType}"); break;
                 }

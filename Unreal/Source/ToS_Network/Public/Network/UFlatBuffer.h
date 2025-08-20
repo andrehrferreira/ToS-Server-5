@@ -196,6 +196,7 @@ public:
     FORCEINLINE void RestorePosition(int32 NewPos) { SetPosition(NewPos); }
     FORCEINLINE int32 GetLengthBits() const { return (Position * 8) + WriteBitIndex; }
     void WriteBytes(const uint8* Source, int32 Length);
+    void ReadBytes(uint8* Dest, int32 Length);
 
 	FORCEINLINE uint8* GetData() { return Data; }
 	FORCEINLINE const uint8* GetData() const { return Data; }
