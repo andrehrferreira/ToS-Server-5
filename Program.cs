@@ -81,7 +81,7 @@ class Program
             SendBufferSize = 512 * 1024,
         });
 
-        //ServerMonitor.Start();
+        ServerMonitor.Start();
 
         while (true)
         {
