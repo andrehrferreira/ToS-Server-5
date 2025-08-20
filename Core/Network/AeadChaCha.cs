@@ -1,43 +1,87 @@
+using System;
+using System.Buffers;
 using System.Buffers.Binary;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto;
+using System.Runtime.CompilerServices;
 
 public static unsafe class AeadChaCha
 {
+    private const int MacBits = 128;           // 16 bytes * 8
+    private const int MacSize = 16;
+    private const int KeySize = 32;
+    private const int NonceSize = 12;
+    private const int HeaderSize = 16;         // sizeof(NetHeader)
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void CopyHeader(in NetHeader hdr, byte[] dest)
+    {
+        if (dest.Length < HeaderSize) throw new ArgumentException("Header dest too small");
+        fixed (NetHeader* p = &hdr)
+        {
+            new ReadOnlySpan<byte>((byte*)p, HeaderSize).CopyTo(dest);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static uint ReadHeaderSeq(in NetHeader hdr)
+    {
+        fixed (NetHeader* p = &hdr)
+        {
+            return BinaryPrimitives.ReadUInt32BigEndian(new ReadOnlySpan<byte>(((byte*)p) + 4, 4));
+        }
+    }
+
     public static bool Seal(SecureSession* s, in NetHeader hdr,
                             byte* plain, int plainLen,
                             byte* outBuf, int outCap, out int outLen)
     {
         outLen = 0;
-        int need = plainLen + 16;
-        if (outCap < need)
+        if (s == null || plain == null || outBuf == null || plainLen < 0) return false;
+
+        int need = plainLen + MacSize;
+        if (outCap < need) return false;
+
+        byte[] keyArr = ArrayPool<byte>.Shared.Rent(KeySize);
+        byte[] nonceArr = ArrayPool<byte>.Shared.Rent(NonceSize);
+        byte[] aadArr = ArrayPool<byte>.Shared.Rent(HeaderSize);
+        byte[] output = ArrayPool<byte>.Shared.Rent(need);
+        byte[] plainArr = ArrayPool<byte>.Shared.Rent(plainLen);
+
+        try
+        {
+            new Span<byte>(s->TxKey, KeySize).CopyTo(keyArr);
+            new Span<byte>(s->DirSalt, 4).CopyTo(nonceArr);
+            BinaryPrimitives.WriteUInt64BigEndian(nonceArr.AsSpan(4), s->SeqTx);
+            CopyHeader(in hdr, aadArr);
+            new Span<byte>(plain, plainLen).CopyTo(plainArr);
+
+            var parameters = new AeadParameters(new KeyParameter(keyArr, 0, KeySize), MacBits, nonceArr, aadArr);
+            var cipher = new ChaCha20Poly1305();
+            cipher.Init(true, parameters);
+
+            int ctLen = cipher.ProcessBytes(plainArr, 0, plainLen, output, 0);
+            ctLen += cipher.DoFinal(output, ctLen);
+            if (ctLen != need) return false;
+
+            new Span<byte>(output, 0, need).CopyTo(new Span<byte>(outBuf, need));
+            outLen = need;
+            s->SeqTx++;
+            return true;
+        }
+        catch
+        {
             return false;
-
-        Span<byte> key = stackalloc byte[32];
-        new Span<byte>(s->TxKey, 32).CopyTo(key);
-        Span<byte> nonce = stackalloc byte[12];
-        new Span<byte>(s->DirSalt, 4).CopyTo(nonce);
-        BinaryPrimitives.WriteUInt64BigEndian(nonce.Slice(4), s->SeqTx);
-
-        Span<byte> aad = new Span<byte>((byte*)&hdr, sizeof(NetHeader));
-        byte[] keyArr = key.ToArray();
-        byte[] nonceArr = nonce.ToArray();
-        byte[] aadArr = aad.ToArray();
-        byte[] plainArr = new byte[plainLen];
-        new Span<byte>(plain, plainLen).CopyTo(plainArr);
-
-        var parameters = new AeadParameters(new KeyParameter(keyArr), 128, nonceArr, aadArr);
-        var cipher = new ChaCha20Poly1305();
-        cipher.Init(true, parameters);
-        byte[] output = new byte[need];
-        int len = cipher.ProcessBytes(plainArr, 0, plainLen, output, 0);
-        cipher.DoFinal(output, len);
-
-        new Span<byte>(output).CopyTo(new Span<byte>(outBuf, need));
-        outLen = need;
-        s->SeqTx++;
-        return true;
+        }
+        finally
+        {
+            ClearAndReturn(keyArr);
+            ClearAndReturn(nonceArr);
+            ClearAndReturn(aadArr);
+            ClearAndReturn(plainArr, plainLen);
+            ClearAndReturn(output, need);
+        }
     }
 
     public static bool Open(SecureSession* s, in NetHeader hdr,
@@ -45,45 +89,68 @@ public static unsafe class AeadChaCha
                             byte* outBuf, int outCap, out int outLen)
     {
         outLen = 0;
-        if (cipherLen < 16)
-            return false;
-        int need = cipherLen - 16;
-        if (outCap < need)
-            return false;
-        if ((uint)s->SeqRx != BinaryPrimitives.ReadUInt32BigEndian(((byte*)&hdr) + 4))
-            return false;
+        if (s == null || cipherText == null || outBuf == null || cipherLen < MacSize) return false;
 
-        Span<byte> key = stackalloc byte[32];
-        new Span<byte>(s->RxKey, 32).CopyTo(key);
-        Span<byte> nonce = stackalloc byte[12];
-        new Span<byte>(s->DirSalt, 4).CopyTo(nonce);
-        BinaryPrimitives.WriteUInt64BigEndian(nonce.Slice(4), s->SeqRx);
-        Span<byte> aad = new Span<byte>((byte*)&hdr, sizeof(NetHeader));
+        int plainLen = cipherLen - MacSize;
+        if (outCap < plainLen) return false;
 
-        byte[] keyArr = key.ToArray();
-        byte[] nonceArr = nonce.ToArray();
-        byte[] aadArr = aad.ToArray();
-        byte[] cipherArr = new byte[cipherLen];
-        new Span<byte>(cipherText, cipherLen).CopyTo(cipherArr);
+        if ((uint)s->SeqRx != ReadHeaderSeq(in hdr)) return false;
 
-        var parameters = new AeadParameters(new KeyParameter(keyArr), 128, nonceArr, aadArr);
-        var cipher = new ChaCha20Poly1305();
-        cipher.Init(false, parameters);
-        byte[] output = new byte[need];
-        int len = cipher.ProcessBytes(cipherArr, 0, cipherLen, output, 0);
+        byte[] keyArr = ArrayPool<byte>.Shared.Rent(KeySize);
+        byte[] nonceArr = ArrayPool<byte>.Shared.Rent(NonceSize);
+        byte[] aadArr = ArrayPool<byte>.Shared.Rent(HeaderSize);
+        byte[] cipherArr = ArrayPool<byte>.Shared.Rent(cipherLen);
+        byte[] output = ArrayPool<byte>.Shared.Rent(plainLen);
+
         try
         {
-            cipher.DoFinal(output, len);
+            new Span<byte>(s->RxKey, KeySize).CopyTo(keyArr);
+            new Span<byte>(s->DirSalt, 4).CopyTo(nonceArr);
+            BinaryPrimitives.WriteUInt64BigEndian(nonceArr.AsSpan(4), s->SeqRx);
+            CopyHeader(in hdr, aadArr);
+            new Span<byte>(cipherText, cipherLen).CopyTo(cipherArr);
+
+            var parameters = new AeadParameters(new KeyParameter(keyArr, 0, KeySize), MacBits, nonceArr, aadArr);
+            var cipher = new ChaCha20Poly1305();
+            cipher.Init(false, parameters);
+
+            int outLenTemp = cipher.ProcessBytes(cipherArr, 0, cipherLen, output, 0);
+            try
+            {
+                outLenTemp += cipher.DoFinal(output, outLenTemp);
+            }
+            catch (InvalidCipherTextException)
+            {
+                return false;
+            }
+
+            if (outLenTemp != plainLen) return false;
+
+            new Span<byte>(output, 0, plainLen).CopyTo(new Span<byte>(outBuf, plainLen));
+            outLen = plainLen;
+            s->SeqRx++;
+            return true;
         }
-        catch (InvalidCipherTextException)
+        catch
         {
             return false;
         }
+        finally
+        {
+            ClearAndReturn(keyArr);
+            ClearAndReturn(nonceArr);
+            ClearAndReturn(aadArr);
+            ClearAndReturn(cipherArr, cipherLen);
+            ClearAndReturn(output, plainLen);
+        }
+    }
 
-        new Span<byte>(output).CopyTo(new Span<byte>(outBuf, need));
-        outLen = need;
-        s->SeqRx++;
-        return true;
+    private static void ClearAndReturn(byte[] arr, int length = -1)
+    {
+        if (arr == null) return;
+        if (length < 0 || length > arr.Length) length = arr.Length;
+        Array.Clear(arr, 0, length);
+        ArrayPool<byte>.Shared.Return(arr);
     }
 }
 

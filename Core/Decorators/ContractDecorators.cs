@@ -8,6 +8,7 @@ public enum ContractPacketFlags : byte
     AreaOfInterest = 1 << 3,
     ToEntity = 1 << 4,
     NoContent = 1 << 5,
+    Custom = 1 << 6,
 
     FromEntity = ToEntity | AreaOfInterest,
     FromEntity_Reliable = ToEntity | Reliable | AreaOfInterest,

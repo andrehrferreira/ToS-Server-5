@@ -48,14 +48,16 @@ public class ContractTranspiler : AbstractTranspiler
         {
             var fields = contract.GetFields(BindingFlags.Public | BindingFlags.Instance);
             var attribute = contract.GetCustomAttribute<ContractAttribute>();
+            if (attribute == null) continue; // skip if not marked
             var contractName = contract.Name;
             var rawName = contractName.Replace("Packet", "");
 
-            if (attribute != null && attribute.LayerType == PacketLayerType.Server)
+
+            if (attribute.LayerType == PacketLayerType.Server)
             {
                 string filePath = Path.Combine(baseDirectoryPath, $"{contractName}.cs");
 
-                if (attribute != null && attribute.LayerType == PacketLayerType.Server && attribute.PacketType == PacketType.None)
+                if (attribute.PacketType == PacketType.None)
                 {
                     serverPackets.Add(attribute.Name);
                     serverPacketType.Add(attribute.PacketType.ToString());
@@ -77,7 +79,7 @@ public class ContractTranspiler : AbstractTranspiler
                     writer.WriteLine("}");
                 }
             }
-            else if (attribute != null && attribute.LayerType == PacketLayerType.Client)
+            else if (attribute.LayerType == PacketLayerType.Client)
             {
                 string filePath = Path.Combine(baseDirectoryPath, $"{contractName}.cs");
 
@@ -94,10 +96,6 @@ public class ContractTranspiler : AbstractTranspiler
 
                     writer.WriteLine("}");
                 }
-            }
-
-            if (attribute.LayerType == PacketLayerType.Client)
-            {
                 clientPackets.Add(contract.Name);
             }
         }
@@ -138,7 +136,6 @@ public class ContractTranspiler : AbstractTranspiler
 
     private static void GenerateSerialize(StreamWriter writer, Type contract, FieldInfo[] fields, ContractAttribute contractAttribute)
     {
-        var data = contractAttribute.Flags.HasFlag(ContractPacketFlags.NoContent) ? "" : $"{contract.Name} data";
         var rawName = contract.Name.Replace("Packet", "");
 
         if (fields.Length > 0)
@@ -147,9 +144,9 @@ public class ContractTranspiler : AbstractTranspiler
 
             foreach (var field in fields)
             {
-                var attribute = field.GetCustomAttribute<ContractFieldAttribute>();
-                var fieldType = attribute.Type;
-                var fieldName = field.Name;
+                var fieldAttr = field.GetCustomAttribute<ContractFieldAttribute>();
+                string fieldType = fieldAttr != null ? fieldAttr.Type : field.FieldType.Name.ToLower();
+                if (string.IsNullOrEmpty(fieldType)) continue;
 
                 switch (fieldType)
                 {
@@ -160,62 +157,53 @@ public class ContractTranspiler : AbstractTranspiler
                     case "decimal":
                     case "float":
                     case "id":
-                        totalBytes += 4;
-                        break;
+                        totalBytes += 4; break;
                     case "ushort":
                     case "short":
-                        totalBytes += 2;
-                        break;
+                        totalBytes += 2; break;
                     case "str":
                     case "string":
-                        totalBytes = 3600;
-                        break;
+                        totalBytes = 3600; break; // mark dynamic/variable
                     case "byte":
                     case "bool":
                     case "boolean":
-                        totalBytes += 1;
-                        break;
+                        totalBytes += 1; break;
                     case "long":
-                        totalBytes += 8;
-                        break;
-                    case "FVector":
-                    case "FRotator":
-                        totalBytes += 6;
+                        totalBytes += 8; break;
+                    case "fvector":
+                    case "frotator":
+                        totalBytes += 6; break; // quantized (assumed)
+                    default:
+                        // unknown: skip size increment
                         break;
                 }
-
-                if (totalBytes == 3600)
-                    break;
+                if (totalBytes == 3600) break;
             }
 
             writer.WriteLine($"    public int Size => {totalBytes};");
             writer.WriteLine();
 
-            //Serialize
-            if(contractAttribute.LayerType == PacketLayerType.Server)
+            // Serialize
+            if (contractAttribute.LayerType == PacketLayerType.Server)
             {
                 writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
                 writer.WriteLine($"    public void Serialize(ref FlatBuffer buffer)");
                 writer.WriteLine("    {");
 
                 if (contractAttribute.PacketType != PacketType.None)
-                    writer.WriteLine($"        buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
+                    writer.WriteLine($"        buffer.Write(PacketType.{contractAttribute.PacketType});");
                 else
                 {
-                    if (contractAttribute.Flags.HasFlag(ContractPacketFlags.Reliable))
-                        writer.WriteLine($"        buffer.Write(PacketType.Reliable);");
-                    else
-                        writer.WriteLine($"        buffer.Write(PacketType.Unreliable);");
-
+                    writer.WriteLine(contractAttribute.Flags.HasFlag(ContractPacketFlags.Reliable)
+                        ? "        buffer.Write(PacketType.Reliable);" : "        buffer.Write(PacketType.Unreliable);");
                     writer.WriteLine($"        buffer.Write((ushort)ServerPackets.{rawName});");
                 }
 
                 foreach (var field in fields)
                 {
-                    var attribute = field.GetCustomAttribute<ContractFieldAttribute>();
-                    var fieldType = attribute.Type;
+                    var fieldAttr = field.GetCustomAttribute<ContractFieldAttribute>();
+                    string fieldType = fieldAttr != null ? fieldAttr.Type : field.FieldType.Name.ToLower();
                     var fieldName = field.Name;
-
                     switch (fieldType)
                     {
                         case "integer":
@@ -234,176 +222,85 @@ public class ContractTranspiler : AbstractTranspiler
                         case "boolean":
                             writer.WriteLine($"        buffer.Write({fieldName});");
                             break;
-                        case "FVector":
-                        case "FRotator":
+                        case "fvector":
+                        case "frotator":
                             writer.WriteLine($"        buffer.Write({fieldName}, 0.1f);");
                             break;
                         case "id":
                             writer.WriteLine($"        buffer.Write(Base36.ToInt({fieldName}));");
                             break;
                         default:
-                            writer.WriteLine($"    // Unsupported type: {fieldType}");
+                            writer.WriteLine($"        // Unsupported type: {fieldType}");
                             break;
                     }
                 }
-
                 writer.WriteLine("    }");
             }
-            
-            //Deserialize
 
+            // Deserialize
             writer.WriteLine();
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
             writer.WriteLine($"    public void Deserialize(ref FlatBuffer buffer)");
             writer.WriteLine("    {");
-
             foreach (var field in fields)
             {
-                var attribute = field.GetCustomAttribute<ContractFieldAttribute>();
-                var fieldType = attribute.Type;
+                var fieldAttr = field.GetCustomAttribute<ContractFieldAttribute>();
+                string fieldType = fieldAttr != null ? fieldAttr.Type : field.FieldType.Name.ToLower();
                 var fieldName = field.Name;
-
                 switch (fieldType)
                 {
                     case "integer":
                     case "int":
                     case "int32":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<int>();");
-                        break;
+                        writer.WriteLine($"        {fieldName} = buffer.Read<int>();"); break;
                     case "uint":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<uint>();");
-                        break;
+                        writer.WriteLine($"        {fieldName} = buffer.Read<uint>();"); break;
                     case "ushort":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<ushort>();");
-                        break;
+                        writer.WriteLine($"        {fieldName} = buffer.Read<ushort>();"); break;
                     case "short":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<short>();");
-                        break;
+                        writer.WriteLine($"        {fieldName} = buffer.Read<short>();"); break;
                     case "byte":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<byte>();");
-                        break;
+                        writer.WriteLine($"        {fieldName} = buffer.Read<byte>();"); break;
                     case "float":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<float>();");
-                        break;
+                        writer.WriteLine($"        {fieldName} = buffer.Read<float>();"); break;
                     case "long":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<long>();");
-                        break;
+                        writer.WriteLine($"        {fieldName} = buffer.Read<long>();"); break;
                     case "ulong":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<ulong>();");
-                        break;
+                        writer.WriteLine($"        {fieldName} = buffer.Read<ulong>();"); break;
                     case "bool":
                     case "boolean":
-                        writer.WriteLine($"        {fieldName} = buffer.Read<bool>();");
-                        break;
+                        writer.WriteLine($"        {fieldName} = buffer.Read<bool>();"); break;
                     case "decimal":
-                        writer.WriteLine($"        {fieldName} = (decimal)buffer.Read<float>();");
-                        break;
-                    case "FVector":
-                        writer.WriteLine($"        {fieldName} = buffer.ReadFVector(0.1f);");
-                        break;
-                    case "FRotator":
-                        writer.WriteLine($"        {fieldName} = buffer.ReadFRotator(0.1f);");
-                        break;
+                        writer.WriteLine($"        {fieldName} = (decimal)buffer.Read<float>();"); break;
+                    case "fvector":
+                        writer.WriteLine($"        {fieldName} = buffer.ReadFVector(0.1f);"); break;
+                    case "frotator":
+                        writer.WriteLine($"        {fieldName} = buffer.ReadFRotator(0.1f);"); break;
                     case "id":
-                        writer.WriteLine($"        {fieldName} = Base36.ToString(buffer.Read<int>());");
-                        break;
+                        writer.WriteLine($"        {fieldName} = Base36.ToString(buffer.Read<int>());"); break;
                     default:
-                        writer.WriteLine($"    // Unsupported type: {fieldType}");
-                        break;
+                        writer.WriteLine($"        // Unsupported type: {fieldType}"); break;
                 }
             }
-
-
             writer.WriteLine("    }");
         }
         else
         {
-            if (contractAttribute.PacketType != PacketType.None)
-                writer.WriteLine($"    public int Size => 1;");
-            else
-                writer.WriteLine($"    public int Size => 3;");
-
+            writer.WriteLine(contractAttribute.PacketType != PacketType.None
+                ? "    public int Size => 1;" : "    public int Size => 3;");
             writer.WriteLine();
-
             writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
             writer.WriteLine($"    public void Serialize(ref FlatBuffer buffer)");
             writer.WriteLine("    {");
-
             if (contractAttribute.PacketType != PacketType.None)
-                writer.WriteLine($"        buffer.Write(PacketType.{contractAttribute.PacketType.ToString()});");
+                writer.WriteLine($"        buffer.Write(PacketType.{contractAttribute.PacketType});");
             else
             {
-                if(contractAttribute.Flags.HasFlag(ContractPacketFlags.Reliable))
-                    writer.WriteLine($"        buffer.Write(PacketType.Reliable);");
-                else
-                    writer.WriteLine($"        buffer.Write(PacketType.Unreliable);");
-
+                writer.WriteLine(contractAttribute.Flags.HasFlag(ContractPacketFlags.Reliable)
+                    ? "        buffer.Write(PacketType.Reliable);" : "        buffer.Write(PacketType.Unreliable);");
                 writer.WriteLine($"        buffer.Write((ushort)ServerPackets.{rawName});");
             }
-                            
             writer.WriteLine("    }");
         }
-    }
-
-    private static void GenerateSendFunction(StreamWriter writer, Type contract, FieldInfo[] fields, ContractAttribute attribute)
-    {
-        var contractName = contract.Name;
-        var contractRawName = contractName.Replace("Contract", "");
-
-        var dataParam = (attribute.Flags.HasFlag(ContractPacketFlags.NoContent)) ? "" : $" , {contractName} data";
-        var dataSerialize = !attribute.Flags.HasFlag(ContractPacketFlags.NoContent) ? "data" : "";
-
-        if (fields.Length > 0)
-        {
-            writer.WriteLine();
-            writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            writer.WriteLine($"    public void Send(Entity owner{dataParam}{(attribute.Flags.HasFlag(ContractPacketFlags.ToEntity) ? ", Entity entity" : "")})");
-            writer.WriteLine("    {");
-            writer.WriteLine($"        var buffer = Serialize({dataSerialize});");
-        }
-        else
-        {
-            writer.WriteLine();
-            writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
-            writer.WriteLine($"    public void Send(Entity owner{dataParam}{(attribute.Flags.HasFlag(ContractPacketFlags.ToEntity) ? ", Entity entity" : "")})");
-            writer.WriteLine("    {");
-            writer.WriteLine($"        var buffer = Serialize();");
-        }
-
-        if (attribute.Flags.HasFlag(ContractPacketFlags.AreaOfInterest))
-        {
-            //writer.WriteLine($"        owner.Reply(ServerPacket.{contractName.Replace("DTO", "")}, buffer, {attribute.Queue.ToString().ToLower()}, {attribute.EncryptedData.ToString().ToLower()});");
-        }
-        else
-        {
-            if (attribute.Flags.HasFlag(ContractPacketFlags.Queue))
-            {
-                if (attribute.Flags.HasFlag(ContractPacketFlags.Self))
-                {
-                    writer.WriteLine($"        QueueBuffer.AddBuffer(owner.Id, buffer);");
-                }
-                else if (attribute.Flags.HasFlag(ContractPacketFlags.ToEntity))
-                {
-                    writer.WriteLine($"        QueueBuffer.AddBuffer(entity.Id, buffer);");
-                }
-            }
-            else
-            {
-                if (attribute.Flags.HasFlag(ContractPacketFlags.Self))
-                {
-                    writer.WriteLine();
-                    writer.WriteLine($"        if (EntitySocketMap.TryGet(owner.Id, out var socket))");
-                    writer.WriteLine($"             socket.Send(buffer);");
-                }
-                else if (attribute.Flags.HasFlag(ContractPacketFlags.ToEntity))
-                {
-                    writer.WriteLine();
-                    writer.WriteLine($"        if (EntitySocketMap.TryGet(entity.Id, out var socket))");
-                    writer.WriteLine($"             socket.Send(buffer);");
-                }
-            }
-        }
-
-        writer.WriteLine("    }");
     }
 }

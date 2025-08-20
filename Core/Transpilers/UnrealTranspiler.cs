@@ -24,7 +24,7 @@ public class UnrealTranspiler : AbstractTranspiler
 
             if (attribute != null && attribute.LayerType == PacketLayerType.Server && attribute.PacketType == PacketType.None)
                 serverPackets.Add(rawName);
-            else if (attribute != null && attribute.LayerType == PacketLayerType.Client)
+            else if (attribute != null && attribute.LayerType == PacketLayerType.Client && attribute.PacketType == PacketType.None)
                 clientPackets.Add(rawName);
 
             GenerateHeader(publicDir, structName, rawName, fields, attribute);
@@ -228,6 +228,7 @@ public class UnrealTranspiler : AbstractTranspiler
         "FVector" => "FVector",
         "FRotator" => "FRotator",
         "id" or "str" or "string" => "FString",
+        "byte[]" => "TArray<uint8>&",
         _ => "int32",
     };
 

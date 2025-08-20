@@ -47,7 +47,7 @@ void ASyncPlayer::BeginPlay()
 
     if (NetSubsystem)
     {
-        GetWorld()->GetTimerManager().SetTimer(NetSyncTimerHandle, this, &ASyncPlayer::SendSyncToServer, 0.01f, true);
+        GetWorld()->GetTimerManager().SetTimer(NetSyncTimerHandle, this, &ASyncPlayer::SendSyncToServer, 0.1f, true);
     }
 }
 

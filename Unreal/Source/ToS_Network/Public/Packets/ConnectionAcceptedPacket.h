@@ -16,21 +16,18 @@ struct FConnectionAcceptedPacket
     int32 Id;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    TArray<uint8> ServerPublicKey;
+    TArray<uint8>& ServerPublicKey;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    TArray<uint8> Salt;
+    TArray<uint8>& Salt;
 
-    int32 GetSize() const { return 53; }
+
+    int32 GetSize() const { return 5; }
 
     void Deserialize(UFlatBuffer* Buffer)
     {
         Id = static_cast<int32>(Buffer->Read<uint32>());
-        ServerPublicKey.SetNumUninitialized(32);
-        for (int32 i = 0; i < 32; ++i)
-            ServerPublicKey[i] = Buffer->ReadByte();
-        Salt.SetNumUninitialized(16);
-        for (int32 i = 0; i < 16; ++i)
-            Salt[i] = Buffer->ReadByte();
+    // Unsupported type: byte[]
+    // Unsupported type: byte[]
     }
 };

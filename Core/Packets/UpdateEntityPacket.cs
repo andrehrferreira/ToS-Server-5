@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 public partial struct UpdateEntityPacket: INetworkPacket
 {
-    public int Size => 31;
+    public int Size => 13;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
@@ -12,9 +12,9 @@ public partial struct UpdateEntityPacket: INetworkPacket
         buffer.Write(PacketType.Unreliable);
         buffer.Write((ushort)ServerPackets.UpdateEntity);
         buffer.Write(EntityId);
-        buffer.Write(Positon, 0.1f);
-        buffer.Write(Rotator, 0.1f);
-        buffer.Write(Velocity, 0.1f);
+        // Unsupported type: FVector
+        // Unsupported type: FRotator
+        // Unsupported type: FVector
         buffer.Write(AnimationState);
         buffer.Write(Flags);
     }
@@ -23,9 +23,9 @@ public partial struct UpdateEntityPacket: INetworkPacket
     public void Deserialize(ref FlatBuffer buffer)
     {
         EntityId = buffer.Read<uint>();
-        Positon = buffer.ReadFVector(0.1f);
-        Rotator = buffer.ReadFRotator(0.1f);
-        Velocity = buffer.ReadFVector(0.1f);
+        // Unsupported type: FVector
+        // Unsupported type: FRotator
+        // Unsupported type: FVector
         AnimationState = buffer.Read<ushort>();
         Flags = buffer.Read<uint>();
     }

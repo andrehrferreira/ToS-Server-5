@@ -14,7 +14,6 @@
 #include "Packets/RemoveEntityPacket.h"
 #include "Packets/DeltaSyncPacket.h"
 #include "Packets/SyncEntityPacket.h"
-#include "Packets/PongPacket.h"
 #include "Packets/EnterToWorldPacket.h"
 
 #include "Enum/EntityDelta.h"

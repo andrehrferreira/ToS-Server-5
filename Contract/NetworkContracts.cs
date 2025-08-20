@@ -12,11 +12,17 @@ public partial struct PongPacket
     public ushort SentTimestamp;
 }
 
-[Contract("ConnectionAccepted", PacketLayerType.Server, ContractPacketFlags.ToEntity, PacketType.ConnectionAccepted)]
+[Contract("ConnectionAccepted", PacketLayerType.Server, ContractPacketFlags.None, PacketType.ConnectionAccepted)]
 public partial struct ConnectionAcceptedPacket
 {
     [ContractField("uint")]
     public uint Id;
+
+    [ContractField("byte[]")]
+    public byte[] ServerPublicKey;
+
+    [ContractField("byte[]")]
+    public byte[] Salt;
 }
 
 [Contract("ConnectionDenied", PacketLayerType.Server, ContractPacketFlags.ToEntity, PacketType.ConnectionDenied)]
