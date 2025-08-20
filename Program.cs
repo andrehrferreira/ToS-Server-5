@@ -1,7 +1,10 @@
 using System.Reflection;
 
+
+
 class Program
 {
+
     public static void Main(string[] args)
     {
         string projectDirectory = GetProjectDirectory();
@@ -81,7 +84,7 @@ class Program
             SendBufferSize = 512 * 1024,
         });
 
-        ServerMonitor.Start();
+        //ServerMonitor.Start();
 
         while (true)
         {
