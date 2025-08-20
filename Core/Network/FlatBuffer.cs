@@ -22,6 +22,7 @@
 * SOFTWARE.
 */
 
+using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -117,7 +118,7 @@ public unsafe struct FlatBuffer : IDisposable
         int size = sizeof(T);
 
         if (_offset + size > _capacity)
-            return;
+            throw new IndexOutOfRangeException($"Write exceeds buffer capacity ({_capacity}) at {_offset} with size {size}");
 
         *(T*)(_ptr + _offset) = value;
         _offset += size;
@@ -145,7 +146,7 @@ public unsafe struct FlatBuffer : IDisposable
         int len = value.Length;
 
         if (_offset + len > _capacity)
-            return;
+            throw new IndexOutOfRangeException($"Write exceeds buffer capacity ({_capacity}) at {_offset} with size {len}");
 
         fixed (byte* src = value)
         {
@@ -157,6 +158,9 @@ public unsafe struct FlatBuffer : IDisposable
 
     public byte[] ReadBytes(int length)
     {
+        if (length < 0)
+            throw new ArgumentOutOfRangeException(nameof(length), "Length cannot be negative");
+
         if (_offset + length > _capacity)
             throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {length}");
 
@@ -170,7 +174,7 @@ public unsafe struct FlatBuffer : IDisposable
     private void WriteByteDirect(byte value)
     {
         if (_offset >= _capacity)
-            return;
+            throw new IndexOutOfRangeException($"Write exceeds buffer capacity ({_capacity}) at {_offset} with size 1");
 
         *(_ptr + _offset) = value;
         _offset++;
@@ -376,7 +380,7 @@ public unsafe struct FlatBuffer : IDisposable
         if (_writeBitIndex == 0)
         {
             if (_offset >= _capacity)
-                return;
+                throw new IndexOutOfRangeException($"Write exceeds buffer capacity ({_capacity}) at {_offset} while writing bits");
             _ptr[_offset] = 0;
         }
 
@@ -389,6 +393,8 @@ public unsafe struct FlatBuffer : IDisposable
         {
             _writeBitIndex = 0;
             _offset++;
+            if (_offset > _capacity)
+                throw new IndexOutOfRangeException($"Write exceeds buffer capacity ({_capacity}) while aligning bits");
         }
     }
 
@@ -414,6 +420,8 @@ public unsafe struct FlatBuffer : IDisposable
         {
             _writeBitIndex = 0;
             _offset++;
+            if (_offset > _capacity)
+                throw new IndexOutOfRangeException($"Write exceeds buffer capacity ({_capacity}) while aligning bits");
         }
 
         if (_readBitIndex > 0)
@@ -438,7 +446,7 @@ public unsafe struct FlatBuffer : IDisposable
         Write(bytes.Length);
 
         if (_offset + bytes.Length > _capacity)
-            return;
+            throw new IndexOutOfRangeException($"Write exceeds buffer capacity ({_capacity}) at {_offset} with size {bytes.Length}");
 
         fixed (byte* ptr = bytes)
             Buffer.MemoryCopy(ptr, _ptr + _offset, _capacity - _offset, bytes.Length);
@@ -450,6 +458,9 @@ public unsafe struct FlatBuffer : IDisposable
     public string ReadAsciiString()
     {
         int length = Read<int>();
+
+        if (length < 0)
+            throw new ArgumentOutOfRangeException(nameof(length), "Length cannot be negative");
 
         if (_offset + length > _capacity)
             throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {length}");
@@ -463,11 +474,13 @@ public unsafe struct FlatBuffer : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteBytes(byte* src, int length)
     {
-        if (src == null || length <= 0)
-            return;
+        if (src == null)
+            throw new ArgumentNullException(nameof(src));
+        if (length < 0)
+            throw new ArgumentOutOfRangeException(nameof(length), "Length cannot be negative");
 
         if (_offset + length > _capacity)
-            return;
+            throw new IndexOutOfRangeException($"Write exceeds buffer capacity ({_capacity}) at {_offset} with size {length}");
 
         Buffer.MemoryCopy(src, _ptr + _offset, _capacity - _offset, length);
         _offset += length;
@@ -480,7 +493,7 @@ public unsafe struct FlatBuffer : IDisposable
         Write(bytes.Length);
 
         if (_offset + bytes.Length > _capacity)
-            return;
+            throw new IndexOutOfRangeException($"Write exceeds buffer capacity ({_capacity}) at {_offset} with size {bytes.Length}");
 
         fixed (byte* ptr = bytes)
             Buffer.MemoryCopy(ptr, _ptr + _offset, _capacity - _offset, bytes.Length);
@@ -492,6 +505,9 @@ public unsafe struct FlatBuffer : IDisposable
     public string ReadUtf8String()
     {
         int length = Read<int>();
+
+        if (length < 0)
+            throw new ArgumentOutOfRangeException(nameof(length), "Length cannot be negative");
 
         if (_offset + length > _capacity)
             throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {length}");
