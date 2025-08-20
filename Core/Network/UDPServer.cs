@@ -452,6 +452,9 @@ public sealed class UDPServer
                                     Salt = salt
                                 });
 
+                                ServerMonitor.Log($"ServerPublicKey: {Convert.ToBase64String(serverPub)}");
+                                ServerMonitor.Log($"Salt: {Convert.ToBase64String(salt)}");
+
                                 newSocket.State = ConnectionState.Connected;
                             }
                         }
