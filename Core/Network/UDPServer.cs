@@ -426,7 +426,7 @@ public sealed class UDPServer
 
                                 var cookie = CookieManager.GenerateCookie(address);
                                 var helloBuffer = new FlatBuffer(1 + 48);
-                                helloBuffer.Write(PacketType.ConnectionDenied);
+                                helloBuffer.Write(PacketType.Cookie);
                                 helloBuffer.WriteBytes(cookie);
 
                                 var helloLen = helloBuffer.Position;

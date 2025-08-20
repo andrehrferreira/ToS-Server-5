@@ -34,6 +34,7 @@ public enum PacketType : byte
     CheckIntegrity,
     BenckmarkTest,
     Fragment,
+    Cookie,
     None = 255
 }
 

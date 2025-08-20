@@ -298,9 +298,9 @@ void UDPClient::PollIncomingPackets()
                         }
                     }
                     break;
-                    case EPacketType::ConnectionDenied:
+                    case EPacketType::Cookie:
                     {
-                        if (BytesRead == 1 + 48 && !bCookieReceived) 
+                        if (BytesRead == 1 + 48 && !bCookieReceived)
                         {
                             ServerCookie.SetNumUninitialized(48);
                             for (int32 i = 0; i < 48; ++i)
@@ -315,19 +315,20 @@ void UDPClient::PollIncomingPackets()
                             int32 BytesSent = 0;
                             Socket->SendTo(ConnectWithCookie.GetData(), ConnectWithCookie.Num(), BytesSent, *RemoteEndpoint);
                         }
-                        else
-                        {
-                            // Actual connection denied
-                            bIsConnected = false;
-                            bIsConnecting = false;
-                            ConnectionStatus = EConnectionStatus::ConnectionFailed;
+                    }
+                    break;
+                    case EPacketType::ConnectionDenied:
+                    {
+                        // Actual connection denied
+                        bIsConnected = false;
+                        bIsConnecting = false;
+                        ConnectionStatus = EConnectionStatus::ConnectionFailed;
 
-                            if (OnConnectDenied)
-                                OnConnectDenied();
+                        if (OnConnectDenied)
+                            OnConnectDenied();
 
-                            StopPacketPollThread();
-                            StartRetryTimer();
-                        }
+                        StopPacketPollThread();
+                        StartRetryTimer();
                     }
                     break;
                     case EPacketType::Disconnect:
