@@ -61,7 +61,9 @@ enum class EPacketType : uint8
     CheckIntegrity      UMETA(DisplayName = "CheckIntegrity"),
     BenckmarkTest       UMETA(DisplayName = "BenckmarkTest"),
     Fragment            UMETA(DisplayName = "Fragment"),
-    Cookie              UMETA(DisplayName = "Cookie")
+    Cookie              UMETA(DisplayName = "Cookie"),
+    CryptoTest          UMETA(DisplayName = "CryptoTest"),
+    CryptoTestAck       UMETA(DisplayName = "CryptoTestAck")
   };
 
 class FPacketPollRunnable : public FRunnable
@@ -143,4 +145,11 @@ private:
     // Encryption support
     bool bEncryptionEnabled = false;
     FSecureSession SecureSession;
+
+    bool bClientCryptoConfirmed = false;
+    bool bServerCryptoConfirmed = false;
+    uint32 ClientTestValue = 0;
+    uint32 ServerTestValue = 0;
+    bool bHandshakeComplete = false;
+    bool IsCryptoReady() const { return bClientCryptoConfirmed && bServerCryptoConfirmed; }
 };

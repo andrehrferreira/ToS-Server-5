@@ -35,6 +35,8 @@ public enum PacketType : byte
     BenckmarkTest,
     Fragment,
     Cookie,
+    CryptoTest,
+    CryptoTestAck,
     None = 255
 }
 
