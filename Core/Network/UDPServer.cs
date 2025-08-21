@@ -461,8 +461,9 @@ public sealed class UDPServer
                                 };
 
                                 bool valid = _connectionHandler?.Invoke(newSocket, null) ?? true;
+                                //valid && 
 
-                                if (valid && Clients.TryAdd(address, newSocket))
+                                if (Clients.TryAdd(address, newSocket))
                                 {
                                     newSocket.Send(new ConnectionAcceptedPacket
                                     {

@@ -282,7 +282,6 @@ void UDPClient::PollIncomingPackets()
                             for (int32 i = 0; i < 16; ++i)
                                 Salt[i] = Buffer->ReadByte();
 
-                            // Initialize secure session
                             if (SecureSession.InitializeAsClient(ClientPrivateKey, ServerPublicKey, Salt, connectionID))
                             {
                                 bEncryptionEnabled = true;
@@ -314,10 +313,6 @@ void UDPClient::PollIncomingPackets()
                             for (int32 i = 0; i < 48; ++i)
                                 ServerCookie[i] = Buffer->ReadByte();
 
-                            UE_LOG(LogTemp, Log, TEXT("Cookie[0..3]=%02X %02X %02X %02X  Cookie[44..47]=%02X %02X %02X %02X"),
-                                ServerCookie[0], ServerCookie[1], ServerCookie[2], ServerCookie[3],
-                                ServerCookie[44], ServerCookie[45], ServerCookie[46], ServerCookie[47]);
-
                             bCookieReceived = true;
 
                             TArray<uint8> ConnectWithCookie;
@@ -332,7 +327,6 @@ void UDPClient::PollIncomingPackets()
                     break;
                     case EPacketType::ConnectionDenied:
                     {
-                        // Actual connection denied
                         bIsConnected = false;
                         bIsConnecting = false;
                         ConnectionStatus = EConnectionStatus::ConnectionFailed;
