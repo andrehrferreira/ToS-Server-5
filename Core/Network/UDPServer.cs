@@ -519,7 +519,16 @@ public sealed class UDPServer
                                 data.Resize(len - 4);
                                 conn.TimeoutLeft = 30f;
 
-                                if (len >= PacketHeader.Size + 16) 
+                                if (!conn.CryptoHandshakeComplete)
+                                {
+#if DEBUG
+                                    ServerMonitor.Log($"Dropping {(type == PacketType.Reliable ? "Reliable" : "Unreliable")} packet before crypto handshake complete from {address}");
+#endif
+                                    data.Free();
+                                    break;
+                                }
+
+                                if (len >= PacketHeader.Size + 16)
                                 {
                                     if (ProcessEncryptedPacket(data, conn))
                                         return;
@@ -529,6 +538,71 @@ public sealed class UDPServer
 
                                 if(PlayerController.TryGet(conn.Id, out var controller))
                                     PacketHandler.HandlePacket(controller, ref data, clientPacket);
+                            }
+                        }
+
+                        data.Free();
+                    }
+                    break;
+                case PacketType.CryptoTest:
+                    {
+                        if (Clients.TryGetValue(address, out conn))
+                        {
+                            uint value = data.Read<uint>();
+#if DEBUG
+                            ServerMonitor.Log($"Received CryptoTest {value} from {address}");
+#endif
+                            conn.ClientTestValue = value;
+                            var ackBuf = new FlatBuffer(5);
+                            ackBuf.Write(PacketType.CryptoTestAck);
+                            ackBuf.Write(value);
+                            conn.Send(ref ackBuf, false);
+                            ackBuf.Free();
+#if DEBUG
+                            ServerMonitor.Log($"Sent CryptoTestAck {value} to {address}");
+#endif
+                            conn.ClientCryptoConfirmed = true;
+
+                            if (!conn.ServerCryptoConfirmed)
+                            {
+                                conn.ServerTestValue = 0x1A2B3C4D;
+                                var testBuf = new FlatBuffer(5);
+                                testBuf.Write(PacketType.CryptoTest);
+                                testBuf.Write(conn.ServerTestValue);
+                                conn.Send(ref testBuf, false);
+                                testBuf.Free();
+#if DEBUG
+                                ServerMonitor.Log($"Sent CryptoTest {conn.ServerTestValue} to {address}");
+#endif
+                            }
+
+                            if (conn.CryptoHandshakeComplete)
+                            {
+#if DEBUG
+                                ServerMonitor.Log($"Crypto handshake complete for {address}");
+#endif
+                            }
+                        }
+
+                        data.Free();
+                    }
+                    break;
+                case PacketType.CryptoTestAck:
+                    {
+                        if (Clients.TryGetValue(address, out conn))
+                        {
+                            uint value = data.Read<uint>();
+#if DEBUG
+                            ServerMonitor.Log($"Received CryptoTestAck {value} from {address}");
+#endif
+                            if (value == conn.ServerTestValue)
+                                conn.ServerCryptoConfirmed = true;
+
+                            if (conn.CryptoHandshakeComplete)
+                            {
+#if DEBUG
+                                ServerMonitor.Log($"Crypto handshake complete for {address}");
+#endif
                             }
                         }
 

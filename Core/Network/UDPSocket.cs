@@ -74,6 +74,12 @@ public class UDPSocket
 
     public SecureSession Session;
 
+    public bool ClientCryptoConfirmed = false;
+    public bool ServerCryptoConfirmed = false;
+    public uint ClientTestValue;
+    public uint ServerTestValue;
+    public bool CryptoHandshakeComplete => ClientCryptoConfirmed && ServerCryptoConfirmed;
+
     internal class ReliablePacketInfo
     {
         public FlatBuffer Buffer;
@@ -152,6 +158,9 @@ public class UDPSocket
     public void Send(INetworkPacket networkPacket, bool reliable = false)
     {
         bool useEncryption = (State == ConnectionState.Connected);
+
+        if (useEncryption && !CryptoHandshakeComplete)
+            return;
 
         if (useEncryption)
         {

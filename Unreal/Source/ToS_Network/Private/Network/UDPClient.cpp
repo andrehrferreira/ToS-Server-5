@@ -145,6 +145,12 @@ void UDPClient::Send(UFlatBuffer* buffer)
 
     if (bEncryptionEnabled && bIsConnected)
     {
+        uint8 packetType = buffer->GetRawBuffer()[0];
+        if (!IsCryptoReady() && packetType != static_cast<uint8>(EPacketType::CryptoTest) && packetType != static_cast<uint8>(EPacketType::CryptoTestAck))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Blocked send before crypto handshake complete"));
+            return;
+        }
         SendEncrypted(buffer);
     }
     else
@@ -250,12 +256,22 @@ void UDPClient::PollIncomingPackets()
                     break;
                     case EPacketType::Unreliable:
                     {
+                        if (!IsCryptoReady())
+                        {
+                            UE_LOG(LogTemp, Warning, TEXT("Dropping Unreliable packet before crypto handshake complete"));
+                            break;
+                        }
                         if (OnDataReceive)
                             OnDataReceive(Buffer);
                     }
                     break;
                     case EPacketType::Reliable:
                     {
+                        if (!IsCryptoReady())
+                        {
+                            UE_LOG(LogTemp, Warning, TEXT("Dropping Reliable packet before crypto handshake complete"));
+                            break;
+                        }
                         //uint16 Seq = Buffer->ReadUInt16();
                         //SendAck(Seq);
 
@@ -287,14 +303,53 @@ void UDPClient::PollIncomingPackets()
                             {
                                 bEncryptionEnabled = true;
 
-                                if (OnConnect)
-                                    OnConnect(connectionID);
+                                ClientTestValue = 0xA1B2C3D4;
+                                UFlatBuffer* TestBuffer = UFlatBuffer::CreateFlatBuffer(5);
+                                TestBuffer->WriteByte(static_cast<uint8>(EPacketType::CryptoTest));
+                                TestBuffer->WriteUInt32(ClientTestValue);
+                                Send(TestBuffer);
+                                UE_LOG(LogTemp, Log, TEXT("Client sent CryptoTest %u"), ClientTestValue);
                             }
                             else
                             {
                                 UE_LOG(LogTemp, Error, TEXT("Failed to initialize secure session"));
                                 Disconnect();
                             }
+                        }
+                    }
+                    break;
+                    case EPacketType::CryptoTestAck:
+                    {
+                        uint32 value = Buffer->ReadUInt32();
+                        UE_LOG(LogTemp, Log, TEXT("Received CryptoTestAck %u"), value);
+                        if (value == ClientTestValue)
+                            bClientCryptoConfirmed = true;
+                        if (IsCryptoReady() && !bHandshakeComplete)
+                        {
+                            bHandshakeComplete = true;
+                            UE_LOG(LogTemp, Log, TEXT("Client crypto handshake complete"));
+                            if (OnConnect)
+                                OnConnect(SecureSession.GetConnectionId());
+                        }
+                    }
+                    break;
+                    case EPacketType::CryptoTest:
+                    {
+                        uint32 value = Buffer->ReadUInt32();
+                        UE_LOG(LogTemp, Log, TEXT("Received CryptoTest %u"), value);
+                        ServerTestValue = value;
+                        UFlatBuffer* AckBuffer = UFlatBuffer::CreateFlatBuffer(5);
+                        AckBuffer->WriteByte(static_cast<uint8>(EPacketType::CryptoTestAck));
+                        AckBuffer->WriteUInt32(value);
+                        Send(AckBuffer);
+                        UE_LOG(LogTemp, Log, TEXT("Sent CryptoTestAck %u"), value);
+                        bServerCryptoConfirmed = true;
+                        if (IsCryptoReady() && !bHandshakeComplete)
+                        {
+                            bHandshakeComplete = true;
+                            UE_LOG(LogTemp, Log, TEXT("Client crypto handshake complete"));
+                            if (OnConnect)
+                                OnConnect(SecureSession.GetConnectionId());
                         }
                     }
                     break;
