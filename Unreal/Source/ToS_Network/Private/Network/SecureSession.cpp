@@ -1,4 +1,5 @@
 #include "Network/SecureSession.h"
+#include "Utils/LZ4.h"
 #include "HAL/UnrealMemory.h"
 
 void FPacketHeader::Serialize(uint8* Buffer) const
@@ -94,6 +95,38 @@ bool FSecureSession::EncryptPayload(const TArray<uint8>& Plaintext, const TArray
     return true;
 }
 
+bool FSecureSession::EncryptPayloadWithCompression(const TArray<uint8>& Plaintext, const TArray<uint8>& AAD, TArray<uint8>& Result, bool& bWasCompressed)
+{
+    bWasCompressed = false;
+
+    // First encrypt the payload
+    TArray<uint8> Encrypted;
+    if (!EncryptPayload(Plaintext, AAD, Encrypted))
+        return false;
+
+    // Check if we should compress (only if encrypted payload > 512 bytes)
+    if (Encrypted.Num() > 512)
+    {
+        TArray<uint8> Compressed;
+        Compressed.SetNumUninitialized(Encrypted.Num() + 1024); // Extra space for potential expansion
+
+        int32 CompressedLength = FLZ4::Compress(Encrypted.GetData(), Encrypted.Num(), Compressed.GetData(), Compressed.Num());
+
+        if (CompressedLength > 0 && CompressedLength < Encrypted.Num())
+        {
+            // Compression was beneficial
+            bWasCompressed = true;
+            Result.SetNumUninitialized(CompressedLength);
+            FMemory::Memcpy(Result.GetData(), Compressed.GetData(), CompressedLength);
+            return true;
+        }
+    }
+
+    // If compression failed or wasn't beneficial, use original encrypted data
+    Result = MoveTemp(Encrypted);
+    return true;
+}
+
 bool FSecureSession::DecryptPayload(const TArray<uint8>& Ciphertext, const TArray<uint8>& AAD, uint64 Sequence, TArray<uint8>& Plaintext)
 {
     // Check for replay attack
@@ -122,6 +155,28 @@ bool FSecureSession::DecryptPayload(const TArray<uint8>& Ciphertext, const TArra
     Plaintext.SetNum(PlaintextLen);
     UpdateReplayWindow(Sequence);
     return true;
+}
+
+bool FSecureSession::DecryptPayloadWithDecompression(const TArray<uint8>& Data, const TArray<uint8>& AAD, uint64 Sequence, bool bIsCompressed, TArray<uint8>& Plaintext)
+{
+    if (bIsCompressed)
+    {
+        // First decompress LZ4, then decrypt
+        TArray<uint8> Decompressed;
+        Decompressed.SetNumUninitialized(Data.Num() * 4); // Assume max 4x expansion
+
+        int32 DecompressedLength = FLZ4::Decompress(Data.GetData(), Data.Num(), Decompressed.GetData(), Decompressed.Num());
+        if (DecompressedLength <= 0)
+            return false;
+
+        Decompressed.SetNum(DecompressedLength);
+        return DecryptPayload(Decompressed, AAD, Sequence, Plaintext);
+    }
+    else
+    {
+        // Direct decryption without decompression
+        return DecryptPayload(Data, AAD, Sequence, Plaintext);
+    }
 }
 
 bool FSecureSession::IsSequenceValid(uint64 Sequence) const

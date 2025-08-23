@@ -104,7 +104,7 @@ public unsafe struct SecureSession
         BinaryPrimitives.WriteUInt64LittleEndian(nonce.Slice(4), sequence);
     }
 
-        // Encrypt payload with AEAD ChaCha20-Poly1305
+        // Encrypt payload with AEAD ChaCha20-Poly1305 and optional LZ4 compression
     public bool EncryptPayload(ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> aad, Span<byte> ciphertext, out int ciphertextLength)
     {
         try
@@ -134,6 +134,56 @@ public unsafe struct SecureSession
         catch
         {
             ciphertextLength = 0;
+            return false;
+        }
+    }
+
+    // Encrypt with optional compression (new method)
+    public bool EncryptPayloadWithCompression(ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> aad, Span<byte> result, out int resultLength, out bool wasCompressed)
+    {
+        try
+        {
+            wasCompressed = false;
+            resultLength = 0;
+
+            // First encrypt the payload
+            Span<byte> encrypted = stackalloc byte[plaintext.Length + 16]; // ChaCha20Poly1305 adds 16 bytes
+            if (!EncryptPayload(plaintext, aad, encrypted, out int encryptedLength))
+                return false;
+
+            // Check if we should compress (only if encrypted payload > 512 bytes)
+            if (encryptedLength > 512)
+            {
+                unsafe
+                {
+                    fixed (byte* encryptedPtr = encrypted)
+                    fixed (byte* resultPtr = result)
+                    {
+                        int compressedLength = LZ4.Compress(encryptedPtr, encryptedLength, resultPtr, result.Length);
+                        if (compressedLength > 0 && compressedLength < encryptedLength)
+                        {
+                            wasCompressed = true;
+                            resultLength = compressedLength;
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            // If compression failed or wasn't beneficial, use original encrypted data
+            if (encryptedLength <= result.Length)
+            {
+                encrypted.Slice(0, encryptedLength).CopyTo(result);
+                resultLength = encryptedLength;
+                return true;
+            }
+
+            return false;
+        }
+        catch
+        {
+            wasCompressed = false;
+            resultLength = 0;
             return false;
         }
     }
@@ -172,6 +222,44 @@ public unsafe struct SecureSession
             // Update replay protection window
             UpdateReplayWindow(sequence);
             return true;
+        }
+        catch
+        {
+            plaintextLength = 0;
+            return false;
+        }
+    }
+
+    // Decrypt with optional decompression (new method)
+    public bool DecryptPayloadWithDecompression(ReadOnlySpan<byte> data, ReadOnlySpan<byte> aad, ulong sequence, bool isCompressed, Span<byte> plaintext, out int plaintextLength)
+    {
+        try
+        {
+            plaintextLength = 0;
+
+            if (isCompressed)
+            {
+                // First decompress LZ4, then decrypt
+                Span<byte> decompressed = stackalloc byte[data.Length * 4]; // Assume max 4x expansion
+
+                unsafe
+                {
+                    fixed (byte* dataPtr = data)
+                    fixed (byte* decompressedPtr = decompressed)
+                    {
+                        int decompressedLength = LZ4.Decompress(dataPtr, data.Length, decompressedPtr, decompressed.Length);
+                        if (decompressedLength <= 0)
+                            return false;
+
+                        return DecryptPayload(decompressed.Slice(0, decompressedLength), aad, sequence, plaintext, out plaintextLength);
+                    }
+                }
+            }
+            else
+            {
+                // Direct decryption without decompression
+                return DecryptPayload(data, aad, sequence, plaintext, out plaintextLength);
+            }
         }
         catch
         {
