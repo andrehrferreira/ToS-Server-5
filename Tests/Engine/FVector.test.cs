@@ -57,9 +57,8 @@ namespace Tests
                 It("should calculate size for 3D vector", () =>
                 {
                     var vector = new FVector(1.0f, 2.0f, 2.0f);
-
                     float size = vector.Size();
-                    float expected = MathF.Sqrt(1 + 4 + 4); // sqrt(9) = 3
+                    float expected = MathF.Sqrt(1 + 4 + 4); 
 
                     Expect(size).ToBe(expected);
                 });
@@ -67,7 +66,6 @@ namespace Tests
                 It("should calculate size squared correctly", () =>
                 {
                     var vector = new FVector(3.0f, 4.0f, 0.0f);
-
                     float sizeSquared = vector.SizeSquared();
 
                     Expect(sizeSquared).ToBe(25.0f);
@@ -76,10 +74,9 @@ namespace Tests
                 It("should calculate size squared for 3D vector", () =>
                 {
                     var vector = new FVector(2.0f, 3.0f, 6.0f);
-
                     float sizeSquared = vector.SizeSquared();
 
-                    Expect(sizeSquared).ToBe(49.0f); // 4 + 9 + 36
+                    Expect(sizeSquared).ToBe(49.0f);
                 });
 
                 It("should handle zero vector size", () =>
@@ -103,7 +100,6 @@ namespace Tests
                     Expect(vector.Y).ToBe(0.8f);
                     Expect(vector.Z).ToBe(0.0f);
 
-                    // Normalized vector should have size 1
                     float size = vector.Size();
                     Expect(MathF.Abs(size - 1.0f)).ToBeLessThan(1e-6f);
                 });
@@ -111,7 +107,6 @@ namespace Tests
                 It("should normalize 3D vector correctly", () =>
                 {
                     var vector = new FVector(1.0f, 2.0f, 2.0f);
-
                     vector.Normalize();
 
                     float size = vector.Size();
@@ -122,7 +117,7 @@ namespace Tests
                 {
                     var vector = FVector.Zero;
 
-                    vector.Normalize(); // Should not crash
+                    vector.Normalize(); 
 
                     Expect(vector.X).ToBe(0.0f);
                     Expect(vector.Y).ToBe(0.0f);
@@ -133,9 +128,8 @@ namespace Tests
                 {
                     var vector = new FVector(1e-7f, 1e-7f, 1e-7f);
 
-                    vector.Normalize(); // Should not crash
+                    vector.Normalize(); 
 
-                    // Should remain as small vector
                     Expect(vector.Size()).ToBeLessThan(1e-6f);
                 });
             });
@@ -146,17 +140,15 @@ namespace Tests
                 {
                     var a = new FVector(1.0f, 2.0f, 3.0f);
                     var b = new FVector(4.0f, 5.0f, 6.0f);
-
                     float dot = FVector.Dot(a, b);
 
-                    Expect(dot).ToBe(32.0f); // 1*4 + 2*5 + 3*6 = 4 + 10 + 18
+                    Expect(dot).ToBe(32.0f); 
                 });
 
                 It("should handle perpendicular vectors", () =>
                 {
                     var a = new FVector(1.0f, 0.0f, 0.0f);
                     var b = new FVector(0.0f, 1.0f, 0.0f);
-
                     float dot = FVector.Dot(a, b);
 
                     Expect(dot).ToBe(0.0f);
@@ -166,27 +158,24 @@ namespace Tests
                 {
                     var a = new FVector(2.0f, 4.0f, 6.0f);
                     var b = new FVector(1.0f, 2.0f, 3.0f);
-
                     float dot = FVector.Dot(a, b);
 
-                    Expect(dot).ToBe(28.0f); // 2*1 + 4*2 + 6*3 = 2 + 8 + 18
+                    Expect(dot).ToBe(28.0f); 
                 });
 
                 It("should handle opposite vectors", () =>
                 {
                     var a = new FVector(1.0f, 2.0f, 3.0f);
                     var b = new FVector(-1.0f, -2.0f, -3.0f);
-
                     float dot = FVector.Dot(a, b);
 
-                    Expect(dot).ToBe(-14.0f); // -1 + -4 + -9
+                    Expect(dot).ToBe(-14.0f);
                 });
 
                 It("should handle zero vector dot product", () =>
                 {
                     var a = new FVector(1.0f, 2.0f, 3.0f);
                     var b = FVector.Zero;
-
                     float dot = FVector.Dot(a, b);
 
                     Expect(dot).ToBe(0.0f);
@@ -199,7 +188,6 @@ namespace Tests
                 {
                     var a = new FVector(1.0f, 0.0f, 0.0f);
                     var b = new FVector(0.0f, 1.0f, 0.0f);
-
                     var cross = FVector.Cross(a, b);
 
                     Expect(cross.X).ToBe(0.0f);
@@ -211,7 +199,6 @@ namespace Tests
                 {
                     var a = new FVector(0.0f, 1.0f, 0.0f);
                     var b = new FVector(1.0f, 0.0f, 0.0f);
-
                     var cross = FVector.Cross(a, b);
 
                     Expect(cross.X).ToBe(0.0f);
@@ -226,17 +213,15 @@ namespace Tests
 
                     var cross = FVector.Cross(a, b);
 
-                    // Cross product formula: (a.Y*b.Z - a.Z*b.Y, a.Z*b.X - a.X*b.Z, a.X*b.Y - a.Y*b.X)
-                    Expect(cross.X).ToBe(-3.0f);  // 3*7 - 4*6 = 21 - 24 = -3
-                    Expect(cross.Y).ToBe(6.0f);   // 4*5 - 2*7 = 20 - 14 = 6
-                    Expect(cross.Z).ToBe(-3.0f);  // 2*6 - 3*5 = 12 - 15 = -3
+                    Expect(cross.X).ToBe(-3.0f); 
+                    Expect(cross.Y).ToBe(6.0f);   
+                    Expect(cross.Z).ToBe(-3.0f); 
                 });
 
                 It("should handle parallel vectors cross product", () =>
                 {
                     var a = new FVector(1.0f, 2.0f, 3.0f);
                     var b = new FVector(2.0f, 4.0f, 6.0f);
-
                     var cross = FVector.Cross(a, b);
 
                     Expect(cross.X).ToBe(0.0f);
@@ -248,7 +233,6 @@ namespace Tests
                 {
                     var a = new FVector(1.0f, 2.0f, 3.0f);
                     var b = FVector.Zero;
-
                     var cross = FVector.Cross(a, b);
 
                     Expect(cross.X).ToBe(0.0f);
@@ -263,7 +247,6 @@ namespace Tests
                 {
                     var a = new FVector(1.0f, 2.0f, 3.0f);
                     var b = new FVector(4.0f, 5.0f, 6.0f);
-
                     var result = a + b;
 
                     Expect(result.X).ToBe(5.0f);
@@ -275,7 +258,6 @@ namespace Tests
                 {
                     var a = new FVector(5.0f, 7.0f, 9.0f);
                     var b = new FVector(1.0f, 2.0f, 3.0f);
-
                     var result = a - b;
 
                     Expect(result.X).ToBe(4.0f);
@@ -286,7 +268,6 @@ namespace Tests
                 It("should multiply vector by scalar correctly", () =>
                 {
                     var vector = new FVector(2.0f, 3.0f, 4.0f);
-
                     var result = vector * 2.5f;
 
                     Expect(result.X).ToBe(5.0f);
@@ -297,7 +278,6 @@ namespace Tests
                 It("should divide vector by scalar correctly", () =>
                 {
                     var vector = new FVector(10.0f, 15.0f, 20.0f);
-
                     var result = vector / 5.0f;
 
                     Expect(result.X).ToBe(2.0f);
@@ -308,7 +288,6 @@ namespace Tests
                 It("should handle negative scalar multiplication", () =>
                 {
                     var vector = new FVector(1.0f, 2.0f, 3.0f);
-
                     var result = vector * -2.0f;
 
                     Expect(result.X).ToBe(-2.0f);
@@ -344,7 +323,7 @@ namespace Tests
                     var a = new FVector(1.0f, 2.0f, 3.0f);
                     var b = new FVector(1.0000001f, 2.0f, 3.0f);
 
-                    Expect(a == b).ToBe(true); // Within tolerance
+                    Expect(a == b).ToBe(true);
                 });
 
                 It("should handle equality with zero vector", () =>
@@ -399,8 +378,6 @@ namespace Tests
                 It("should handle very large values", () =>
                 {
                     var vector = new FVector(float.MaxValue / 2, float.MaxValue / 2, 0);
-
-                    // Should not crash
                     float size = vector.Size();
 
                     Expect(size).ToBeGreaterThan(0.0f);
@@ -409,7 +386,6 @@ namespace Tests
                 It("should handle very small values", () =>
                 {
                     var vector = new FVector(1e-10f, 1e-10f, 1e-10f);
-
                     float size = vector.Size();
 
                     Expect(size).ToBeGreaterThan(0.0f);
@@ -418,16 +394,14 @@ namespace Tests
                 It("should handle mixed positive and negative values", () =>
                 {
                     var vector = new FVector(-1.0f, 2.0f, -3.0f);
-
                     float sizeSquared = vector.SizeSquared();
 
-                    Expect(sizeSquared).ToBe(14.0f); // 1 + 4 + 9
+                    Expect(sizeSquared).ToBe(14.0f);
                 });
 
                 It("should handle operations with identity values", () =>
                 {
                     var vector = new FVector(5.0f, 10.0f, 15.0f);
-
                     var unchanged = vector * 1.0f;
                     var doubled = vector * 2.0f;
                     var halved = vector / 2.0f;

@@ -43,7 +43,6 @@ namespace Tests
                 {
                     using var buffer = new FlatBuffer(1024);
 
-                    // These should use VarInt/VarLong encoding automatically
                     buffer.Write<int>(42);
                     buffer.Write<uint>(123u);
                     buffer.Write<long>(-456L);
@@ -72,14 +71,11 @@ namespace Tests
                 {
                     using var buffer = new FlatBuffer(1024);
 
-                    // Small values should use fewer bytes with VarInt encoding
-                    buffer.Write<int>(63);    // Small value - should use 1 byte after ZigZag
+                    buffer.Write<int>(63);    
                     int posSmall = buffer.Position;
 
-                    buffer.Write<int>(16384); // Larger value - should use more bytes
+                    buffer.Write<int>(16384); 
                     int posLarge = buffer.Position;
-
-                    // Verify space efficiency
                     int smallValueBytes = posSmall;
                     int largeValueBytes = posLarge - posSmall;
 
@@ -98,9 +94,9 @@ namespace Tests
                 {
                     using var buffer = new FlatBuffer(1024);
 
-                    buffer.Write(42);        // Uses ZigZag encoding
-                    buffer.Write(-42);       // Uses ZigZag encoding
-                    buffer.Write(1000);      // Uses ZigZag encoding
+                    buffer.Write(42);        
+                    buffer.Write(-42);       
+                    buffer.Write(1000);      
 
                     buffer.Reset();
 
@@ -166,9 +162,9 @@ namespace Tests
                     foreach (int value in testValues)
                     {
                         buffer.Reset();
-                        buffer.Write(value);    // Uses ZigZag encoding
+                        buffer.Write(value);    
                         buffer.Reset();
-                        int result = buffer.Read<int>();  // Uses ZigZag decoding
+                        int result = buffer.Read<int>();  
                         Expect(result).ToBe(value);
                     }
                 });
@@ -182,9 +178,9 @@ namespace Tests
                     foreach (uint value in testValues)
                     {
                         buffer.Reset();
-                        buffer.Write(value);    // Uses VarInt encoding
+                        buffer.Write(value);    
                         buffer.Reset();
-                        uint result = buffer.Read<uint>();  // Uses VarInt decoding
+                        uint result = buffer.Read<uint>(); 
                         Expect(result).ToBe(value);
                     }
                 });
@@ -198,9 +194,9 @@ namespace Tests
                     foreach (long value in testValues)
                     {
                         buffer.Reset();
-                        buffer.Write(value);    // Uses ZigZag encoding
+                        buffer.Write(value);    
                         buffer.Reset();
-                        long result = buffer.Read<long>();  // Uses ZigZag decoding
+                        long result = buffer.Read<long>(); 
                         Expect(result).ToBe(value);
                     }
                 });
@@ -209,14 +205,12 @@ namespace Tests
                 {
                     using var buffer = new FlatBuffer(1024);
 
-                    // Small values should use fewer bytes with ZigZag encoding
-                    buffer.WriteVarInt(63);   // ZigZag: 126 -> 1 byte
+                    buffer.WriteVarInt(63);   
                     int pos1 = buffer.Position;
 
-                    buffer.WriteVarInt(64);   // ZigZag: 128 -> 2 bytes
+                    buffer.WriteVarInt(64);   
                     int pos2 = buffer.Position;
 
-                    // 63 should use 1 byte, 64 should use 2 bytes (after ZigZag)
                     Expect(pos1).ToBe(1);
                     Expect(pos2 - pos1).ToBe(2);
 
@@ -383,13 +377,13 @@ namespace Tests
                     var originalVector = new FVector(100, 200, 300);
                     var originalRotator = new FRotator(45, 90, 135);
 
-                    buffer.Write(originalVector);    // Uses default 0.1 quantization
-                    buffer.Write(originalRotator);   // Uses default 0.1 quantization
+                    buffer.Write(originalVector);   
+                    buffer.Write(originalRotator);   
 
                     buffer.Reset();
 
-                    var resultVector = buffer.ReadFVector();    // Applies 0.1 factor
-                    var resultRotator = buffer.ReadFRotator();  // Applies 0.1 factor
+                    var resultVector = buffer.ReadFVector();    
+                    var resultRotator = buffer.ReadFRotator(); 
 
                     Expect(resultVector.X).ToBe(originalVector.X);
                     Expect(resultVector.Y).ToBe(originalVector.Y);
@@ -407,15 +401,14 @@ namespace Tests
                     var originalVector = new FVector(1.23f, -4.56f, 7.89f);
                     var originalRotator = new FRotator(12.3f, -45.6f, 78.9f);
 
-                    buffer.Write<FVector>(originalVector);   // Uses quantization with range [-10000, 10000]
-                    buffer.Write<FRotator>(originalRotator); // Uses quantization with range [-180, 180]
+                    buffer.Write<FVector>(originalVector);  
+                    buffer.Write<FRotator>(originalRotator); 
 
                     buffer.Reset();
 
-                    var resultVector = buffer.Read<FVector>();   // Uses quantization
-                    var resultRotator = buffer.Read<FRotator>(); // Uses quantization
+                    var resultVector = buffer.Read<FVector>();   
+                    var resultRotator = buffer.Read<FRotator>(); 
 
-                    // Template quantization uses short precision over larger ranges
                     Expect(resultVector.X).ToBeApproximately(originalVector.X, 1.0f);
                     Expect(resultVector.Y).ToBeApproximately(originalVector.Y, 1.0f);
                     Expect(resultVector.Z).ToBeApproximately(originalVector.Z, 1.0f);
@@ -540,7 +533,7 @@ namespace Tests
                     string hex = buffer.ToHex();
 
                     Expect(hex).NotToBeNull();
-                    Expect(hex.Length).ToBe(8); // 32-bit hash as hex
+                    Expect(hex.Length).ToBe(8);
                 });
 
                 It("should handle empty buffer hash", () =>
@@ -573,7 +566,7 @@ namespace Tests
                     var buffer = new FlatBuffer(1024);
 
                     buffer.Dispose();
-                    buffer.Dispose(); // Should not throw
+                    buffer.Dispose();
 
                     Expect(buffer.IsDisposed).ToBe(true);
                 });
@@ -588,7 +581,7 @@ namespace Tests
                         disposed = buffer.IsDisposed;
                     }
 
-                    Expect(disposed).ToBe(false); // Not disposed inside using
+                    Expect(disposed).ToBe(false);
                 });
 
                 It("should handle capacity correctly", () =>
@@ -597,7 +590,6 @@ namespace Tests
 
                     Expect(buffer.Capacity).ToBe(512);
 
-                    // Fill most of the buffer
                     for (int i = 0; i < 100; i++)
                     {
                         buffer.Write<float>(i);
@@ -611,7 +603,7 @@ namespace Tests
             {
                 It("should throw on buffer overflow", () =>
                 {
-                    using var buffer = new FlatBuffer(8); // Very small buffer
+                    using var buffer = new FlatBuffer(8); 
 
                     buffer.Write<float>(42.0f);
                     buffer.Write<float>(43.0f);
@@ -638,9 +630,9 @@ namespace Tests
                     foreach (short value in testValues)
                     {
                         buffer.Reset();
-                        buffer.Write(value);    // Uses ZigZag encoding
+                        buffer.Write(value); 
                         buffer.Reset();
-                        short result = buffer.Read<short>();  // Uses ZigZag decoding
+                        short result = buffer.Read<short>(); 
                         Expect(result).ToBe(value);
                     }
                 });
@@ -654,9 +646,9 @@ namespace Tests
                     foreach (ushort value in testValues)
                     {
                         buffer.Reset();
-                        buffer.Write(value);    // Uses direct write
+                        buffer.Write(value); 
                         buffer.Reset();
-                        ushort result = buffer.Read<ushort>();  // Uses direct read
+                        ushort result = buffer.Read<ushort>();
                         Expect(result).ToBe(value);
                     }
                 });
@@ -684,12 +676,12 @@ namespace Tests
 
                     try
                     {
-                        buffer.Read<float>(); // Should throw
-                        Expect(false).ToBe(true); // Should not reach here
+                        buffer.Read<float>();
+                        Expect(false).ToBe(true); 
                     }
                     catch (IndexOutOfRangeException)
                     {
-                        Expect(true).ToBe(true); // Expected
+                        Expect(true).ToBe(true);
                     }
                 });
 

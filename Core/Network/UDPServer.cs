@@ -419,7 +419,7 @@ public sealed class UDPServer
                     {
                         if (!Clients.TryGetValue(address, out conn))
                         {
-                            if (data.Position + 32 == len) 
+                            if (data.Position + 32 == len)
                             {
                                 var cookie = CookieManager.GenerateCookie(address);
                                 var helloBuffer = new FlatBuffer(49);
@@ -430,7 +430,7 @@ public sealed class UDPServer
                                 UDP.Unsafe.Send(ServerSocket, &address, helloBuffer.Data, helloLen);
                                 helloBuffer.Free();
                             }
-                            else if (data.Position + 32 + 48 == len) 
+                            else if (data.Position + 32 + 48 == len)
                             {
                                 byte[] clientPub = new byte[32];
                                 for (int i = 0; i < 32; i++)
@@ -461,7 +461,7 @@ public sealed class UDPServer
                                 };
 
                                 bool valid = _connectionHandler?.Invoke(newSocket, null) ?? true;
-                                //valid && 
+                                //valid &&
 
                                 if (Clients.TryAdd(address, newSocket))
                                 {
@@ -694,9 +694,9 @@ public sealed class UDPServer
     {
         PacketType packetType = (PacketType)buffer.Read<byte>();
 
-        if (packetType == PacketType.Fragment)        
-            HandleFragment(buffer, len, address);        
-        else        
+        if (packetType == PacketType.Fragment)
+            HandleFragment(buffer, len, address);
+        else
             HandlePacket(packetType, buffer, len, address);
     }
 
@@ -879,7 +879,7 @@ public sealed class UDPServer
 
             int ciphertextLen = data.Position - PacketHeader.Size;
 
-            if (ciphertextLen <= 16) 
+            if (ciphertextLen <= 16)
                 return false;
 
             var ciphertext = new ReadOnlySpan<byte>(data.Data + PacketHeader.Size, ciphertextLen);
@@ -894,7 +894,7 @@ public sealed class UDPServer
             }
 
             var decryptedBuffer = new FlatBuffer(plaintextLen + 2);
-            decryptedBuffer.Write((byte)header.Channel); 
+            decryptedBuffer.Write((byte)header.Channel);
             decryptedBuffer.WriteBytes(plaintext.Slice(0, plaintextLen).ToArray());
 
             ClientPackets clientPacket = (ClientPackets)decryptedBuffer.Read<short>();

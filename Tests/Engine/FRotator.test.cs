@@ -83,55 +83,43 @@ namespace Tests
 
                 It("should normalize angle greater than 360", () =>
                 {
-                    float angle = 450.0f; // 450 - 360 = 90
-
+                    float angle = 450.0f;
                     float normalized = FRotator.NormalizeAxis(angle);
-
                     Expect(normalized).ToBe(90.0f);
                 });
 
                 It("should normalize negative angle within range", () =>
                 {
                     float angle = -45.0f;
-
                     float normalized = FRotator.NormalizeAxis(angle);
-
                     Expect(normalized).ToBe(-45.0f);
                 });
 
                 It("should normalize angle of -180 degrees", () =>
                 {
                     float angle = -180.0f;
-
                     float normalized = FRotator.NormalizeAxis(angle);
-
                     Expect(normalized).ToBe(-180.0f);
                 });
 
                 It("should normalize angle less than -180", () =>
                 {
                     float angle = -270.0f;
-
                     float normalized = FRotator.NormalizeAxis(angle);
-
                     Expect(normalized).ToBe(90.0f);
                 });
 
                 It("should normalize large negative angle", () =>
                 {
-                    float angle = -450.0f; // -450 + 360 = -90
-
+                    float angle = -450.0f;
                     float normalized = FRotator.NormalizeAxis(angle);
-
                     Expect(normalized).ToBe(-90.0f);
                 });
 
                 It("should handle multiple rotations", () =>
                 {
-                    float angle = 1080.0f; // 3 full rotations = 0
-
+                    float angle = 1080.0f;
                     float normalized = FRotator.NormalizeAxis(angle);
-
                     Expect(normalized).ToBe(0.0f);
                 });
             });
@@ -141,7 +129,6 @@ namespace Tests
                 It("should normalize all axes within range", () =>
                 {
                     var rotator = new FRotator(45.0f, 90.0f, 135.0f);
-
                     rotator.Normalize();
 
                     Expect(rotator.Pitch).ToBe(45.0f);
@@ -152,7 +139,6 @@ namespace Tests
                 It("should normalize angles greater than 180", () =>
                 {
                     var rotator = new FRotator(270.0f, 450.0f, 540.0f);
-
                     rotator.Normalize();
 
                     Expect(rotator.Pitch).ToBe(-90.0f);
@@ -163,7 +149,6 @@ namespace Tests
                 It("should normalize negative angles", () =>
                 {
                     var rotator = new FRotator(-270.0f, -450.0f, -540.0f);
-
                     rotator.Normalize();
 
                     Expect(rotator.Pitch).ToBe(90.0f);
@@ -174,7 +159,6 @@ namespace Tests
                 It("should normalize zero rotator", () =>
                 {
                     var rotator = FRotator.Zero;
-
                     rotator.Normalize();
 
                     Expect(rotator.Pitch).ToBe(0.0f);
@@ -185,7 +169,6 @@ namespace Tests
                 It("should normalize mixed positive and negative angles", () =>
                 {
                     var rotator = new FRotator(270.0f, -270.0f, 450.0f);
-
                     rotator.Normalize();
 
                     Expect(rotator.Pitch).ToBe(-90.0f);
@@ -200,7 +183,6 @@ namespace Tests
                 {
                     var a = new FRotator(30.0f, 45.0f, 60.0f);
                     var b = new FRotator(15.0f, 30.0f, 45.0f);
-
                     var result = a + b;
 
                     Expect(result.Pitch).ToBe(45.0f);
@@ -212,7 +194,6 @@ namespace Tests
                 {
                     var a = new FRotator(60.0f, 90.0f, 120.0f);
                     var b = new FRotator(30.0f, 45.0f, 60.0f);
-
                     var result = a - b;
 
                     Expect(result.Pitch).ToBe(30.0f);
@@ -223,7 +204,6 @@ namespace Tests
                 It("should multiply rotator by scalar correctly", () =>
                 {
                     var rotator = new FRotator(30.0f, 45.0f, 60.0f);
-
                     var result = rotator * 2.0f;
 
                     Expect(result.Pitch).ToBe(60.0f);
@@ -234,7 +214,6 @@ namespace Tests
                 It("should divide rotator by scalar correctly", () =>
                 {
                     var rotator = new FRotator(90.0f, 180.0f, 270.0f);
-
                     var result = rotator / 2.0f;
 
                     Expect(result.Pitch).ToBe(45.0f);
@@ -245,7 +224,6 @@ namespace Tests
                 It("should handle negative scalar multiplication", () =>
                 {
                     var rotator = new FRotator(45.0f, 90.0f, 135.0f);
-
                     var result = rotator * -1.0f;
 
                     Expect(result.Pitch).ToBe(-45.0f);
@@ -256,7 +234,6 @@ namespace Tests
                 It("should handle fractional scalar operations", () =>
                 {
                     var rotator = new FRotator(60.0f, 90.0f, 120.0f);
-
                     var result = rotator * 0.5f;
 
                     Expect(result.Pitch).ToBe(30.0f);
@@ -292,7 +269,7 @@ namespace Tests
                     var a = new FRotator(45.0f, 90.0f, 135.0f);
                     var b = new FRotator(45.0000001f, 90.0f, 135.0f);
 
-                    Expect(a == b).ToBe(true); // Within tolerance
+                    Expect(a == b).ToBe(true);
                 });
 
                 It("should handle equality with zero rotator", () =>
@@ -441,9 +418,9 @@ namespace Tests
                     var result = a + b;
                     result.Normalize();
 
-                    Expect(result.Pitch).ToBe(0.0f);   // 270 + 90 = 360 -> 0
-                    Expect(result.Yaw).ToBe(-180.0f);  // -270 + 90 = -180 -> -180
-                    Expect(result.Roll).ToBe(180.0f);  // 450 + 90 = 540 -> 180
+                    Expect(result.Pitch).ToBe(0.0f);  
+                    Expect(result.Yaw).ToBe(-180.0f); 
+                    Expect(result.Roll).ToBe(180.0f);  
                 });
             });
         }
