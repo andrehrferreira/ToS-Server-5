@@ -256,13 +256,17 @@ public sealed class UDPServer
 
                             foreach (var kv in Clients)
                             {
-                                kv.Value.PingSentAt = DateTime.UtcNow;
+                                // Only send ping after crypto handshake is complete
+                                if (kv.Value.CryptoHandshakeComplete)
+                                {
+                                    kv.Value.PingSentAt = DateTime.UtcNow;
 
-                                kv.Value.Send(ref buffer, false);
+                                    kv.Value.Send(ref buffer, false);
 
-                                Interlocked.Increment(ref _packetsSent);
+                                    Interlocked.Increment(ref _packetsSent);
 
-                                Interlocked.Add(ref UDPServer._bytesSent, pingPacket.Size);
+                                    Interlocked.Add(ref UDPServer._bytesSent, pingPacket.Size);
+                                }
                             }
 
                             buffer.Free();
@@ -299,10 +303,16 @@ public sealed class UDPServer
                         {
                             foreach (var kv in Clients)
                             {
-                                if (kv.Value.TimeoutLeft <= 0)
+                                // More lenient timeout for connections still in handshake
+                                float timeoutThreshold = kv.Value.CryptoHandshakeComplete ? 0 : -30f;
+
+                                if (kv.Value.TimeoutLeft <= timeoutThreshold)
                                 {
                                     if (Clients.TryRemove(kv.Key, out var client))
                                     {
+#if DEBUG
+                                        ServerMonitor.Log($"Client timeout disconnected: {kv.Key}, handshake complete: {client.CryptoHandshakeComplete}");
+#endif
                                         client.OnDisconnect();
                                     }
                                 }
@@ -564,7 +574,7 @@ public sealed class UDPServer
 #endif
                             conn.ClientCryptoConfirmed = true;
 
-                            if (!conn.ServerCryptoConfirmed)
+                            if (!conn.ServerCryptoConfirmed && !conn.CryptoHandshakeComplete)
                             {
                                 conn.ServerTestValue = 0x1A2B3C4D;
                                 var testBuf = new FlatBuffer(5);
@@ -877,17 +887,18 @@ public sealed class UDPServer
                 !header.Flags.HasFlag(PacketHeaderFlags.AEAD_ChaCha20Poly1305))
                 return false;
 
-            int ciphertextLen = data.Position - PacketHeader.Size;
+            int payloadLen = data.Position - PacketHeader.Size;
 
-            if (ciphertextLen <= 16)
+            if (payloadLen <= 16)
                 return false;
 
-            var ciphertext = new ReadOnlySpan<byte>(data.Data + PacketHeader.Size, ciphertextLen);
+            var payload = new ReadOnlySpan<byte>(data.Data + PacketHeader.Size, payloadLen);
             var aad = header.GetAAD();
+            bool isCompressed = header.Flags.HasFlag(PacketHeaderFlags.Compressed);
 
-            Span<byte> plaintext = stackalloc byte[ciphertextLen - 16];
+            Span<byte> plaintext = stackalloc byte[payloadLen * 4]; // Extra space for decompression
 
-            if (!conn.Session.DecryptPayload(ciphertext, aad, header.Sequence, plaintext, out int plaintextLen))
+            if (!conn.Session.DecryptPayloadWithDecompression(payload, aad, header.Sequence, isCompressed, plaintext, out int plaintextLen))
             {
                 ServerMonitor.Log($"Failed to decrypt packet from {conn.RemoteAddress}");
                 return false;

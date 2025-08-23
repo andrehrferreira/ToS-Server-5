@@ -146,11 +146,19 @@ void UDPClient::Send(UFlatBuffer* buffer)
     if (bEncryptionEnabled && bIsConnected)
     {
         uint8 packetType = buffer->GetRawBuffer()[0];
-        if (!IsCryptoReady() && packetType != static_cast<uint8>(EPacketType::CryptoTest) && packetType != static_cast<uint8>(EPacketType::CryptoTestAck))
+
+        if (packetType == static_cast<uint8>(EPacketType::CryptoTest) || packetType == static_cast<uint8>(EPacketType::CryptoTestAck))
+        {
+            SendLegacy(buffer);
+            return;
+        }
+
+        if (!IsCryptoReady())
         {
             UE_LOG(LogTemp, Warning, TEXT("Blocked send before crypto handshake complete"));
             return;
         }
+
         SendEncrypted(buffer);
     }
     else
@@ -167,23 +175,28 @@ void UDPClient::SendEncrypted(UFlatBuffer* buffer)
 
     FPacketHeader Header;
     Header.ConnectionId = SecureSession.GetConnectionId();
-    Header.Channel = EPacketChannel::Unreliable; 
+    Header.Channel = EPacketChannel::Unreliable;
     Header.Flags = EPacketHeaderFlags::Encrypted | EPacketHeaderFlags::AEAD_ChaCha20Poly1305;
     Header.Sequence = SecureSession.GetSeqTx();
 
     TArray<uint8> AAD = Header.GetAAD();
-    TArray<uint8> Ciphertext;
+    TArray<uint8> Result;
+    bool bWasCompressed = false;
 
-    if (!SecureSession.EncryptPayload(Payload, AAD, Ciphertext))
+    if (!SecureSession.EncryptPayloadWithCompression(Payload, AAD, Result, bWasCompressed))
     {
         UE_LOG(LogTemp, Error, TEXT("Failed to encrypt payload"));
         return;
     }
 
+    if (bWasCompressed)
+        Header.Flags |= EPacketHeaderFlags::Compressed;
+
     TArray<uint8> FinalPacket;
-    FinalPacket.SetNumUninitialized(FPacketHeader::Size + Ciphertext.Num());
+    FinalPacket.SetNumUninitialized(FPacketHeader::Size + Result.Num());
+
     Header.Serialize(FinalPacket.GetData());
-    FMemory::Memcpy(FinalPacket.GetData() + FPacketHeader::Size, Ciphertext.GetData(), Ciphertext.Num());
+    FMemory::Memcpy(FinalPacket.GetData() + FPacketHeader::Size, Result.GetData(), Result.Num());
 
     uint32 Sign = FCRC32C::Compute(FinalPacket.GetData(), FinalPacket.Num());
     FinalPacket.Append(reinterpret_cast<uint8*>(&Sign), sizeof(uint32));
@@ -234,11 +247,35 @@ void UDPClient::PollIncomingPackets()
                 Buffer->CopyFromMemory(ReceivedData.GetData(), BytesRead);
                 Buffer->PrintBuffer(Buffer->GetRawBuffer(), BytesRead);
 
-                EPacketType PacketType = static_cast<EPacketType>(Buffer->ReadByte());
-                //FString PacketName = StaticEnum<EPacketType>()->GetNameStringByValue(static_cast<int64>(PacketType));
-                //UE_LOG(LogTemp, Warning, TEXT("UDPClient: Received %s (%d bytes)."), *PacketName, BytesRead);
+                // Check if this is an encrypted packet with new header format
+                bool bIsEncryptedPacket = false;
+                FPacketHeader Header;
 
-                switch(PacketType)
+                if (BytesRead >= FPacketHeader::Size)
+                {
+                    // Try to parse as new header format
+                    Header = FPacketHeader::Deserialize(Buffer->GetRawBuffer());
+
+                    if ((Header.Flags & EPacketHeaderFlags::Encrypted) != EPacketHeaderFlags::None &&
+                        (Header.Flags & EPacketHeaderFlags::AEAD_ChaCha20Poly1305) != EPacketHeaderFlags::None &&
+                        Header.ConnectionId == SecureSession.GetConnectionId())
+                    {
+                        bIsEncryptedPacket = true;
+                    }
+                }
+
+                if (bIsEncryptedPacket)
+                {
+                    ProcessEncryptedPacket(Buffer, BytesRead, Header);
+                }
+                else
+                {
+                    // Process as legacy packet
+                    EPacketType PacketType = static_cast<EPacketType>(Buffer->ReadByte());
+                    //FString PacketName = StaticEnum<EPacketType>()->GetNameStringByValue(static_cast<int64>(PacketType));
+                    //UE_LOG(LogTemp, Warning, TEXT("UDPClient: Received %s (%d bytes)."), *PacketName, BytesRead);
+
+                    switch(PacketType)
                 {
                     case EPacketType::Ping:
                     {
@@ -301,9 +338,15 @@ void UDPClient::PollIncomingPackets()
                             if (SecureSession.InitializeAsClient(ClientPrivateKey, ServerPublicKey, Salt, connectionID))
                             {
                                 bEncryptionEnabled = true;
+                                UE_LOG(LogTemp, Log, TEXT("Secure session initialized successfully for connection %u"), connectionID);
+
+                                // Reset crypto handshake state
+                                bClientCryptoConfirmed = false;
+                                bServerCryptoConfirmed = false;
+                                bHandshakeComplete = false;
 
                                 ClientTestValue = 0xA1B2C3D4;
-                                UFlatBuffer* TestBuffer = UFlatBuffer::CreateFlatBuffer(5);
+                                UFlatBuffer* TestBuffer = UFlatBuffer::CreateFlatBuffer(8);
                                 TestBuffer->WriteByte(static_cast<uint8>(EPacketType::CryptoTest));
                                 TestBuffer->WriteUInt32(ClientTestValue);
                                 Send(TestBuffer);
@@ -320,9 +363,16 @@ void UDPClient::PollIncomingPackets()
                     case EPacketType::CryptoTestAck:
                     {
                         uint32 value = Buffer->ReadUInt32();
-                        UE_LOG(LogTemp, Log, TEXT("Received CryptoTestAck %u"), value);
+                        UE_LOG(LogTemp, Log, TEXT("Received CryptoTestAck %u (expected %u)"), value, ClientTestValue);
                         if (value == ClientTestValue)
+                        {
                             bClientCryptoConfirmed = true;
+                            UE_LOG(LogTemp, Log, TEXT("Client crypto confirmed! ServerConfirmed=%s"), bServerCryptoConfirmed ? TEXT("true") : TEXT("false"));
+                        }
+                        else
+                        {
+                            UE_LOG(LogTemp, Error, TEXT("CryptoTestAck value mismatch! Expected %u, got %u"), ClientTestValue, value);
+                        }
                         if (IsCryptoReady() && !bHandshakeComplete)
                         {
                             bHandshakeComplete = true;
@@ -335,14 +385,15 @@ void UDPClient::PollIncomingPackets()
                     case EPacketType::CryptoTest:
                     {
                         uint32 value = Buffer->ReadUInt32();
-                        UE_LOG(LogTemp, Log, TEXT("Received CryptoTest %u"), value);
+                        UE_LOG(LogTemp, Log, TEXT("Received CryptoTest %u from server"), value);
                         ServerTestValue = value;
-                        UFlatBuffer* AckBuffer = UFlatBuffer::CreateFlatBuffer(5);
+                        UFlatBuffer* AckBuffer = UFlatBuffer::CreateFlatBuffer(8);
                         AckBuffer->WriteByte(static_cast<uint8>(EPacketType::CryptoTestAck));
                         AckBuffer->WriteUInt32(value);
                         Send(AckBuffer);
-                        UE_LOG(LogTemp, Log, TEXT("Sent CryptoTestAck %u"), value);
+                        UE_LOG(LogTemp, Log, TEXT("Sent CryptoTestAck %u to server"), value);
                         bServerCryptoConfirmed = true;
+                        UE_LOG(LogTemp, Log, TEXT("Server crypto confirmed! ClientConfirmed=%s"), bClientCryptoConfirmed ? TEXT("true") : TEXT("false"));
                         if (IsCryptoReady() && !bHandshakeComplete)
                         {
                             bHandshakeComplete = true;
@@ -363,7 +414,7 @@ void UDPClient::PollIncomingPackets()
                                 UE_LOG(LogTemp, Warning, TEXT("Cookie truncated: remaining=%d"), Remaining);
                                 return;
                             }
-                           
+
                             ServerCookie.SetNumUninitialized(48);
                             for (int32 i = 0; i < 48; ++i)
                                 ServerCookie[i] = Buffer->ReadByte();
@@ -373,7 +424,7 @@ void UDPClient::PollIncomingPackets()
                             TArray<uint8> ConnectWithCookie;
                             ConnectWithCookie.Add(static_cast<uint8>(EPacketType::Connect));
                             ConnectWithCookie.Append(ClientPublicKey.GetData(), ClientPublicKey.Num());
-                            ConnectWithCookie.Append(ServerCookie.GetData(), ServerCookie.Num());    
+                            ConnectWithCookie.Append(ServerCookie.GetData(), ServerCookie.Num());
 
                             int32 BytesSent = 0;
                             Socket->SendTo(ConnectWithCookie.GetData(), ConnectWithCookie.Num(), BytesSent, *RemoteEndpoint);
@@ -416,8 +467,64 @@ void UDPClient::PollIncomingPackets()
                     }
                     break;
                 }
+                } // End of else block for legacy packets
             }
         }
+    }
+}
+
+void UDPClient::ProcessEncryptedPacket(UFlatBuffer* Buffer, int32 BytesRead, const FPacketHeader& Header)
+{
+    try
+    {
+        // Verify this is our connection
+        if (Header.ConnectionId != SecureSession.GetConnectionId())
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Received packet for wrong connection ID"));
+            return;
+        }
+
+        // Check if handshake is complete
+        if (!IsCryptoReady())
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Dropping encrypted packet before crypto handshake complete"));
+            return;
+        }
+
+        // Extract payload (skip header)
+        int32 PayloadSize = BytesRead - FPacketHeader::Size - 4; // -4 for CRC32
+        if (PayloadSize <= 16) // ChaCha20Poly1305 adds 16 bytes
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Encrypted packet payload too small"));
+            return;
+        }
+
+        TArray<uint8> Payload;
+        Payload.SetNumUninitialized(PayloadSize);
+        FMemory::Memcpy(Payload.GetData(), Buffer->GetRawBuffer() + FPacketHeader::Size, PayloadSize);
+
+        TArray<uint8> AAD = Header.GetAAD();
+        bool bIsCompressed = (Header.Flags & EPacketHeaderFlags::Compressed) != EPacketHeaderFlags::None;
+        TArray<uint8> Plaintext;
+
+        if (!SecureSession.DecryptPayloadWithDecompression(Payload, AAD, Header.Sequence, bIsCompressed, Plaintext))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Failed to decrypt packet"));
+            return;
+        }
+
+        // Create new buffer with decrypted data
+        UFlatBuffer* DecryptedBuffer = UFlatBuffer::CreateFlatBuffer(Plaintext.Num() + 1);
+        DecryptedBuffer->WriteByte(static_cast<uint8>(Header.Channel)); // Add channel as first byte
+        DecryptedBuffer->CopyFromMemory(Plaintext.GetData(), Plaintext.Num());
+
+        // Handle the decrypted packet
+        if (OnDataReceive)
+            OnDataReceive(DecryptedBuffer);
+    }
+    catch (...)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Exception processing encrypted packet"));
     }
 }
 
@@ -488,6 +595,16 @@ bool UDPClient::Connect(const FString& Host, int32 Port)
     ClientPublicKey.SetNumUninitialized(32);
     ClientPrivateKey.SetNumUninitialized(32);
     crypto_box_keypair(ClientPublicKey.GetData(), ClientPrivateKey.GetData());
+
+    // Log client keys for debugging
+    FString PubKeyHex, PrivKeyHex;
+    for (int32 i = 0; i < 32; i++)
+    {
+        PubKeyHex += FString::Printf(TEXT("%02X"), ClientPublicKey[i]);
+        PrivKeyHex += FString::Printf(TEXT("%02X"), ClientPrivateKey[i]);
+    }
+    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Generated Client public key: %s"), *PubKeyHex);
+    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Generated Client private key: %s"), *PrivKeyHex);
 
     // Send initial connect packet (no cookie yet)
     TArray<uint8> Packet;

@@ -1,3 +1,5 @@
+#define DEBUG
+
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
@@ -101,7 +103,7 @@ class Program
                 SendBufferSize = 512 * 1024,
             });
 
-            ServerMonitor.Start();
+            //ServerMonitor.Start();
         });
 
         while (true)

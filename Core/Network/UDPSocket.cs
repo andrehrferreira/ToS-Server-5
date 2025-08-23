@@ -185,27 +185,27 @@ public class UDPSocket
             Sequence = Session.SeqTx
         };
 
-        int totalSize = PacketHeader.Size + payload.Position + 16;
-        var packet = new FlatBuffer(totalSize);
-
-        unsafe
-        {
-            byte[] headerBytes = new byte[PacketHeader.Size];
-            fixed (byte* headerPtr = headerBytes)
-            {
-                header.Serialize(headerPtr);
-            }
-            packet.WriteBytes(headerBytes);
-        }
-
         var aad = header.GetAAD();
-        Span<byte> ciphertext = stackalloc byte[payload.Position + 16];
+        Span<byte> result = stackalloc byte[payload.Position + 1024]; // Extra space for compression overhead
 
         unsafe
         {
-            if (Session.EncryptPayload(new ReadOnlySpan<byte>(payload.Data, payload.Position), aad, ciphertext, out int ciphertextLen))
+            if (Session.EncryptPayloadWithCompression(new ReadOnlySpan<byte>(payload.Data, payload.Position), aad, result, out int resultLen, out bool wasCompressed))
             {
-                packet.WriteBytes(ciphertext.Slice(0, ciphertextLen).ToArray());
+                if (wasCompressed)
+                    header.Flags |= PacketHeaderFlags.Compressed;
+
+                int totalSize = PacketHeader.Size + resultLen;
+                var packet = new FlatBuffer(totalSize);
+
+                // Serialize updated header with compression flag
+                byte[] headerBytes = new byte[PacketHeader.Size];
+                fixed (byte* headerPtr = headerBytes)
+                {
+                    header.Serialize(headerPtr);
+                }
+                packet.WriteBytes(headerBytes);
+                packet.WriteBytes(result.Slice(0, resultLen).ToArray());
 
                 if (reliable)
                 {
@@ -217,11 +217,11 @@ public class UDPSocket
                 }
 
                 UDPServer.Send(ref packet, packet.Position, this, !reliable);
+                if (!reliable) packet.Free();
             }
         }
 
         payload.Free();
-        if (!reliable) packet.Free();
     }
 
     private void SendLegacy(INetworkPacket networkPacket, bool reliable)

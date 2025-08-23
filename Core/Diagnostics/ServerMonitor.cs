@@ -16,6 +16,8 @@ public static class ServerMonitor
     {
         Console.Clear();
 
+        _logs = new List<string>();
+
         if (_running)
             return;
 
@@ -24,8 +26,8 @@ public static class ServerMonitor
         _lastCheck = DateTime.UtcNow;
 
         var cpuMemTable = new Table().NoBorder().Expand();
-        cpuMemTable.AddColumn(new TableColumn("[u]Usage[/]").LeftAligned());
-        cpuMemTable.AddColumn(new TableColumn("[u]Graph[/]").LeftAligned());
+        cpuMemTable.AddColumn(new TableColumn("").LeftAligned());
+        cpuMemTable.AddColumn(new TableColumn("").LeftAligned());
 
         var metricsTable = new Table().NoBorder().Expand();
         metricsTable.AddColumn(new TableColumn("[u]Metric[/]").LeftAligned());
@@ -62,9 +64,18 @@ public static class ServerMonitor
 
     public static void Log(string message)
     {
+        string formattedMessage = $"[{DateTime.Now:HH:mm:ss}] {message}";
+
+        // Always write to console for debugging when ServerMonitor UI is not running
+        if (!_running)
+        {
+            Console.WriteLine(formattedMessage);
+        }
+
         lock (_logLock)
         {
-            _logs.Add($"[{DateTime.Now:HH:mm:ss}] {message}");
+            _logs.Add(formattedMessage);
+
             if (_logs.Count > 10)
                 _logs.RemoveAt(0);
         }
@@ -106,10 +117,8 @@ public static class ServerMonitor
         table.AddRow("Packets Tx/Rx", $"{packetsSent} / {packetsReceived}");
         table.AddRow("Traffic Tx/Rx", $"{bytesSent / 1024} KB / {bytesReceived / 1024} KB");
         table.AddRow("Tick Rate", tickRate.ToString());
-        table.AddRow("Managed Memory", $"{managed / (1024 * 1024)} MB");
-        table.AddRow("Private Memory", $"{privateBytes / (1024 * 1024)} MB");
+        table.AddRow("Memory (Managed/Private)", $"{managed / (1024 * 1024)} MB / {privateBytes / (1024 * 1024)} MB");
         table.AddRow("GC Collections", $"{GC.CollectionCount(0)} / {GC.CollectionCount(1)} / {GC.CollectionCount(2)}");
-        table.AddRow("Queue Sending Count", UDPServer._sendQueueCount.ToString());
     }
 
     private static void UpdateLogs(Table table)

@@ -99,6 +99,7 @@ public:
     void SendEncrypted(UFlatBuffer* buffer);
     void SendLegacy(UFlatBuffer* buffer);
     void PollIncomingPackets();
+    void ProcessEncryptedPacket(UFlatBuffer* Buffer, int32 BytesRead, const FPacketHeader& Header);
     void SetConnectTimeout(float Seconds) { ConnectTimeout = Seconds; }
     void SetRetryInterval(float Seconds) { RetryInterval = Seconds; }
     void SetRetryEnabled(bool bEnabled) { bRetryEnabled = bEnabled; }

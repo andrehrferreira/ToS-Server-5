@@ -15,7 +15,8 @@ public enum PacketHeaderFlags : byte
     Encrypted = 1 << 0,
     AEAD_ChaCha20Poly1305 = 1 << 1,
     Rekey = 1 << 2,
-    Fragment = 1 << 3
+    Fragment = 1 << 3,
+    Compressed = 1 << 4
 }
 
 public enum PacketChannel : byte
