@@ -146,11 +146,19 @@ void UDPClient::Send(UFlatBuffer* buffer)
     if (bEncryptionEnabled && bIsConnected)
     {
         uint8 packetType = buffer->GetRawBuffer()[0];
-        if (!IsCryptoReady() && packetType != static_cast<uint8>(EPacketType::CryptoTest) && packetType != static_cast<uint8>(EPacketType::CryptoTestAck))
+
+        if (packetType == static_cast<uint8>(EPacketType::CryptoTest) || packetType == static_cast<uint8>(EPacketType::CryptoTestAck))
+        {
+            SendLegacy(buffer);
+            return;
+        }
+
+        if (!IsCryptoReady())
         {
             UE_LOG(LogTemp, Warning, TEXT("Blocked send before crypto handshake complete"));
             return;
         }
+
         SendEncrypted(buffer);
     }
     else
@@ -187,7 +195,6 @@ void UDPClient::SendEncrypted(UFlatBuffer* buffer)
     TArray<uint8> FinalPacket;
     FinalPacket.SetNumUninitialized(FPacketHeader::Size + Result.Num());
 
-    // Serialize updated header with compression flag
     Header.Serialize(FinalPacket.GetData());
     FMemory::Memcpy(FinalPacket.GetData() + FPacketHeader::Size, Result.GetData(), Result.Num());
 
@@ -331,9 +338,15 @@ void UDPClient::PollIncomingPackets()
                             if (SecureSession.InitializeAsClient(ClientPrivateKey, ServerPublicKey, Salt, connectionID))
                             {
                                 bEncryptionEnabled = true;
+                                UE_LOG(LogTemp, Log, TEXT("Secure session initialized successfully for connection %u"), connectionID);
+
+                                // Reset crypto handshake state
+                                bClientCryptoConfirmed = false;
+                                bServerCryptoConfirmed = false;
+                                bHandshakeComplete = false;
 
                                 ClientTestValue = 0xA1B2C3D4;
-                                UFlatBuffer* TestBuffer = UFlatBuffer::CreateFlatBuffer(5);
+                                UFlatBuffer* TestBuffer = UFlatBuffer::CreateFlatBuffer(8);
                                 TestBuffer->WriteByte(static_cast<uint8>(EPacketType::CryptoTest));
                                 TestBuffer->WriteUInt32(ClientTestValue);
                                 Send(TestBuffer);
@@ -350,9 +363,16 @@ void UDPClient::PollIncomingPackets()
                     case EPacketType::CryptoTestAck:
                     {
                         uint32 value = Buffer->ReadUInt32();
-                        UE_LOG(LogTemp, Log, TEXT("Received CryptoTestAck %u"), value);
+                        UE_LOG(LogTemp, Log, TEXT("Received CryptoTestAck %u (expected %u)"), value, ClientTestValue);
                         if (value == ClientTestValue)
+                        {
                             bClientCryptoConfirmed = true;
+                            UE_LOG(LogTemp, Log, TEXT("Client crypto confirmed! ServerConfirmed=%s"), bServerCryptoConfirmed ? TEXT("true") : TEXT("false"));
+                        }
+                        else
+                        {
+                            UE_LOG(LogTemp, Error, TEXT("CryptoTestAck value mismatch! Expected %u, got %u"), ClientTestValue, value);
+                        }
                         if (IsCryptoReady() && !bHandshakeComplete)
                         {
                             bHandshakeComplete = true;
@@ -365,14 +385,15 @@ void UDPClient::PollIncomingPackets()
                     case EPacketType::CryptoTest:
                     {
                         uint32 value = Buffer->ReadUInt32();
-                        UE_LOG(LogTemp, Log, TEXT("Received CryptoTest %u"), value);
+                        UE_LOG(LogTemp, Log, TEXT("Received CryptoTest %u from server"), value);
                         ServerTestValue = value;
-                        UFlatBuffer* AckBuffer = UFlatBuffer::CreateFlatBuffer(5);
+                        UFlatBuffer* AckBuffer = UFlatBuffer::CreateFlatBuffer(8);
                         AckBuffer->WriteByte(static_cast<uint8>(EPacketType::CryptoTestAck));
                         AckBuffer->WriteUInt32(value);
                         Send(AckBuffer);
-                        UE_LOG(LogTemp, Log, TEXT("Sent CryptoTestAck %u"), value);
+                        UE_LOG(LogTemp, Log, TEXT("Sent CryptoTestAck %u to server"), value);
                         bServerCryptoConfirmed = true;
+                        UE_LOG(LogTemp, Log, TEXT("Server crypto confirmed! ClientConfirmed=%s"), bClientCryptoConfirmed ? TEXT("true") : TEXT("false"));
                         if (IsCryptoReady() && !bHandshakeComplete)
                         {
                             bHandshakeComplete = true;
@@ -574,6 +595,16 @@ bool UDPClient::Connect(const FString& Host, int32 Port)
     ClientPublicKey.SetNumUninitialized(32);
     ClientPrivateKey.SetNumUninitialized(32);
     crypto_box_keypair(ClientPublicKey.GetData(), ClientPrivateKey.GetData());
+
+    // Log client keys for debugging
+    FString PubKeyHex, PrivKeyHex;
+    for (int32 i = 0; i < 32; i++)
+    {
+        PubKeyHex += FString::Printf(TEXT("%02X"), ClientPublicKey[i]);
+        PrivKeyHex += FString::Printf(TEXT("%02X"), ClientPrivateKey[i]);
+    }
+    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Generated Client public key: %s"), *PubKeyHex);
+    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Generated Client private key: %s"), *PrivKeyHex);
 
     // Send initial connect packet (no cookie yet)
     TArray<uint8> Packet;

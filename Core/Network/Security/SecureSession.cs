@@ -6,23 +6,44 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Crypto.Modes;
+using Org.BouncyCastle.Crypto.Macs;
 
 public unsafe struct SecureSession
 {
     private static readonly byte[] Info = System.Text.Encoding.ASCII.GetBytes("ToS-UE5 v1");
 
-    public fixed byte TxKey[32];    // Server->Client key
-    public fixed byte RxKey[32];    // Client->Server key
+    public fixed byte TxKey[32];  
+    public fixed byte RxKey[32];   
     public fixed byte SessionSalt[16];
     public ulong SeqTx;
     public ulong SeqRx;
     public uint ConnectionId;
 
-    // Replay protection - sliding window (64 positions)
+    public readonly string GetTxKeyHex()
+    {
+        unsafe
+        {
+            fixed (byte* ptr = TxKey)
+            {
+                return Convert.ToHexString(new ReadOnlySpan<byte>(ptr, 32));
+            }
+        }
+    }
+
+    public readonly string GetRxKeyHex()
+    {
+        unsafe
+        {
+            fixed (byte* ptr = RxKey)
+            {
+                return Convert.ToHexString(new ReadOnlySpan<byte>(ptr, 32));
+            }
+        }
+    }
+
     private ulong _replayWindow;
     private ulong _highestSeqReceived;
 
-    // Rekey tracking
     public ulong BytesTransmitted;
     public DateTime SessionStartTime;
 
@@ -36,6 +57,8 @@ public unsafe struct SecureSession
         var serverPriv = new X25519PrivateKeyParameters(rng);
         var serverPub = serverPriv.GeneratePublicKey().GetEncoded();
 
+
+
         var clientPub = new X25519PublicKeyParameters(clientPublicKey);
         var agreement = new X25519Agreement();
         agreement.Init(serverPriv);
@@ -45,15 +68,14 @@ public unsafe struct SecureSession
         var salt = new byte[16];
         rng.NextBytes(salt);
 
-        // Derive 64 bytes: 32 for TxKey (S->C), 32 for RxKey (C->S)
         Span<byte> okm = stackalloc byte[64];
         var hkdf = new HkdfBytesGenerator(new Sha256Digest());
         hkdf.Init(new HkdfParameters(sharedSecret, salt, Info));
         hkdf.GenerateBytes(okm);
 
         SecureSession sess = default;
-        okm.Slice(0, 32).CopyTo(new Span<byte>(sess.TxKey, 32));    // Server->Client
-        okm.Slice(32, 32).CopyTo(new Span<byte>(sess.RxKey, 32));   // Client->Server
+        okm.Slice(0, 32).CopyTo(new Span<byte>(sess.TxKey, 32));   
+        okm.Slice(32, 32).CopyTo(new Span<byte>(sess.RxKey, 32));   
         salt.CopyTo(new Span<byte>(sess.SessionSalt, 16));
         sess.SeqTx = 0;
         sess.SeqRx = 0;
@@ -94,7 +116,6 @@ public unsafe struct SecureSession
         return sess;
     }
 
-    // Generate 12-byte nonce: conn_id (4B LE) || seq (8B LE)
     public void GenerateNonce(ulong sequence, Span<byte> nonce)
     {
         if (nonce.Length < 12)
@@ -104,7 +125,6 @@ public unsafe struct SecureSession
         BinaryPrimitives.WriteUInt64LittleEndian(nonce.Slice(4), sequence);
     }
 
-        // Encrypt payload with AEAD ChaCha20-Poly1305 and optional LZ4 compression
     public bool EncryptPayload(ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> aad, Span<byte> ciphertext, out int ciphertextLength)
     {
         try
@@ -127,18 +147,24 @@ public unsafe struct SecureSession
                 }
             }
 
+#if DEBUG
+            ServerMonitor.Log($"[CRYPTO] Encrypt - Ciphertext ({ciphertextLength} bytes): {Convert.ToHexString(ciphertext.Slice(0, ciphertextLength))}");
+#endif
+
             SeqTx++;
             BytesTransmitted += (ulong)ciphertextLength;
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+#if DEBUG
+            ServerMonitor.Log($"[CRYPTO] Encrypt failed: {ex.Message}");
+#endif
             ciphertextLength = 0;
             return false;
         }
     }
 
-    // Encrypt with optional compression (new method)
     public bool EncryptPayloadWithCompression(ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> aad, Span<byte> result, out int resultLength, out bool wasCompressed)
     {
         try
@@ -146,12 +172,10 @@ public unsafe struct SecureSession
             wasCompressed = false;
             resultLength = 0;
 
-            // First encrypt the payload
-            Span<byte> encrypted = stackalloc byte[plaintext.Length + 16]; // ChaCha20Poly1305 adds 16 bytes
+            Span<byte> encrypted = stackalloc byte[plaintext.Length + 16]; 
             if (!EncryptPayload(plaintext, aad, encrypted, out int encryptedLength))
                 return false;
 
-            // Check if we should compress (only if encrypted payload > 512 bytes)
             if (encryptedLength > 512)
             {
                 unsafe
@@ -170,7 +194,6 @@ public unsafe struct SecureSession
                 }
             }
 
-            // If compression failed or wasn't beneficial, use original encrypted data
             if (encryptedLength <= result.Length)
             {
                 encrypted.Slice(0, encryptedLength).CopyTo(result);
@@ -188,14 +211,15 @@ public unsafe struct SecureSession
         }
     }
 
-        // Decrypt payload with AEAD ChaCha20-Poly1305 and replay protection
     public bool DecryptPayload(ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> aad, ulong sequence, Span<byte> plaintext, out int plaintextLength)
     {
         try
         {
-            // Check for replay attack
             if (!IsSequenceValid(sequence))
             {
+#if DEBUG
+                ServerMonitor.Log($"[CRYPTO] Decrypt - Replay attack detected! Sequence: {sequence}");
+#endif
                 plaintextLength = 0;
                 return false;
             }
@@ -219,18 +243,19 @@ public unsafe struct SecureSession
                 }
             }
 
-            // Update replay protection window
             UpdateReplayWindow(sequence);
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+#if DEBUG
+            ServerMonitor.Log($"[CRYPTO] Decrypt failed: {ex.Message}");
+#endif
             plaintextLength = 0;
             return false;
         }
     }
 
-    // Decrypt with optional decompression (new method)
     public bool DecryptPayloadWithDecompression(ReadOnlySpan<byte> data, ReadOnlySpan<byte> aad, ulong sequence, bool isCompressed, Span<byte> plaintext, out int plaintextLength)
     {
         try
@@ -239,8 +264,7 @@ public unsafe struct SecureSession
 
             if (isCompressed)
             {
-                // First decompress LZ4, then decrypt
-                Span<byte> decompressed = stackalloc byte[data.Length * 4]; // Assume max 4x expansion
+                Span<byte> decompressed = stackalloc byte[data.Length * 4]; 
 
                 unsafe
                 {
@@ -257,7 +281,6 @@ public unsafe struct SecureSession
             }
             else
             {
-                // Direct decryption without decompression
                 return DecryptPayload(data, aad, sequence, plaintext, out plaintextLength);
             }
         }
@@ -268,18 +291,14 @@ public unsafe struct SecureSession
         }
     }
 
-    // Replay protection with sliding window
     private bool IsSequenceValid(ulong sequence)
     {
-        // Accept if sequence is higher than any we've seen
         if (sequence > _highestSeqReceived)
             return true;
 
-        // Reject if too old (outside window)
         if (sequence + ReplayWindowSize <= _highestSeqReceived)
             return false;
 
-        // Check if we've already seen this sequence number
         ulong diff = _highestSeqReceived - sequence;
         if (diff < ReplayWindowSize)
         {
@@ -294,11 +313,10 @@ public unsafe struct SecureSession
     {
         if (sequence > _highestSeqReceived)
         {
-            // Shift window forward
             ulong shift = sequence - _highestSeqReceived;
             if (shift >= ReplayWindowSize)
             {
-                _replayWindow = 1; // Only the current bit set
+                _replayWindow = 1; 
             }
             else
             {
@@ -308,7 +326,6 @@ public unsafe struct SecureSession
         }
         else
         {
-            // Mark this sequence as seen
             ulong diff = _highestSeqReceived - sequence;
             if (diff < ReplayWindowSize)
             {
@@ -318,24 +335,20 @@ public unsafe struct SecureSession
         }
     }
 
-    // Check if rekey is needed based on bytes transmitted or time elapsed
     public bool ShouldRekey()
     {
         return BytesTransmitted >= RekeyBytesThreshold ||
                (DateTime.UtcNow - SessionStartTime) >= RekeyTimeThreshold;
     }
 
-    // Perform rekey operation - derive new keys from current session
     public bool PerformRekey()
     {
         try
         {
-            // Create rekey context: "rekey" || old_seq_max
             var rekeyContext = new List<byte>();
             rekeyContext.AddRange(Encoding.ASCII.GetBytes("rekey"));
             rekeyContext.AddRange(BitConverter.GetBytes(Math.Max(SeqTx, SeqRx)));
 
-                        // Derive new keys using HKDF with current session salt and rekey context
             Span<byte> okm = stackalloc byte[64];
             var hkdf = new HkdfBytesGenerator(new Sha256Digest());
 
@@ -346,7 +359,6 @@ public unsafe struct SecureSession
                     hkdf.Init(new HkdfParameters(new ReadOnlySpan<byte>(saltPtr, 16).ToArray(), null, rekeyContext.ToArray()));
                     hkdf.GenerateBytes(okm);
 
-                    // Update keys
                     fixed (byte* txKeyPtr = TxKey)
                     fixed (byte* rxKeyPtr = RxKey)
                     {
@@ -356,11 +368,9 @@ public unsafe struct SecureSession
                 }
             }
 
-            // Reset counters
             BytesTransmitted = 0;
             SessionStartTime = DateTime.UtcNow;
 
-            // Reset sequence numbers to prevent confusion
             SeqTx = 0;
             SeqRx = 0;
             _replayWindow = 0;

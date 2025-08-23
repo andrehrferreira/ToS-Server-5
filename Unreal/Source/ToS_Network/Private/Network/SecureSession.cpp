@@ -2,6 +2,19 @@
 #include "Utils/LZ4.h"
 #include "HAL/UnrealMemory.h"
 
+static FString BytesToHexString(const TArray<uint8>& Bytes)
+{
+    FString Result;
+    Result.Reserve(Bytes.Num() * 2);
+
+    for (uint8 Byte : Bytes)
+    {
+        Result += FString::Printf(TEXT("%02X"), Byte);
+    }
+
+    return Result;
+}
+
 void FPacketHeader::Serialize(uint8* Buffer) const
 {
     FMemory::Memcpy(Buffer, &ConnectionId, 4);
@@ -34,25 +47,38 @@ bool FSecureSession::InitializeAsClient(const TArray<uint8>& ClientPrivateKey, c
     if (ClientPrivateKey.Num() != 32 || ServerPublicKey.Num() != 32 || Salt.Num() != 16)
         return false;
 
-    // Perform X25519 key agreement
+
+
     uint8 SharedSecret[32];
     if (crypto_scalarmult_curve25519(SharedSecret, ClientPrivateKey.GetData(), ServerPublicKey.GetData()) != 0)
         return false;
 
-        // Use HKDF-like derivation with libsodium KDF
-    // Since libsodium doesn't have direct HKDF, we'll use crypto_kdf_derive_from_key
-    uint8 MasterKey[32];
-    crypto_generichash(MasterKey, 32, SharedSecret, 32, Salt.GetData(), 16);
+    uint8 PRK[32];
+    crypto_auth_hmacsha256_state state;
+    crypto_auth_hmacsha256_init(&state, Salt.GetData(), 16);
+    crypto_auth_hmacsha256_update(&state, SharedSecret, 32);
+    crypto_auth_hmacsha256_final(&state, PRK);
 
-    // Derive TX key (Client->Server)
-    if (crypto_kdf_derive_from_key(TxKey, 32, 1, "ToS-UE5v", MasterKey) != 0)
-        return false;
+    const char* Info = "ToS-UE5 v1";
+    uint8 OKM[64];
+    uint8 T[32];
 
-        // Derive RX key (Server->Client)
-    if (crypto_kdf_derive_from_key(RxKey, 32, 2, "ToS-UE5v", MasterKey) != 0)
-        return false;
+    crypto_auth_hmacsha256_init(&state, PRK, 32);
+    crypto_auth_hmacsha256_update(&state, (const uint8*)Info, strlen(Info));
+    crypto_auth_hmacsha256_update(&state, (const uint8*)"\x01", 1);
+    crypto_auth_hmacsha256_final(&state, T);
+    FMemory::Memcpy(OKM, T, 32);
 
-    // Copy session salt
+    crypto_auth_hmacsha256_init(&state, PRK, 32);
+    crypto_auth_hmacsha256_update(&state, T, 32);
+    crypto_auth_hmacsha256_update(&state, (const uint8*)Info, strlen(Info));
+    crypto_auth_hmacsha256_update(&state, (const uint8*)"\x02", 1);
+    crypto_auth_hmacsha256_final(&state, T);
+    FMemory::Memcpy(OKM + 32, T, 32);
+
+    FMemory::Memcpy(TxKey, OKM + 32, 32);
+    FMemory::Memcpy(RxKey, OKM, 32);
+
     FMemory::Memcpy(SessionSalt, Salt.GetData(), 16);
 
     ConnectionId = InConnectionId;
@@ -76,6 +102,8 @@ bool FSecureSession::EncryptPayload(const TArray<uint8>& Plaintext, const TArray
     TArray<uint8> Nonce;
     GenerateNonce(SeqTx, Nonce);
 
+
+
     Ciphertext.SetNumUninitialized(Plaintext.Num() + crypto_aead_chacha20poly1305_ietf_ABYTES);
 
     unsigned long long CiphertextLen;
@@ -88,9 +116,13 @@ bool FSecureSession::EncryptPayload(const TArray<uint8>& Plaintext, const TArray
     );
 
     if (Result != 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CRYPTO] Encrypt failed with result: %d"), Result);
         return false;
+    }
 
     Ciphertext.SetNum(CiphertextLen);
+
     SeqTx++;
     return true;
 }
@@ -99,22 +131,20 @@ bool FSecureSession::EncryptPayloadWithCompression(const TArray<uint8>& Plaintex
 {
     bWasCompressed = false;
 
-    // First encrypt the payload
     TArray<uint8> Encrypted;
+
     if (!EncryptPayload(Plaintext, AAD, Encrypted))
         return false;
 
-    // Check if we should compress (only if encrypted payload > 512 bytes)
     if (Encrypted.Num() > 512)
     {
         TArray<uint8> Compressed;
-        Compressed.SetNumUninitialized(Encrypted.Num() + 1024); // Extra space for potential expansion
+        Compressed.SetNumUninitialized(Encrypted.Num() + 1024);
 
         int32 CompressedLength = FLZ4::Compress(Encrypted.GetData(), Encrypted.Num(), Compressed.GetData(), Compressed.Num());
 
         if (CompressedLength > 0 && CompressedLength < Encrypted.Num())
         {
-            // Compression was beneficial
             bWasCompressed = true;
             Result.SetNumUninitialized(CompressedLength);
             FMemory::Memcpy(Result.GetData(), Compressed.GetData(), CompressedLength);
@@ -122,21 +152,28 @@ bool FSecureSession::EncryptPayloadWithCompression(const TArray<uint8>& Plaintex
         }
     }
 
-    // If compression failed or wasn't beneficial, use original encrypted data
     Result = MoveTemp(Encrypted);
     return true;
 }
 
 bool FSecureSession::DecryptPayload(const TArray<uint8>& Ciphertext, const TArray<uint8>& AAD, uint64 Sequence, TArray<uint8>& Plaintext)
 {
-    // Check for replay attack
     if (!IsSequenceValid(Sequence))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[CRYPTO] Decrypt - Replay attack detected! Sequence: %llu"), Sequence);
         return false;
+    }
 
     TArray<uint8> Nonce;
     Nonce.SetNumUninitialized(12);
     FMemory::Memcpy(Nonce.GetData(), &ConnectionId, 4);
     FMemory::Memcpy(Nonce.GetData() + 4, &Sequence, 8);
+
+    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Decrypt - Sequence: %llu"), Sequence);
+    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Decrypt - Nonce: %s"), *BytesToHexString(Nonce));
+    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Decrypt - RxKey: %s"), *BytesToHexString(TArray<uint8>(RxKey, 32)));
+    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Decrypt - AAD: %s"), *BytesToHexString(AAD));
+    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Decrypt - Ciphertext (%d bytes): %s"), Ciphertext.Num(), *BytesToHexString(Ciphertext));
 
     Plaintext.SetNumUninitialized(Ciphertext.Num() - crypto_aead_chacha20poly1305_ietf_ABYTES);
 
@@ -150,9 +187,14 @@ bool FSecureSession::DecryptPayload(const TArray<uint8>& Ciphertext, const TArra
     );
 
     if (Result != 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CRYPTO] Decrypt failed with result: %d"), Result);
         return false;
+    }
 
     Plaintext.SetNum(PlaintextLen);
+    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Decrypt - Plaintext (%llu bytes): %s"), PlaintextLen, *BytesToHexString(Plaintext));
+
     UpdateReplayWindow(Sequence);
     return true;
 }
@@ -161,9 +203,8 @@ bool FSecureSession::DecryptPayloadWithDecompression(const TArray<uint8>& Data, 
 {
     if (bIsCompressed)
     {
-        // First decompress LZ4, then decrypt
         TArray<uint8> Decompressed;
-        Decompressed.SetNumUninitialized(Data.Num() * 4); // Assume max 4x expansion
+        Decompressed.SetNumUninitialized(Data.Num() * 4);
 
         int32 DecompressedLength = FLZ4::Decompress(Data.GetData(), Data.Num(), Decompressed.GetData(), Decompressed.Num());
         if (DecompressedLength <= 0)
@@ -174,23 +215,20 @@ bool FSecureSession::DecryptPayloadWithDecompression(const TArray<uint8>& Data, 
     }
     else
     {
-        // Direct decryption without decompression
         return DecryptPayload(Data, AAD, Sequence, Plaintext);
     }
 }
 
 bool FSecureSession::IsSequenceValid(uint64 Sequence) const
 {
-    // Accept if sequence is higher than any we've seen
     if (Sequence > HighestSeqReceived)
         return true;
 
-    // Reject if too old (outside window)
     if (Sequence + ReplayWindowSize <= HighestSeqReceived)
         return false;
 
-    // Check if we've already seen this sequence number
     uint64 Diff = HighestSeqReceived - Sequence;
+
     if (Diff < ReplayWindowSize)
     {
         uint64 Mask = 1ULL << Diff;
@@ -204,22 +242,23 @@ void FSecureSession::UpdateReplayWindow(uint64 Sequence)
 {
     if (Sequence > HighestSeqReceived)
     {
-        // Shift window forward
         uint64 Shift = Sequence - HighestSeqReceived;
+
         if (Shift >= ReplayWindowSize)
         {
-            ReplayWindow = 1; // Only the current bit set
+            ReplayWindow = 1;
         }
         else
         {
             ReplayWindow = (ReplayWindow << Shift) | 1;
         }
+
         HighestSeqReceived = Sequence;
     }
     else
     {
-        // Mark this sequence as seen
         uint64 Diff = HighestSeqReceived - Sequence;
+
         if (Diff < ReplayWindowSize)
         {
             uint64 Mask = 1ULL << Diff;
