@@ -12,8 +12,8 @@ public unsafe struct SecureSession
 {
     private static readonly byte[] Info = System.Text.Encoding.ASCII.GetBytes("ToS-UE5 v1");
 
-    public fixed byte TxKey[32];  
-    public fixed byte RxKey[32];   
+    public fixed byte TxKey[32];
+    public fixed byte RxKey[32];
     public fixed byte SessionSalt[16];
     public ulong SeqTx;
     public ulong SeqRx;
@@ -74,8 +74,8 @@ public unsafe struct SecureSession
         hkdf.GenerateBytes(okm);
 
         SecureSession sess = default;
-        okm.Slice(0, 32).CopyTo(new Span<byte>(sess.TxKey, 32));   
-        okm.Slice(32, 32).CopyTo(new Span<byte>(sess.RxKey, 32));   
+        okm.Slice(0, 32).CopyTo(new Span<byte>(sess.TxKey, 32));
+        okm.Slice(32, 32).CopyTo(new Span<byte>(sess.RxKey, 32));
         salt.CopyTo(new Span<byte>(sess.SessionSalt, 16));
         sess.SeqTx = 0;
         sess.SeqRx = 0;
@@ -147,9 +147,7 @@ public unsafe struct SecureSession
                 }
             }
 
-#if DEBUG
-            ServerMonitor.Log($"[CRYPTO] Encrypt - Ciphertext ({ciphertextLength} bytes): {Convert.ToHexString(ciphertext.Slice(0, ciphertextLength))}");
-#endif
+
 
             SeqTx++;
             BytesTransmitted += (ulong)ciphertextLength;
@@ -172,7 +170,7 @@ public unsafe struct SecureSession
             wasCompressed = false;
             resultLength = 0;
 
-            Span<byte> encrypted = stackalloc byte[plaintext.Length + 16]; 
+            Span<byte> encrypted = stackalloc byte[plaintext.Length + 16];
             if (!EncryptPayload(plaintext, aad, encrypted, out int encryptedLength))
                 return false;
 
@@ -211,10 +209,124 @@ public unsafe struct SecureSession
         }
     }
 
+    public bool EncryptPayloadWithSpecificSequence(ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> aad, ulong sequence, Span<byte> ciphertext, out int ciphertextLength)
+    {
+        try
+        {
+            // Use specific sequence for nonce generation
+            Span<byte> nonce = stackalloc byte[12];
+            BinaryPrimitives.WriteUInt32LittleEndian(nonce, ConnectionId);
+            BinaryPrimitives.WriteUInt64LittleEndian(nonce.Slice(4), sequence);
+
+            var cipher = new ChaCha20Poly1305();
+
+            unsafe
+            {
+                fixed (byte* txKeyPtr = TxKey)
+                {
+                    var keyParam = new KeyParameter(new ReadOnlySpan<byte>(txKeyPtr, 32).ToArray());
+                    var parameters = new AeadParameters(keyParam, 128, nonce.ToArray(), aad.ToArray());
+
+                    cipher.Init(true, parameters);
+                    ciphertextLength = cipher.ProcessBytes(plaintext.ToArray(), 0, plaintext.Length, ciphertext.ToArray(), 0);
+                    ciphertextLength += cipher.DoFinal(ciphertext.Slice(ciphertextLength).ToArray(), 0);
+                }
+            }
+
+            // Increment SeqTx to keep crypto sequence in sync
+            SeqTx++;
+            BytesTransmitted += (ulong)ciphertextLength;
+            return true;
+        }
+        catch (Exception ex)
+        {
+#if DEBUG
+            ServerMonitor.Log($"[CRYPTO] Encrypt failed: {ex.Message}");
+#endif
+            ciphertextLength = 0;
+            return false;
+        }
+    }
+
+    public bool EncryptPayloadWithSequence(ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> aad, ulong sequence, Span<byte> result, out int resultLength, out bool wasCompressed)
+    {
+        try
+        {
+            wasCompressed = false;
+            resultLength = 0;
+
+            // Use specific sequence for nonce generation
+            Span<byte> nonce = stackalloc byte[12];
+            BinaryPrimitives.WriteUInt32LittleEndian(nonce, ConnectionId);
+            BinaryPrimitives.WriteUInt64LittleEndian(nonce.Slice(4), sequence);
+
+            var cipher = new ChaCha20Poly1305();
+            Span<byte> encrypted = stackalloc byte[plaintext.Length + 16];
+
+            unsafe
+            {
+                fixed (byte* txKeyPtr = TxKey)
+                {
+                    var keyParam = new KeyParameter(new ReadOnlySpan<byte>(txKeyPtr, 32).ToArray());
+                    var parameters = new AeadParameters(keyParam, 128, nonce.ToArray(), aad.ToArray());
+
+                    cipher.Init(true, parameters);
+                    int encryptedLength = cipher.ProcessBytes(plaintext.ToArray(), 0, plaintext.Length, encrypted.ToArray(), 0);
+                    encryptedLength += cipher.DoFinal(encrypted.Slice(encryptedLength).ToArray(), 0);
+
+                    // Increment SeqTx to keep crypto sequence in sync
+                    SeqTx++;
+
+                    if (encryptedLength > 512)
+                    {
+                        unsafe
+                        {
+                            fixed (byte* encryptedPtr = encrypted)
+                            fixed (byte* resultPtr = result)
+                            {
+                                int compressedLength = LZ4.Compress(encryptedPtr, encryptedLength, resultPtr, result.Length);
+                                if (compressedLength > 0 && compressedLength < encryptedLength)
+                                {
+                                    wasCompressed = true;
+                                    resultLength = compressedLength;
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+
+                    if (encryptedLength <= result.Length)
+                    {
+                        encrypted.Slice(0, encryptedLength).CopyTo(result);
+                        resultLength = encryptedLength;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+        catch
+        {
+            wasCompressed = false;
+            resultLength = 0;
+            return false;
+        }
+    }
+
     public bool DecryptPayload(ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> aad, ulong sequence, Span<byte> plaintext, out int plaintextLength)
     {
         try
         {
+                        // Debug logs to file
+            FileLogger.Log($"[DECRYPT] seq={sequence}, SeqRx={SeqRx}, HighestSeq={_highestSeqReceived}");
+
+            // Log crypto data for comparison (only first packet)
+            if (SeqRx == 0 && sequence == 0)
+            {
+                FileLogger.Log($"[SERVER] RxKey: {GetRxKeyHex()}");
+            }
+
             if (!IsSequenceValid(sequence))
             {
 #if DEBUG
@@ -227,6 +339,14 @@ public unsafe struct SecureSession
             Span<byte> nonce = stackalloc byte[12];
             BinaryPrimitives.WriteUInt32LittleEndian(nonce, ConnectionId);
             BinaryPrimitives.WriteUInt64LittleEndian(nonce.Slice(4), sequence);
+
+                        // Log crypto data for comparison (only first packet)
+            if (sequence == 0)
+            {
+                FileLogger.LogHex("[SERVER] Nonce", nonce);
+                FileLogger.LogHex("[SERVER] AAD", aad);
+                FileLogger.LogHex("[SERVER] Ciphertext", ciphertext);
+            }
 
             var cipher = new ChaCha20Poly1305();
 
@@ -264,7 +384,7 @@ public unsafe struct SecureSession
 
             if (isCompressed)
             {
-                Span<byte> decompressed = stackalloc byte[data.Length * 4]; 
+                Span<byte> decompressed = stackalloc byte[data.Length * 4];
 
                 unsafe
                 {
@@ -316,7 +436,7 @@ public unsafe struct SecureSession
             ulong shift = sequence - _highestSeqReceived;
             if (shift >= ReplayWindowSize)
             {
-                _replayWindow = 1; 
+                _replayWindow = 1;
             }
             else
             {

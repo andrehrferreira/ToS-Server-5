@@ -1,5 +1,5 @@
 [Contract("Ping", PacketLayerType.Server, ContractPacketFlags.Queue_ToEntity, PacketType.Ping)]
-public partial struct PingPacket 
+public partial struct PingPacket
 {
     [ContractField("ushort")]
     public ushort SentTimestamp;
@@ -53,4 +53,11 @@ public partial struct AckPacket
 {
     [ContractField("short")]
     public short Sequence;
+}
+
+[Contract("ReliableHandshake", PacketLayerType.Server, ContractPacketFlags.Reliable_ToEntity, PacketType.ReliableHandshake)]
+public partial struct ReliableHandshakePacket
+{
+    [ContractField("string")]
+    public string Message;
 }

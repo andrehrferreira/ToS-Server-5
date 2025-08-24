@@ -541,7 +541,7 @@ public sealed class UDPServer
 
                                 if (len >= PacketHeader.Size + 16)
                                 {
-                                    if (ProcessEncryptedPacket(data, conn))
+                                    if (ProcessEncryptedPacket(data, conn, len))
                                         return;
                                 }
 
@@ -620,12 +620,16 @@ public sealed class UDPServer
                         data.Free();
                     }
                     break;
-                case PacketType.Ack:
+                                case PacketType.Ack:
                     {
                         if (Clients.TryGetValue(address, out conn))
                         {
-                            short seq = data.Read<short>();
-                            conn.Acknowledge(seq);
+                            // Read ulong as two uint parts (as sent by client)
+                            uint low = data.Read<uint>();
+                            uint high = data.Read<uint>();
+                            ulong seq = ((ulong)high << 32) | low;
+                            conn.AcknowledgeReliablePacket(seq);
+                            ServerMonitor.Log($"[ACK] Server received ACK for sequence {seq}");
                         }
 
                         data.Free();
@@ -702,6 +706,32 @@ public sealed class UDPServer
 
     internal static void ProcessPacket(FlatBuffer buffer, int len, Address address)
     {
+        // Check if this is an encrypted packet with new header format first
+        if (len >= PacketHeader.Size + 16 && Clients.TryGetValue(address, out var conn))
+        {
+            try
+            {
+                unsafe
+                {
+                    var header = PacketHeader.Deserialize(buffer.Data);
+
+                    if (header.Flags.HasFlag(PacketHeaderFlags.Encrypted) &&
+                        header.Flags.HasFlag(PacketHeaderFlags.AEAD_ChaCha20Poly1305) &&
+                        header.ConnectionId == conn.Session.ConnectionId)
+                    {
+
+                        ProcessEncryptedPacket(buffer, conn, len);
+                        return;
+                    }
+                }
+            }
+            catch
+            {
+                // If header parsing fails, fall back to legacy processing
+            }
+        }
+
+        // Legacy packet processing
         PacketType packetType = (PacketType)buffer.Read<byte>();
 
         if (packetType == PacketType.Fragment)
@@ -790,8 +820,6 @@ public sealed class UDPServer
                 var len = length;
                 var data = AddSignature(buffer.Data, length, out len);
 
-                PrintBuffer(buffer.Data, length);
-
                 var packet = new SendPacket
                 {
                     Buffer = data,
@@ -874,7 +902,7 @@ public sealed class UDPServer
         }
     }
 
-    private static unsafe bool ProcessEncryptedPacket(FlatBuffer data, UDPSocket conn)
+    private static unsafe bool ProcessEncryptedPacket(FlatBuffer data, UDPSocket conn, int totalLen)
     {
         try
         {
@@ -887,7 +915,7 @@ public sealed class UDPServer
                 !header.Flags.HasFlag(PacketHeaderFlags.AEAD_ChaCha20Poly1305))
                 return false;
 
-            int payloadLen = data.Position - PacketHeader.Size;
+            int payloadLen = totalLen - PacketHeader.Size;
 
             if (payloadLen <= 16)
                 return false;
@@ -895,6 +923,7 @@ public sealed class UDPServer
             var payload = new ReadOnlySpan<byte>(data.Data + PacketHeader.Size, payloadLen);
             var aad = header.GetAAD();
             bool isCompressed = header.Flags.HasFlag(PacketHeaderFlags.Compressed);
+            bool isAcknowledgment = header.Flags.HasFlag(PacketHeaderFlags.Acknowledgment);
 
             Span<byte> plaintext = stackalloc byte[payloadLen * 4]; // Extra space for decompression
 
@@ -904,17 +933,54 @@ public sealed class UDPServer
                 return false;
             }
 
-            var decryptedBuffer = new FlatBuffer(plaintextLen + 2);
-            decryptedBuffer.Write((byte)header.Channel);
+            // Handle acknowledgment packets
+            if (isAcknowledgment)
+            {
+                conn.AcknowledgeReliablePacket(header.Sequence);
+                return true;
+            }
+
+            var decryptedBuffer = new FlatBuffer(plaintextLen + 1);
             decryptedBuffer.WriteBytes(plaintext.Slice(0, plaintextLen).ToArray());
 
-            ClientPackets clientPacket = (ClientPackets)decryptedBuffer.Read<short>();
+            // Route to appropriate queue based on channel
+            if (header.Channel == PacketChannel.ReliableOrdered)
+            {
+                ServerMonitor.Log($"[RELIABLE] Processing reliable packet sequence {header.Sequence} from client {conn.Id}");
+                conn.ProcessReliablePacket(header.Sequence, decryptedBuffer);
+                return true;
+            }
+            else
+            {
+                // Process unreliable packet immediately
+                decryptedBuffer.RestorePosition(0);
 
-            if (PlayerController.TryGet(conn.Id, out var controller))
-                PacketHandler.HandlePacket(controller, ref decryptedBuffer, clientPacket);
+                // Check if this is a game packet or system packet
+                PacketType packetType = (PacketType)decryptedBuffer.Read<byte>();
 
-            decryptedBuffer.Free();
-            return true;
+                if (packetType == PacketType.ReliableHandshake)
+                {
+                    // Handle reliable handshake directly
+                    ServerMonitor.Log($"[RELIABLE HANDSHAKE] Received reliable handshake from client {conn.Id}");
+
+                    // Send reliable handshake response
+                    var response = new ReliableHandshakePacket { Message = "Handshake Complete" };
+                    conn.SendReliablePacket(response);
+
+                    ServerMonitor.Log($"[RELIABLE HANDSHAKE] Sent reliable handshake response to client {conn.Id}");
+                    decryptedBuffer.Free();
+                    return true;
+                }
+                else
+                {
+                    // Route to unreliable queue
+                    if (!conn.UnreliableEventQueue.Writer.TryWrite(decryptedBuffer))
+                    {
+                        decryptedBuffer.Free();
+                    }
+                    return true;
+                }
+            }
         }
         catch (Exception ex)
         {

@@ -63,7 +63,8 @@ enum class EPacketType : uint8
     Fragment            UMETA(DisplayName = "Fragment"),
     Cookie              UMETA(DisplayName = "Cookie"),
     CryptoTest          UMETA(DisplayName = "CryptoTest"),
-    CryptoTestAck       UMETA(DisplayName = "CryptoTestAck")
+    CryptoTestAck       UMETA(DisplayName = "CryptoTestAck"),
+    ReliableHandshake   UMETA(DisplayName = "ReliableHandshake")
   };
 
 class FPacketPollRunnable : public FRunnable
@@ -96,7 +97,7 @@ public:
     void Disconnect();
     void SendAck(uint16 Sequence);
     void Send(UFlatBuffer* buffer);
-    void SendEncrypted(UFlatBuffer* buffer);
+    void SendEncrypted(UFlatBuffer* buffer, bool reliable = false);
     void SendLegacy(UFlatBuffer* buffer);
     void PollIncomingPackets();
     void ProcessEncryptedPacket(UFlatBuffer* Buffer, int32 BytesRead, const FPacketHeader& Header);
@@ -152,5 +153,38 @@ private:
     uint32 ClientTestValue = 0;
     uint32 ServerTestValue = 0;
     bool bHandshakeComplete = false;
+    bool bReliableHandshakeComplete = false;
     bool IsCryptoReady() const { return bClientCryptoConfirmed && bServerCryptoConfirmed; }
+    bool IsFullyConnected() const { return IsCryptoReady() && bReliableHandshakeComplete; }
+
+    // Reliability system
+    struct FReliablePacketInfo
+    {
+        TArray<uint8> Buffer;
+        double SentTime;
+        int32 RetryCount;
+        uint64 Sequence;
+    };
+
+    TMap<uint64, FReliablePacketInfo> ReliablePackets;
+    uint64 ReliableSequenceSend = 1;
+    uint64 ReliableSequenceReceive = 0;
+    uint64 UnreliableSequenceSend = 1;
+
+    // Packet ordering buffer for reliable packets
+    TMap<uint64, TArray<uint8>> ReliablePacketBuffer;
+
+    // Processing queues
+    TQueue<TArray<uint8>> ReliableEventQueue;
+    TQueue<TArray<uint8>> UnreliableEventQueue;
+
+public:
+    void SendReliablePacket(const TArray<uint8>& Data);
+    void SendUnreliablePacket(const TArray<uint8>& Data);
+    void ProcessReliablePacket(uint64 Sequence, const TArray<uint8>& Data);
+    void AcknowledgeReliablePacket(uint64 Sequence);
+    void SendAcknowledgment(uint64 Sequence);
+    void ProcessReliableQueue();
+    void ProcessUnreliableQueue();
+    void UpdateReliablePackets();
 };

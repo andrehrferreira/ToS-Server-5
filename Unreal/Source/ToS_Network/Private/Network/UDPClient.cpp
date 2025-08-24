@@ -17,6 +17,7 @@
 #include <sodium.h>
 #include "Misc/Base64.h"
 #include "Network/SecureSession.h"
+#include "Utils/FileLogger.h"
 
 UDPClient::UDPClient() : bCookieReceived(false) {}
 UDPClient::~UDPClient() { Disconnect(); }
@@ -167,22 +168,33 @@ void UDPClient::Send(UFlatBuffer* buffer)
     }
 }
 
-void UDPClient::SendEncrypted(UFlatBuffer* buffer)
+void UDPClient::SendEncrypted(UFlatBuffer* buffer, bool reliable)
 {
     TArray<uint8> Payload;
     Payload.SetNumUninitialized(buffer->GetLength() - 1);
     FMemory::Memcpy(Payload.GetData(), buffer->GetRawBuffer() + 1, buffer->GetLength() - 1);
 
+    // Create a temporary header to get the sequence BEFORE encryption
     FPacketHeader Header;
     Header.ConnectionId = SecureSession.GetConnectionId();
-    Header.Channel = EPacketChannel::Unreliable;
+    Header.Channel = reliable ? EPacketChannel::ReliableOrdered : EPacketChannel::Unreliable;
     Header.Flags = EPacketHeaderFlags::Encrypted | EPacketHeaderFlags::AEAD_ChaCha20Poly1305;
-    Header.Sequence = SecureSession.GetSeqTx();
+    Header.Sequence = SecureSession.GetSeqTx(); // This will be the sequence used for encryption
+
+    UE_LOG(LogTemp, Warning, TEXT("[DEBUG] SendEncrypted: Header.Sequence=%llu, SeqTx before encrypt=%llu"), (unsigned long long)Header.Sequence, (unsigned long long)SecureSession.GetSeqTx());
 
     TArray<uint8> AAD = Header.GetAAD();
     TArray<uint8> Result;
     bool bWasCompressed = false;
 
+    // Log crypto data to file (only first packet)
+    if (Header.Sequence == 0)
+    {
+        ClientFileLogHex(TEXT("[CLIENT] AAD"), AAD);
+        ClientFileLogHex(TEXT("[CLIENT] Payload"), Payload);
+    }
+
+    // Now encrypt - this will increment SeqTx internally
     if (!SecureSession.EncryptPayloadWithCompression(Payload, AAD, Result, bWasCompressed))
     {
         UE_LOG(LogTemp, Error, TEXT("Failed to encrypt payload"));
@@ -191,6 +203,19 @@ void UDPClient::SendEncrypted(UFlatBuffer* buffer)
 
     if (bWasCompressed)
         Header.Flags |= EPacketHeaderFlags::Compressed;
+
+    // Log ciphertext for comparison (only first packet)
+    if (Header.Sequence == 0)
+    {
+        ClientFileLogHex(TEXT("[CLIENT] Ciphertext"), Result);
+
+        FString TxKeyHex;
+        for (int32 i = 0; i < 32; i++)
+        {
+            TxKeyHex += FString::Printf(TEXT("%02X"), SecureSession.GetTxKey()[i]);
+        }
+        ClientFileLog(FString::Printf(TEXT("[CLIENT] TxKey: %s"), *TxKeyHex));
+    }
 
     TArray<uint8> FinalPacket;
     FinalPacket.SetNumUninitialized(FPacketHeader::Size + Result.Num());
@@ -203,6 +228,21 @@ void UDPClient::SendEncrypted(UFlatBuffer* buffer)
 
     int32 BytesSent = 0;
     Socket->SendTo(FinalPacket.GetData(), FinalPacket.Num(), BytesSent, *RemoteEndpoint);
+
+    UE_LOG(LogTemp, Warning, TEXT("[DEBUG] SendEncrypted: SeqTx after encrypt=%llu, sent %d bytes"), (unsigned long long)SecureSession.GetSeqTx(), BytesSent);
+
+    // Store for reliable tracking if needed
+    if (reliable)
+    {
+        FReliablePacketInfo PacketInfo;
+        PacketInfo.Buffer = FinalPacket;
+        PacketInfo.SentTime = FPlatformTime::Seconds();
+        PacketInfo.RetryCount = 0;
+        PacketInfo.Sequence = Header.Sequence;
+        ReliablePackets.Add(Header.Sequence, PacketInfo);
+
+        UE_LOG(LogTemp, Log, TEXT("SendEncrypted: Sent reliable packet %d bytes, sequence %llu"), BytesSent, (unsigned long long)Header.Sequence);
+    }
 }
 
 void UDPClient::SendLegacy(UFlatBuffer* buffer)
@@ -245,7 +285,6 @@ void UDPClient::PollIncomingPackets()
             {
                 UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(BytesRead);
                 Buffer->CopyFromMemory(ReceivedData.GetData(), BytesRead);
-                Buffer->PrintBuffer(Buffer->GetRawBuffer(), BytesRead);
 
                 // Check if this is an encrypted packet with new header format
                 bool bIsEncryptedPacket = false;
@@ -373,13 +412,7 @@ void UDPClient::PollIncomingPackets()
                         {
                             UE_LOG(LogTemp, Error, TEXT("CryptoTestAck value mismatch! Expected %u, got %u"), ClientTestValue, value);
                         }
-                        if (IsCryptoReady() && !bHandshakeComplete)
-                        {
-                            bHandshakeComplete = true;
-                            UE_LOG(LogTemp, Log, TEXT("Client crypto handshake complete"));
-                            if (OnConnect)
-                                OnConnect(SecureSession.GetConnectionId());
-                        }
+
                     }
                     break;
                     case EPacketType::CryptoTest:
@@ -398,6 +431,28 @@ void UDPClient::PollIncomingPackets()
                         {
                             bHandshakeComplete = true;
                             UE_LOG(LogTemp, Log, TEXT("Client crypto handshake complete"));
+
+                            // Send reliable handshake packet to complete full connection
+                            TArray<uint8> HandshakeData;
+                            HandshakeData.Add(static_cast<uint8>(EPacketType::ReliableHandshake));
+                            HandshakeData.Add(0x01); // Handshake marker
+                            UE_LOG(LogTemp, Log, TEXT("Attempting to send reliable handshake packet, IsCryptoReady: %s"), IsCryptoReady() ? TEXT("true") : TEXT("false"));
+                            SendReliablePacket(HandshakeData);
+                            UE_LOG(LogTemp, Log, TEXT("Sent reliable handshake packet"));
+
+                            if (OnConnect)
+                                OnConnect(SecureSession.GetConnectionId());
+                        }
+                    }
+                    break;
+                    case EPacketType::ReliableHandshake:
+                    {
+                        UE_LOG(LogTemp, Log, TEXT("Received reliable handshake response from server"));
+                        bReliableHandshakeComplete = true;
+
+                        if (IsFullyConnected())
+                        {
+                            UE_LOG(LogTemp, Log, TEXT("Full connection established (crypto + reliable)"));
                             if (OnConnect)
                                 OnConnect(SecureSession.GetConnectionId());
                         }
@@ -466,6 +521,16 @@ void UDPClient::PollIncomingPackets()
                         Socket->SendTo(ResponseBuffer->GetRawBuffer(), ResponseBuffer->GetLength(), BytesSent, *RemoteEndpoint);
                     }
                     break;
+                    case EPacketType::Ack:
+                    {
+                        // Read ulong as two uint32 parts (as sent by server)
+                        uint32 low = Buffer->ReadUInt32();
+                        uint32 high = Buffer->ReadUInt32();
+                        uint64 sequence = ((uint64)high << 32) | low;
+                        AcknowledgeReliablePacket(sequence);
+                        UE_LOG(LogTemp, Verbose, TEXT("Received ACK for sequence %llu"), (unsigned long long)sequence);
+                    }
+                    break;
                 }
                 } // End of else block for legacy packets
             }
@@ -505,6 +570,7 @@ void UDPClient::ProcessEncryptedPacket(UFlatBuffer* Buffer, int32 BytesRead, con
 
         TArray<uint8> AAD = Header.GetAAD();
         bool bIsCompressed = (Header.Flags & EPacketHeaderFlags::Compressed) != EPacketHeaderFlags::None;
+        bool bIsAcknowledgment = (Header.Flags & EPacketHeaderFlags::Acknowledgment) != EPacketHeaderFlags::None;
         TArray<uint8> Plaintext;
 
         if (!SecureSession.DecryptPayloadWithDecompression(Payload, AAD, Header.Sequence, bIsCompressed, Plaintext))
@@ -513,14 +579,22 @@ void UDPClient::ProcessEncryptedPacket(UFlatBuffer* Buffer, int32 BytesRead, con
             return;
         }
 
-        // Create new buffer with decrypted data
-        UFlatBuffer* DecryptedBuffer = UFlatBuffer::CreateFlatBuffer(Plaintext.Num() + 1);
-        DecryptedBuffer->WriteByte(static_cast<uint8>(Header.Channel)); // Add channel as first byte
-        DecryptedBuffer->CopyFromMemory(Plaintext.GetData(), Plaintext.Num());
+        // Handle acknowledgment packets
+        if (bIsAcknowledgment)
+        {
+            AcknowledgeReliablePacket(Header.Sequence);
+            return;
+        }
 
-        // Handle the decrypted packet
-        if (OnDataReceive)
-            OnDataReceive(DecryptedBuffer);
+        // Route to appropriate queue based on channel
+        if (Header.Channel == EPacketChannel::ReliableOrdered)
+        {
+            ProcessReliablePacket(Header.Sequence, Plaintext);
+        }
+        else
+        {
+            UnreliableEventQueue.Enqueue(Plaintext);
+        }
     }
     catch (...)
     {
@@ -663,10 +737,165 @@ uint32 FPacketPollRunnable::Run()
     while (!bStop)
     {
         if (Client)
+        {
             Client->PollIncomingPackets();
+            Client->UpdateReliablePackets();
+            Client->ProcessReliableQueue();
+            Client->ProcessUnreliableQueue();
+        }
 
         FPlatformProcess::Sleep(0.001f);
     }
 
     return 0;
+}
+
+void UDPClient::SendReliablePacket(const TArray<uint8>& Data)
+{
+    if (!Socket || !RemoteEndpoint.IsValid() || !IsCryptoReady())
+        return;
+
+    // Create UFlatBuffer with the data
+    UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(Data.Num() + 1);
+    Buffer->WriteByte(static_cast<uint8>(EPacketType::ReliableHandshake));
+    Buffer->WriteBytes(Data.GetData(), Data.Num());
+
+    SendEncrypted(Buffer, true); // Use reliable=true
+}
+
+void UDPClient::SendUnreliablePacket(const TArray<uint8>& Data)
+{
+    if (!Socket || !RemoteEndpoint.IsValid() || !IsCryptoReady())
+        return;
+
+    // Create UFlatBuffer with the data
+    UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(Data.Num() + 1);
+    Buffer->WriteByte(static_cast<uint8>(EPacketType::ReliableHandshake));
+    Buffer->WriteBytes(Data.GetData(), Data.Num());
+
+    SendEncrypted(Buffer, false); // Use reliable=false
+}
+
+void UDPClient::ProcessReliablePacket(uint64 Sequence, const TArray<uint8>& Data)
+{
+    // Send acknowledgment immediately when receiving reliable packet from server
+    SendAcknowledgment(Sequence);
+
+    // Check if this is the next expected sequence
+    if (Sequence == ReliableSequenceReceive + 1)
+    {
+        // Process this packet and any buffered consecutive ones
+        ReliableSequenceReceive = Sequence;
+        ReliableEventQueue.Enqueue(Data);
+
+        // Check for buffered packets
+        while (ReliablePacketBuffer.Contains(ReliableSequenceReceive + 1))
+        {
+            TArray<uint8> NextData = ReliablePacketBuffer[ReliableSequenceReceive + 1];
+            ReliablePacketBuffer.Remove(ReliableSequenceReceive + 1);
+            ReliableSequenceReceive++;
+            ReliableEventQueue.Enqueue(NextData);
+        }
+    }
+    else if (Sequence > ReliableSequenceReceive + 1)
+    {
+        // Buffer out-of-order packet
+        ReliablePacketBuffer.Add(Sequence, Data);
+    }
+    // Else: Duplicate or old packet, discard
+}
+
+void UDPClient::AcknowledgeReliablePacket(uint64 Sequence)
+{
+    if (ReliablePackets.Contains(Sequence))
+    {
+        ReliablePackets.Remove(Sequence);
+        UE_LOG(LogTemp, Verbose, TEXT("Acknowledged reliable packet %llu"), (unsigned long long)Sequence);
+    }
+}
+
+void UDPClient::SendAcknowledgment(uint64 Sequence)
+{
+    // Client sends ACK when it receives reliable packets from server
+    UFlatBuffer* AckBuffer = UFlatBuffer::CreateFlatBuffer(10);
+    AckBuffer->WriteByte(static_cast<uint8>(EPacketType::Ack));
+    AckBuffer->WriteUInt32(static_cast<uint32>(Sequence & 0xFFFFFFFF));       // Low 32 bits
+    AckBuffer->WriteUInt32(static_cast<uint32>((Sequence >> 32) & 0xFFFFFFFF)); // High 32 bits
+    SendLegacy(AckBuffer);
+    UE_LOG(LogTemp, Verbose, TEXT("Client sent ACK for sequence %llu"), (unsigned long long)Sequence);
+}
+
+void UDPClient::ProcessReliableQueue()
+{
+    TArray<uint8> Data;
+    while (ReliableEventQueue.Dequeue(Data))
+    {
+        // Process reliable game data here
+        if (OnDataReceive)
+        {
+            UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(Data.Num());
+            Buffer->CopyFromMemory(Data.GetData(), Data.Num());
+            OnDataReceive(Buffer);
+        }
+    }
+}
+
+void UDPClient::ProcessUnreliableQueue()
+{
+    TArray<uint8> Data;
+    while (UnreliableEventQueue.Dequeue(Data))
+    {
+        // Process unreliable game data here
+        if (OnDataReceive)
+        {
+            UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(Data.Num());
+            Buffer->CopyFromMemory(Data.GetData(), Data.Num());
+            OnDataReceive(Buffer);
+        }
+    }
+}
+
+void UDPClient::UpdateReliablePackets()
+{
+    double CurrentTime = FPlatformTime::Seconds();
+    const double RetransmitTimeout = 0.25; // 250ms
+    const int32 MaxRetries = 10;
+
+    TArray<uint64> PacketsToRetry;
+
+    for (const auto& Pair : ReliablePackets)
+    {
+        const FReliablePacketInfo& Info = Pair.Value;
+
+        if (CurrentTime - Info.SentTime >= RetransmitTimeout)
+        {
+            PacketsToRetry.Add(Pair.Key);
+        }
+    }
+
+    for (uint64 Sequence : PacketsToRetry)
+    {
+        if (ReliablePackets.Contains(Sequence))
+        {
+            FReliablePacketInfo& Info = ReliablePackets[Sequence];
+            Info.RetryCount++;
+
+            if (Info.RetryCount >= MaxRetries)
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Reliable packet %llu dropped after %d retries"), (unsigned long long)Sequence, MaxRetries);
+                ReliablePackets.Remove(Sequence);
+                continue;
+            }
+
+            // Resend the packet
+            int32 BytesSent = 0;
+            Socket->SendTo(Info.Buffer.GetData(), Info.Buffer.Num(), BytesSent, *RemoteEndpoint);
+            Info.SentTime = CurrentTime;
+
+            if (Info.RetryCount > 3)
+            {
+                UE_LOG(LogTemp, Log, TEXT("Reliable packet %llu retry #%d"), (unsigned long long)Sequence, Info.RetryCount);
+            }
+        }
+    }
 }
