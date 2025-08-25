@@ -915,7 +915,8 @@ public sealed class UDPServer
                 !header.Flags.HasFlag(PacketHeaderFlags.AEAD_ChaCha20Poly1305))
                 return false;
 
-            int payloadLen = totalLen - PacketHeader.Size;
+            // Subtract both header and CRC32 signature (4 bytes) from total length
+            int payloadLen = totalLen - PacketHeader.Size - 4;
 
             if (payloadLen <= 16)
                 return false;
@@ -931,6 +932,64 @@ public sealed class UDPServer
             {
                 ServerMonitor.Log($"Failed to decrypt packet from {conn.RemoteAddress}");
                 return false;
+            }
+
+            // Log packet processing details for ALL unreliable packets (first 10)
+            if (header.Channel == PacketChannel.Unreliable && header.Sequence > 0 && header.Sequence <= 10)
+            {
+                string packetTypeName = "Unknown";
+                if (plaintextLen > 0)
+                {
+                    byte firstByte = plaintext[0];
+                    packetTypeName = ((PacketType)firstByte) switch
+                    {
+                        PacketType.Connect => "Connect",
+                        PacketType.Ping => "Ping",
+                        PacketType.Pong => "Pong",
+                        PacketType.BenckmarkTest => "Benchmark Test",
+                        PacketType.ReliableHandshake => "Reliable Handshake",
+                        PacketType.Disconnect => "Disconnect",
+                        _ => $"Unknown Type {firstByte}"
+                    };
+                }
+
+                FileLogger.Log($"=== RECEIVED {packetTypeName} (seq={header.Sequence}) ===");
+                FileLogger.Log($"[SERVER] Channel: {header.Channel}");
+                FileLogger.Log($"[SERVER] Compressed: {isCompressed}");
+                FileLogger.Log($"[SERVER] Decrypted Size: {plaintextLen} bytes");
+                FileLogger.LogHex("[SERVER] RAW Decrypted Payload", plaintext.Slice(0, plaintextLen));
+
+                                                // Log COMPLETE byte-by-byte analysis
+                FileLogger.Log($"[SERVER] === DETAILED PAYLOAD ANALYSIS ===");
+                for (int i = 0; i < Math.Min(plaintextLen, 24); i++)
+                {
+                    string byteDescription = i switch
+                    {
+                        0 => " (PacketType byte)",
+                        1 => " (ClientPacket low byte)",
+                        2 => " (ClientPacket high byte)",
+                        >= 3 and <= 14 => $" (Position data byte {i - 2})",
+                        >= 15 and <= 26 => $" (Rotation data byte {i - 14})",
+                        _ => ""
+                    };
+
+                    FileLogger.Log($"[SERVER] Payload[{i:D2}] = {plaintext[i]:D3} (0x{plaintext[i]:X2}){byteDescription}");
+                }
+
+                // Interpret packet structure correctly
+                if (plaintextLen >= 3)
+                {
+                    byte packetTypeValue = plaintext[0];
+                    ushort clientPacketValue = (ushort)(plaintext[1] | (plaintext[2] << 8));
+                    FileLogger.Log($"[SERVER] PacketType: {(PacketType)packetTypeValue} (raw: {packetTypeValue})");
+                    FileLogger.Log($"[SERVER] ClientPacket: {(ClientPackets)clientPacketValue} (raw: {clientPacketValue})");
+                    FileLogger.Log($"[SERVER] Expected: PacketType=Unreliable(4), ClientPacket=SyncEntity(0)");
+
+                    if (packetTypeValue == 4 && clientPacketValue == 0)
+                    {
+                        FileLogger.Log($"[SERVER] *** CORRECT SYNCENTITY PACKET STRUCTURE! ***");
+                    }
+                }
             }
 
             // Handle acknowledgment packets
@@ -952,39 +1011,128 @@ public sealed class UDPServer
             }
             else
             {
-                // Process unreliable packet immediately
+                // Log unreliable packet processing
+                if (header.Sequence <= 10) // First 10 unreliable packets
+                {
+                    FileLogger.Log($"[SERVER] Processing unreliable packet seq={header.Sequence} immediately");
+                }
+
+                // Process unreliable packet immediately - reset position to read from start
                 decryptedBuffer.RestorePosition(0);
 
-                // Check if this is a game packet or system packet
-                PacketType packetType = (PacketType)decryptedBuffer.Read<byte>();
-
-                if (packetType == PacketType.ReliableHandshake)
+                                // Debug: Log DETAILED buffer analysis
+                if (header.Sequence <= 10)
                 {
-                    // Handle reliable handshake directly
-                    ServerMonitor.Log($"[RELIABLE HANDSHAKE] Received reliable handshake from client {conn.Id}");
+                    FileLogger.Log($"[SERVER] === BUFFER PROCESSING ANALYSIS ===");
+                    FileLogger.Log($"[SERVER] Buffer position after RestorePosition(0): {decryptedBuffer.Position}");
+                    FileLogger.Log($"[SERVER] Buffer capacity: {decryptedBuffer.Capacity}");
 
-                    // Send reliable handshake response
-                    var response = new ReliableHandshakePacket { Message = "Handshake Complete" };
-                    conn.SendReliablePacket(response);
-
-                    ServerMonitor.Log($"[RELIABLE HANDSHAKE] Sent reliable handshake response to client {conn.Id}");
-                    decryptedBuffer.Free();
-                    return true;
-                }
-                else
-                {
-                    // Route to unreliable queue
-                    if (!conn.UnreliableEventQueue.Writer.TryWrite(decryptedBuffer))
+                    // Read and log first 10 bytes without advancing position
+                    if (decryptedBuffer.Capacity >= 10)
                     {
-                        decryptedBuffer.Free();
+                        int savedPos = decryptedBuffer.Position;
+
+                        FileLogger.Log($"[SERVER] === FLATBUFFER BYTE ANALYSIS ===");
+                        for (int i = 0; i < Math.Min(decryptedBuffer.Capacity, 10); i++)
+                        {
+                            byte byteVal = decryptedBuffer.Read<byte>();
+                            string interpretation = i switch
+                            {
+                                0 => $" -> PacketType: {(PacketType)byteVal}",
+                                1 => " -> ClientPacket low byte",
+                                2 => " -> ClientPacket high byte",
+                                _ => " -> Data byte"
+                            };
+                            FileLogger.Log($"[SERVER] FlatBuffer[{i}] = {byteVal:D3} (0x{byteVal:X2}){interpretation}");
+                        }
+
+                        // Reset position
+                        decryptedBuffer.RestorePosition(savedPos);
                     }
-                    return true;
                 }
+
+                // Read packet structure: PacketType (byte) + ClientPacket (ushort)
+                PacketType packetType = (PacketType)decryptedBuffer.Read<byte>();
+                ClientPackets clientPacket = (ClientPackets)decryptedBuffer.Read<ushort>();
+
+                // Log first few unreliable packets
+                if (header.Sequence <= 10)
+                {
+                    FileLogger.Log($"[SERVER] Reading PacketType: {packetType} (raw value: {(byte)packetType})");
+                    FileLogger.Log($"[SERVER] Reading ClientPacket: {clientPacket} (raw value: {(ushort)clientPacket})");
+                }
+
+                // Process based on ClientPacket type
+                if (clientPacket == ClientPackets.SyncEntity)
+                {
+                    if (header.Sequence <= 10)
+                    {
+                        FileLogger.Log($"[SERVER] ✅ Processing SyncEntity packet directly");
+                    }
+                    return ProcessSyncEntityPacket(decryptedBuffer, conn, header);
+                }
+
+                // Note: ReliableHandshake packets go through reliable channel, not unreliable
+                // All unreliable packets are ClientPackets - route to processing queue
+                if (header.Sequence <= 10)
+                {
+                    FileLogger.Log($"[SERVER] Adding ClientPacket={clientPacket} seq={header.Sequence} to UnreliableEventQueue");
+                }
+
+                if (!conn.UnreliableEventQueue.Writer.TryWrite(decryptedBuffer))
+                {
+                    decryptedBuffer.Free();
+                }
+                return true;
             }
         }
         catch (Exception ex)
         {
             ServerMonitor.Log($"Error processing encrypted packet: {ex.Message}");
+            return false;
+        }
+    }
+
+        private static bool ProcessSyncEntityPacket(FlatBuffer buffer, UDPSocket conn, PacketHeader header)
+    {
+        try
+        {
+            // Buffer already read PacketType (byte) and ClientPacket (ushort), now read SyncEntity data
+
+            // Read SyncEntity data according to contract structure
+            float x = buffer.Read<float>();
+            float y = buffer.Read<float>();
+            float z = buffer.Read<float>();
+
+            float rx = buffer.Read<float>();
+            float ry = buffer.Read<float>();
+            float rz = buffer.Read<float>();
+
+            float vx = buffer.Read<float>();
+            float vy = buffer.Read<float>();
+            float vz = buffer.Read<float>();
+
+            uint animState = buffer.Read<uint>();
+            bool isFalling = buffer.Read<bool>();
+
+            if (header.Sequence <= 10)
+            {
+                FileLogger.Log($"[SERVER] 📍 SyncEntity Data:");
+                FileLogger.Log($"[SERVER]   Position: ({x:F2}, {y:F2}, {z:F2})");
+                FileLogger.Log($"[SERVER]   Rotation: ({rx:F2}, {ry:F2}, {rz:F2})");
+                FileLogger.Log($"[SERVER]   Velocity: ({vx:F2}, {vy:F2}, {vz:F2})");
+                FileLogger.Log($"[SERVER]   AnimState: {animState}, IsFalling: {isFalling}");
+            }
+
+            // Here you would normally process the sync data
+            // For now, just log that we successfully processed it
+            ServerMonitor.Log($"✅ Processed SyncEntity from client {conn.Id}: Pos=({x:F1},{y:F1},{z:F1})");
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            FileLogger.Log($"[SERVER] Error processing SyncEntity packet: {ex.Message}");
             return false;
         }
     }

@@ -318,12 +318,15 @@ public unsafe struct SecureSession
     {
         try
         {
-                        // Debug logs to file
-            FileLogger.Log($"[DECRYPT] seq={sequence}, SeqRx={SeqRx}, HighestSeq={_highestSeqReceived}");
+                                    // Only log for monitoring, not every packet
+            if (sequence % 100 == 0) // Log every 100th packet for monitoring
+                FileLogger.Log($"[DECRYPT] seq={sequence}, SeqRx={SeqRx}, HighestSeq={_highestSeqReceived}");
 
             // Log crypto data for comparison (only first packet)
             if (SeqRx == 0 && sequence == 0)
             {
+                FileLogger.Log($"=== DECRYPTING FIRST PACKET ===");
+                FileLogger.Log($"[SERVER] ConnectionId: {ConnectionId}");
                 FileLogger.Log($"[SERVER] RxKey: {GetRxKeyHex()}");
             }
 
@@ -346,6 +349,7 @@ public unsafe struct SecureSession
                 FileLogger.LogHex("[SERVER] Nonce", nonce);
                 FileLogger.LogHex("[SERVER] AAD", aad);
                 FileLogger.LogHex("[SERVER] Ciphertext", ciphertext);
+                FileLogger.Log($"[SERVER] Ciphertext Length: {ciphertext.Length} bytes");
             }
 
             var cipher = new ChaCha20Poly1305();
@@ -358,12 +362,45 @@ public unsafe struct SecureSession
                     var parameters = new AeadParameters(keyParam, 128, nonce.ToArray(), aad.ToArray());
 
                     cipher.Init(false, parameters);
-                    plaintextLength = cipher.ProcessBytes(ciphertext.ToArray(), 0, ciphertext.Length, plaintext.ToArray(), 0);
-                    plaintextLength += cipher.DoFinal(plaintext.Slice(plaintextLength).ToArray(), 0);
+
+                    // Create arrays for crypto operations
+                    byte[] ciphertextArray = ciphertext.ToArray();
+                    byte[] plaintextArray = new byte[plaintext.Length];
+
+                    // Log detailed crypto operation for first packet
+                    if (sequence == 0)
+                    {
+                        FileLogger.Log($"[SERVER] Starting decryption...");
+                        FileLogger.Log($"[SERVER] Input ciphertext array length: {ciphertextArray.Length}");
+                        FileLogger.Log($"[SERVER] Output plaintext array length: {plaintextArray.Length}");
+                    }
+
+                    plaintextLength = cipher.ProcessBytes(ciphertextArray, 0, ciphertextArray.Length, plaintextArray, 0);
+                    int finalLength = cipher.DoFinal(plaintextArray, plaintextLength);
+                    plaintextLength += finalLength;
+
+                    // Log the results for first packet
+                    if (sequence == 0)
+                    {
+                        FileLogger.Log($"[SERVER] ProcessBytes returned: {plaintextLength - finalLength} bytes");
+                        FileLogger.Log($"[SERVER] DoFinal returned: {finalLength} bytes");
+                        FileLogger.Log($"[SERVER] Total plaintext length: {plaintextLength} bytes");
+                        FileLogger.LogHex("[SERVER] Raw decrypted data", new ReadOnlySpan<byte>(plaintextArray, 0, plaintextLength));
+                    }
+
+                    // Copy result back to span
+                    new ReadOnlySpan<byte>(plaintextArray, 0, plaintextLength).CopyTo(plaintext);
                 }
             }
 
             UpdateReplayWindow(sequence);
+
+            // Log success for first packet
+            if (sequence == 0)
+            {
+                FileLogger.Log($"[SERVER] ✅ DECRYPTION SUCCESS! Plaintext length: {plaintextLength} bytes");
+            }
+
             return true;
         }
         catch (Exception ex)
@@ -371,6 +408,13 @@ public unsafe struct SecureSession
 #if DEBUG
             ServerMonitor.Log($"[CRYPTO] Decrypt failed: {ex.Message}");
 #endif
+            // Log failure details
+            if (sequence == 0)
+            {
+                FileLogger.Log($"[SERVER] ❌ DECRYPTION FAILED: {ex.Message}");
+                FileLogger.Log($"[SERVER] Exception Type: {ex.GetType().Name}");
+            }
+
             plaintextLength = 0;
             return false;
         }

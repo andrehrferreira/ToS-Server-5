@@ -1,0 +1,534 @@
+﻿=== SERVER SESSION STARTED: 2025-08-25 06:17:37 ===
+[06:17:37.329] [DECRYPT] seq=0, SeqRx=0, HighestSeq=0
+[06:17:37.330] === DECRYPTING FIRST PACKET ===
+[06:17:37.330] [SERVER] ConnectionId: 391288704
+[06:17:37.331] [SERVER] RxKey: 17C64F5563AF97DD74ADB3FBD97AF09D86B424FD8B8369108A901CFFBBA8806C
+[06:17:37.331] [SERVER] Nonce: 809752170000000000000000
+[06:17:37.331] [SERVER] AAD: 8097521701030000000000000000
+[06:17:37.331] [SERVER] Ciphertext: 61A2BA2FF368F2B1673B4FB2696BBB2A3A73
+[06:17:37.332] [SERVER] Ciphertext Length: 18 bytes
+[06:17:37.332] [SERVER] Starting decryption...
+[06:17:37.332] [SERVER] Input ciphertext array length: 18
+[06:17:37.332] [SERVER] Output plaintext array length: 72
+[06:17:37.338] [SERVER] ProcessBytes returned: 0 bytes
+[06:17:37.339] [SERVER] DoFinal returned: 2 bytes
+[06:17:37.339] [SERVER] Total plaintext length: 2 bytes
+[06:17:37.339] [SERVER] Raw decrypted data: 1001
+[06:17:37.339] [SERVER] ✅ DECRYPTION SUCCESS! Plaintext length: 2 bytes
+[06:17:37.620] === RECEIVED Connect (seq=1) ===
+[06:17:37.620] [SERVER] Channel: Unreliable
+[06:17:37.621] [SERVER] Compressed: False
+[06:17:37.621] [SERVER] Decrypted Size: 23 bytes
+[06:17:37.621] [SERVER] RAW Decrypted Payload: 000038235C2B9803000002000000710202000000000000
+[06:17:37.621] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[06:17:37.622] [SERVER] Payload[00] = 000 (0x00) (ClientPacket low byte)
+[06:17:37.622] [SERVER] Payload[01] = 000 (0x00) (ClientPacket high byte)
+[06:17:37.622] [SERVER] Payload[02] = 056 (0x38) (Position data byte 1)
+[06:17:37.623] [SERVER] Payload[03] = 035 (0x23) (Position data byte 2)
+[06:17:37.623] [SERVER] Payload[04] = 092 (0x5C) (Position data byte 3)
+[06:17:37.623] [SERVER] Payload[05] = 043 (0x2B) (Position data byte 4)
+[06:17:37.623] [SERVER] Payload[06] = 152 (0x98) (Position data byte 5)
+[06:17:37.623] [SERVER] Payload[07] = 003 (0x03) (Position data byte 6)
+[06:17:37.624] [SERVER] Payload[08] = 000 (0x00) (Position data byte 7)
+[06:17:37.624] [SERVER] Payload[09] = 000 (0x00) (Position data byte 8)
+[06:17:37.624] [SERVER] Payload[10] = 002 (0x02) (Position data byte 9)
+[06:17:37.624] [SERVER] Payload[11] = 000 (0x00) (Position data byte 10)
+[06:17:37.624] [SERVER] Payload[12] = 000 (0x00) (Position data byte 11)
+[06:17:37.624] [SERVER] Payload[13] = 000 (0x00) (Position data byte 12)
+[06:17:37.625] [SERVER] Payload[14] = 113 (0x71) (Rotation data byte 1)
+[06:17:37.625] [SERVER] Payload[15] = 002 (0x02) (Rotation data byte 2)
+[06:17:37.625] [SERVER] Payload[16] = 002 (0x02) (Rotation data byte 3)
+[06:17:37.625] [SERVER] Payload[17] = 000 (0x00) (Rotation data byte 4)
+[06:17:37.625] [SERVER] Payload[18] = 000 (0x00) (Rotation data byte 5)
+[06:17:37.626] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 6)
+[06:17:37.626] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 7)
+[06:17:37.626] [SERVER] Payload[21] = 000 (0x00) (Rotation data byte 8)
+[06:17:37.626] [SERVER] Payload[22] = 000 (0x00) (Rotation data byte 9)
+[06:17:37.627] [SERVER] ClientPacket as uint16: 0
+[06:17:37.627] [SERVER] Should be 0 for SyncEntity: YES
+[06:17:37.627] [SERVER] *** THIS IS A SYNCENTITY PACKET! ***
+[06:17:37.627] [SERVER] Processing unreliable packet seq=1 immediately
+[06:17:37.627] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[06:17:37.627] [SERVER] Buffer position after RestorePosition(0): 0
+[06:17:37.627] [SERVER] Buffer capacity: 24
+[06:17:37.628] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[06:17:37.628] [SERVER] FlatBuffer[0] = 000 (0x00) -> PacketType: Connect
+[06:17:37.628] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[06:17:37.628] [SERVER] FlatBuffer[2] = 056 (0x38) -> ClientPacket high byte
+[06:17:37.628] [SERVER] FlatBuffer[3] = 035 (0x23) -> Data byte
+[06:17:37.628] [SERVER] FlatBuffer[4] = 092 (0x5C) -> Data byte
+[06:17:37.629] [SERVER] FlatBuffer[5] = 043 (0x2B) -> Data byte
+[06:17:37.629] [SERVER] FlatBuffer[6] = 152 (0x98) -> Data byte
+[06:17:37.629] [SERVER] FlatBuffer[7] = 003 (0x03) -> Data byte
+[06:17:37.629] [SERVER] FlatBuffer[8] = 000 (0x00) -> Data byte
+[06:17:37.629] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[06:17:37.630] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[06:17:37.631] [SERVER] ✅ Processing SyncEntity packet directly
+[06:17:37.647] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:37.722] === RECEIVED Connect (seq=2) ===
+[06:17:37.723] [SERVER] Channel: Unreliable
+[06:17:37.723] [SERVER] Compressed: False
+[06:17:37.723] [SERVER] Decrypted Size: 23 bytes
+[06:17:37.723] [SERVER] RAW Decrypted Payload: 0000CB235E2B980300001E0000005D083C000000000000
+[06:17:37.723] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[06:17:37.723] [SERVER] Payload[00] = 000 (0x00) (ClientPacket low byte)
+[06:17:37.723] [SERVER] Payload[01] = 000 (0x00) (ClientPacket high byte)
+[06:17:37.723] [SERVER] Payload[02] = 203 (0xCB) (Position data byte 1)
+[06:17:37.723] [SERVER] Payload[03] = 035 (0x23) (Position data byte 2)
+[06:17:37.724] [SERVER] Payload[04] = 094 (0x5E) (Position data byte 3)
+[06:17:37.724] [SERVER] Payload[05] = 043 (0x2B) (Position data byte 4)
+[06:17:37.724] [SERVER] Payload[06] = 152 (0x98) (Position data byte 5)
+[06:17:37.724] [SERVER] Payload[07] = 003 (0x03) (Position data byte 6)
+[06:17:37.724] [SERVER] Payload[08] = 000 (0x00) (Position data byte 7)
+[06:17:37.724] [SERVER] Payload[09] = 000 (0x00) (Position data byte 8)
+[06:17:37.725] [SERVER] Payload[10] = 030 (0x1E) (Position data byte 9)
+[06:17:37.725] [SERVER] Payload[11] = 000 (0x00) (Position data byte 10)
+[06:17:37.725] [SERVER] Payload[12] = 000 (0x00) (Position data byte 11)
+[06:17:37.725] [SERVER] Payload[13] = 000 (0x00) (Position data byte 12)
+[06:17:37.725] [SERVER] Payload[14] = 093 (0x5D) (Rotation data byte 1)
+[06:17:37.725] [SERVER] Payload[15] = 008 (0x08) (Rotation data byte 2)
+[06:17:37.725] [SERVER] Payload[16] = 060 (0x3C) (Rotation data byte 3)
+[06:17:37.726] [SERVER] Payload[17] = 000 (0x00) (Rotation data byte 4)
+[06:17:37.726] [SERVER] Payload[18] = 000 (0x00) (Rotation data byte 5)
+[06:17:37.726] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 6)
+[06:17:37.726] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 7)
+[06:17:37.726] [SERVER] Payload[21] = 000 (0x00) (Rotation data byte 8)
+[06:17:37.727] [SERVER] Payload[22] = 000 (0x00) (Rotation data byte 9)
+[06:17:37.727] [SERVER] ClientPacket as uint16: 0
+[06:17:37.727] [SERVER] Should be 0 for SyncEntity: YES
+[06:17:37.727] [SERVER] *** THIS IS A SYNCENTITY PACKET! ***
+[06:17:37.727] [SERVER] Processing unreliable packet seq=2 immediately
+[06:17:37.728] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[06:17:37.728] [SERVER] Buffer position after RestorePosition(0): 0
+[06:17:37.728] [SERVER] Buffer capacity: 24
+[06:17:37.728] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[06:17:37.728] [SERVER] FlatBuffer[0] = 000 (0x00) -> PacketType: Connect
+[06:17:37.728] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[06:17:37.729] [SERVER] FlatBuffer[2] = 203 (0xCB) -> ClientPacket high byte
+[06:17:37.729] [SERVER] FlatBuffer[3] = 035 (0x23) -> Data byte
+[06:17:37.729] [SERVER] FlatBuffer[4] = 094 (0x5E) -> Data byte
+[06:17:37.729] [SERVER] FlatBuffer[5] = 043 (0x2B) -> Data byte
+[06:17:37.729] [SERVER] FlatBuffer[6] = 152 (0x98) -> Data byte
+[06:17:37.729] [SERVER] FlatBuffer[7] = 003 (0x03) -> Data byte
+[06:17:37.730] [SERVER] FlatBuffer[8] = 000 (0x00) -> Data byte
+[06:17:37.730] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[06:17:37.730] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[06:17:37.730] [SERVER] ✅ Processing SyncEntity packet directly
+[06:17:37.742] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:37.816] === RECEIVED Connect (seq=3) ===
+[06:17:37.816] [SERVER] Channel: Unreliable
+[06:17:37.817] [SERVER] Compressed: False
+[06:17:37.817] [SERVER] Decrypted Size: 23 bytes
+[06:17:37.817] [SERVER] RAW Decrypted Payload: 0000BC24042B9803000068FE0000220BB2F90000000000
+[06:17:37.817] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[06:17:37.817] [SERVER] Payload[00] = 000 (0x00) (ClientPacket low byte)
+[06:17:37.817] [SERVER] Payload[01] = 000 (0x00) (ClientPacket high byte)
+[06:17:37.818] [SERVER] Payload[02] = 188 (0xBC) (Position data byte 1)
+[06:17:37.818] [SERVER] Payload[03] = 036 (0x24) (Position data byte 2)
+[06:17:37.818] [SERVER] Payload[04] = 004 (0x04) (Position data byte 3)
+[06:17:37.818] [SERVER] Payload[05] = 043 (0x2B) (Position data byte 4)
+[06:17:37.818] [SERVER] Payload[06] = 152 (0x98) (Position data byte 5)
+[06:17:37.818] [SERVER] Payload[07] = 003 (0x03) (Position data byte 6)
+[06:17:37.819] [SERVER] Payload[08] = 000 (0x00) (Position data byte 7)
+[06:17:37.819] [SERVER] Payload[09] = 000 (0x00) (Position data byte 8)
+[06:17:37.819] [SERVER] Payload[10] = 104 (0x68) (Position data byte 9)
+[06:17:37.819] [SERVER] Payload[11] = 254 (0xFE) (Position data byte 10)
+[06:17:37.819] [SERVER] Payload[12] = 000 (0x00) (Position data byte 11)
+[06:17:37.819] [SERVER] Payload[13] = 000 (0x00) (Position data byte 12)
+[06:17:37.820] [SERVER] Payload[14] = 034 (0x22) (Rotation data byte 1)
+[06:17:37.820] [SERVER] Payload[15] = 011 (0x0B) (Rotation data byte 2)
+[06:17:37.820] [SERVER] Payload[16] = 178 (0xB2) (Rotation data byte 3)
+[06:17:37.820] [SERVER] Payload[17] = 249 (0xF9) (Rotation data byte 4)
+[06:17:37.820] [SERVER] Payload[18] = 000 (0x00) (Rotation data byte 5)
+[06:17:37.820] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 6)
+[06:17:37.820] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 7)
+[06:17:37.821] [SERVER] Payload[21] = 000 (0x00) (Rotation data byte 8)
+[06:17:37.821] [SERVER] Payload[22] = 000 (0x00) (Rotation data byte 9)
+[06:17:37.821] [SERVER] ClientPacket as uint16: 0
+[06:17:37.821] [SERVER] Should be 0 for SyncEntity: YES
+[06:17:37.821] [SERVER] *** THIS IS A SYNCENTITY PACKET! ***
+[06:17:37.821] [SERVER] Processing unreliable packet seq=3 immediately
+[06:17:37.821] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[06:17:37.822] [SERVER] Buffer position after RestorePosition(0): 0
+[06:17:37.822] [SERVER] Buffer capacity: 24
+[06:17:37.822] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[06:17:37.822] [SERVER] FlatBuffer[0] = 000 (0x00) -> PacketType: Connect
+[06:17:37.822] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[06:17:37.822] [SERVER] FlatBuffer[2] = 188 (0xBC) -> ClientPacket high byte
+[06:17:37.823] [SERVER] FlatBuffer[3] = 036 (0x24) -> Data byte
+[06:17:37.823] [SERVER] FlatBuffer[4] = 004 (0x04) -> Data byte
+[06:17:37.823] [SERVER] FlatBuffer[5] = 043 (0x2B) -> Data byte
+[06:17:37.823] [SERVER] FlatBuffer[6] = 152 (0x98) -> Data byte
+[06:17:37.823] [SERVER] FlatBuffer[7] = 003 (0x03) -> Data byte
+[06:17:37.823] [SERVER] FlatBuffer[8] = 000 (0x00) -> Data byte
+[06:17:37.824] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[06:17:37.824] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[06:17:37.824] [SERVER] ✅ Processing SyncEntity packet directly
+[06:17:37.837] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:37.915] === RECEIVED Connect (seq=4) ===
+[06:17:37.915] [SERVER] Channel: Unreliable
+[06:17:37.916] [SERVER] Compressed: False
+[06:17:37.916] [SERVER] Decrypted Size: 23 bytes
+[06:17:37.916] [SERVER] RAW Decrypted Payload: 00000326202A9803000068FE0000A60ED1F40000000000
+[06:17:37.916] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[06:17:37.916] [SERVER] Payload[00] = 000 (0x00) (ClientPacket low byte)
+[06:17:37.917] [SERVER] Payload[01] = 000 (0x00) (ClientPacket high byte)
+[06:17:37.917] [SERVER] Payload[02] = 003 (0x03) (Position data byte 1)
+[06:17:37.917] [SERVER] Payload[03] = 038 (0x26) (Position data byte 2)
+[06:17:37.917] [SERVER] Payload[04] = 032 (0x20) (Position data byte 3)
+[06:17:37.917] [SERVER] Payload[05] = 042 (0x2A) (Position data byte 4)
+[06:17:37.917] [SERVER] Payload[06] = 152 (0x98) (Position data byte 5)
+[06:17:37.918] [SERVER] Payload[07] = 003 (0x03) (Position data byte 6)
+[06:17:37.918] [SERVER] Payload[08] = 000 (0x00) (Position data byte 7)
+[06:17:37.918] [SERVER] Payload[09] = 000 (0x00) (Position data byte 8)
+[06:17:37.918] [SERVER] Payload[10] = 104 (0x68) (Position data byte 9)
+[06:17:37.918] [SERVER] Payload[11] = 254 (0xFE) (Position data byte 10)
+[06:17:37.919] [SERVER] Payload[12] = 000 (0x00) (Position data byte 11)
+[06:17:37.919] [SERVER] Payload[13] = 000 (0x00) (Position data byte 12)
+[06:17:37.919] [SERVER] Payload[14] = 166 (0xA6) (Rotation data byte 1)
+[06:17:37.919] [SERVER] Payload[15] = 014 (0x0E) (Rotation data byte 2)
+[06:17:37.919] [SERVER] Payload[16] = 209 (0xD1) (Rotation data byte 3)
+[06:17:37.919] [SERVER] Payload[17] = 244 (0xF4) (Rotation data byte 4)
+[06:17:37.919] [SERVER] Payload[18] = 000 (0x00) (Rotation data byte 5)
+[06:17:37.920] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 6)
+[06:17:37.920] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 7)
+[06:17:37.920] [SERVER] Payload[21] = 000 (0x00) (Rotation data byte 8)
+[06:17:37.920] [SERVER] Payload[22] = 000 (0x00) (Rotation data byte 9)
+[06:17:37.920] [SERVER] ClientPacket as uint16: 0
+[06:17:37.920] [SERVER] Should be 0 for SyncEntity: YES
+[06:17:37.921] [SERVER] *** THIS IS A SYNCENTITY PACKET! ***
+[06:17:37.921] [SERVER] Processing unreliable packet seq=4 immediately
+[06:17:37.921] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[06:17:37.921] [SERVER] Buffer position after RestorePosition(0): 0
+[06:17:37.921] [SERVER] Buffer capacity: 24
+[06:17:37.921] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[06:17:37.922] [SERVER] FlatBuffer[0] = 000 (0x00) -> PacketType: Connect
+[06:17:37.922] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[06:17:37.922] [SERVER] FlatBuffer[2] = 003 (0x03) -> ClientPacket high byte
+[06:17:37.922] [SERVER] FlatBuffer[3] = 038 (0x26) -> Data byte
+[06:17:37.922] [SERVER] FlatBuffer[4] = 032 (0x20) -> Data byte
+[06:17:37.922] [SERVER] FlatBuffer[5] = 042 (0x2A) -> Data byte
+[06:17:37.923] [SERVER] FlatBuffer[6] = 152 (0x98) -> Data byte
+[06:17:37.923] [SERVER] FlatBuffer[7] = 003 (0x03) -> Data byte
+[06:17:37.923] [SERVER] FlatBuffer[8] = 000 (0x00) -> Data byte
+[06:17:37.923] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[06:17:37.923] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[06:17:37.923] [SERVER] ✅ Processing SyncEntity packet directly
+[06:17:37.936] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:38.012] === RECEIVED Connect (seq=5) ===
+[06:17:38.012] [SERVER] Channel: Unreliable
+[06:17:38.013] [SERVER] Compressed: False
+[06:17:38.013] [SERVER] Decrypted Size: 23 bytes
+[06:17:38.013] [SERVER] RAW Decrypted Payload: 00008827E7289803000068FE0000080F87F30000000000
+[06:17:38.013] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[06:17:38.013] [SERVER] Payload[00] = 000 (0x00) (ClientPacket low byte)
+[06:17:38.013] [SERVER] Payload[01] = 000 (0x00) (ClientPacket high byte)
+[06:17:38.013] [SERVER] Payload[02] = 136 (0x88) (Position data byte 1)
+[06:17:38.014] [SERVER] Payload[03] = 039 (0x27) (Position data byte 2)
+[06:17:38.014] [SERVER] Payload[04] = 231 (0xE7) (Position data byte 3)
+[06:17:38.014] [SERVER] Payload[05] = 040 (0x28) (Position data byte 4)
+[06:17:38.014] [SERVER] Payload[06] = 152 (0x98) (Position data byte 5)
+[06:17:38.014] [SERVER] Payload[07] = 003 (0x03) (Position data byte 6)
+[06:17:38.015] [SERVER] Payload[08] = 000 (0x00) (Position data byte 7)
+[06:17:38.015] [SERVER] Payload[09] = 000 (0x00) (Position data byte 8)
+[06:17:38.015] [SERVER] Payload[10] = 104 (0x68) (Position data byte 9)
+[06:17:38.015] [SERVER] Payload[11] = 254 (0xFE) (Position data byte 10)
+[06:17:38.015] [SERVER] Payload[12] = 000 (0x00) (Position data byte 11)
+[06:17:38.015] [SERVER] Payload[13] = 000 (0x00) (Position data byte 12)
+[06:17:38.016] [SERVER] Payload[14] = 008 (0x08) (Rotation data byte 1)
+[06:17:38.016] [SERVER] Payload[15] = 015 (0x0F) (Rotation data byte 2)
+[06:17:38.016] [SERVER] Payload[16] = 135 (0x87) (Rotation data byte 3)
+[06:17:38.016] [SERVER] Payload[17] = 243 (0xF3) (Rotation data byte 4)
+[06:17:38.016] [SERVER] Payload[18] = 000 (0x00) (Rotation data byte 5)
+[06:17:38.016] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 6)
+[06:17:38.017] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 7)
+[06:17:38.017] [SERVER] Payload[21] = 000 (0x00) (Rotation data byte 8)
+[06:17:38.017] [SERVER] Payload[22] = 000 (0x00) (Rotation data byte 9)
+[06:17:38.017] [SERVER] ClientPacket as uint16: 0
+[06:17:38.017] [SERVER] Should be 0 for SyncEntity: YES
+[06:17:38.017] [SERVER] *** THIS IS A SYNCENTITY PACKET! ***
+[06:17:38.017] [SERVER] Processing unreliable packet seq=5 immediately
+[06:17:38.018] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[06:17:38.018] [SERVER] Buffer position after RestorePosition(0): 0
+[06:17:38.018] [SERVER] Buffer capacity: 24
+[06:17:38.018] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[06:17:38.018] [SERVER] FlatBuffer[0] = 000 (0x00) -> PacketType: Connect
+[06:17:38.019] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[06:17:38.019] [SERVER] FlatBuffer[2] = 136 (0x88) -> ClientPacket high byte
+[06:17:38.019] [SERVER] FlatBuffer[3] = 039 (0x27) -> Data byte
+[06:17:38.019] [SERVER] FlatBuffer[4] = 231 (0xE7) -> Data byte
+[06:17:38.019] [SERVER] FlatBuffer[5] = 040 (0x28) -> Data byte
+[06:17:38.019] [SERVER] FlatBuffer[6] = 152 (0x98) -> Data byte
+[06:17:38.019] [SERVER] FlatBuffer[7] = 003 (0x03) -> Data byte
+[06:17:38.020] [SERVER] FlatBuffer[8] = 000 (0x00) -> Data byte
+[06:17:38.020] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[06:17:38.020] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[06:17:38.020] [SERVER] ✅ Processing SyncEntity packet directly
+[06:17:38.032] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:38.117] === RECEIVED Connect (seq=6) ===
+[06:17:38.118] [SERVER] Channel: Unreliable
+[06:17:38.118] [SERVER] Compressed: False
+[06:17:38.118] [SERVER] Decrypted Size: 23 bytes
+[06:17:38.118] [SERVER] RAW Decrypted Payload: 00001A2993279803000068FE0000DC0E53F30000000000
+[06:17:38.118] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[06:17:38.118] [SERVER] Payload[00] = 000 (0x00) (ClientPacket low byte)
+[06:17:38.118] [SERVER] Payload[01] = 000 (0x00) (ClientPacket high byte)
+[06:17:38.119] [SERVER] Payload[02] = 026 (0x1A) (Position data byte 1)
+[06:17:38.119] [SERVER] Payload[03] = 041 (0x29) (Position data byte 2)
+[06:17:38.119] [SERVER] Payload[04] = 147 (0x93) (Position data byte 3)
+[06:17:38.119] [SERVER] Payload[05] = 039 (0x27) (Position data byte 4)
+[06:17:38.119] [SERVER] Payload[06] = 152 (0x98) (Position data byte 5)
+[06:17:38.120] [SERVER] Payload[07] = 003 (0x03) (Position data byte 6)
+[06:17:38.120] [SERVER] Payload[08] = 000 (0x00) (Position data byte 7)
+[06:17:38.120] [SERVER] Payload[09] = 000 (0x00) (Position data byte 8)
+[06:17:38.120] [SERVER] Payload[10] = 104 (0x68) (Position data byte 9)
+[06:17:38.120] [SERVER] Payload[11] = 254 (0xFE) (Position data byte 10)
+[06:17:38.120] [SERVER] Payload[12] = 000 (0x00) (Position data byte 11)
+[06:17:38.120] [SERVER] Payload[13] = 000 (0x00) (Position data byte 12)
+[06:17:38.121] [SERVER] Payload[14] = 220 (0xDC) (Rotation data byte 1)
+[06:17:38.121] [SERVER] Payload[15] = 014 (0x0E) (Rotation data byte 2)
+[06:17:38.121] [SERVER] Payload[16] = 083 (0x53) (Rotation data byte 3)
+[06:17:38.121] [SERVER] Payload[17] = 243 (0xF3) (Rotation data byte 4)
+[06:17:38.121] [SERVER] Payload[18] = 000 (0x00) (Rotation data byte 5)
+[06:17:38.121] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 6)
+[06:17:38.122] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 7)
+[06:17:38.122] [SERVER] Payload[21] = 000 (0x00) (Rotation data byte 8)
+[06:17:38.122] [SERVER] Payload[22] = 000 (0x00) (Rotation data byte 9)
+[06:17:38.122] [SERVER] ClientPacket as uint16: 0
+[06:17:38.122] [SERVER] Should be 0 for SyncEntity: YES
+[06:17:38.122] [SERVER] *** THIS IS A SYNCENTITY PACKET! ***
+[06:17:38.123] [SERVER] Processing unreliable packet seq=6 immediately
+[06:17:38.123] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[06:17:38.123] [SERVER] Buffer position after RestorePosition(0): 0
+[06:17:38.123] [SERVER] Buffer capacity: 24
+[06:17:38.123] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[06:17:38.123] [SERVER] FlatBuffer[0] = 000 (0x00) -> PacketType: Connect
+[06:17:38.123] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[06:17:38.124] [SERVER] FlatBuffer[2] = 026 (0x1A) -> ClientPacket high byte
+[06:17:38.124] [SERVER] FlatBuffer[3] = 041 (0x29) -> Data byte
+[06:17:38.124] [SERVER] FlatBuffer[4] = 147 (0x93) -> Data byte
+[06:17:38.124] [SERVER] FlatBuffer[5] = 039 (0x27) -> Data byte
+[06:17:38.124] [SERVER] FlatBuffer[6] = 152 (0x98) -> Data byte
+[06:17:38.124] [SERVER] FlatBuffer[7] = 003 (0x03) -> Data byte
+[06:17:38.125] [SERVER] FlatBuffer[8] = 000 (0x00) -> Data byte
+[06:17:38.125] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[06:17:38.125] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[06:17:38.125] [SERVER] ✅ Processing SyncEntity packet directly
+[06:17:38.138] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:38.213] === RECEIVED Connect (seq=7) ===
+[06:17:38.213] [SERVER] Channel: Unreliable
+[06:17:38.213] [SERVER] Compressed: False
+[06:17:38.213] [SERVER] Decrypted Size: 23 bytes
+[06:17:38.214] [SERVER] RAW Decrypted Payload: 00000A2A022698030000A6FC0000C806AFED0000000000
+[06:17:38.214] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[06:17:38.214] [SERVER] Payload[00] = 000 (0x00) (ClientPacket low byte)
+[06:17:38.214] [SERVER] Payload[01] = 000 (0x00) (ClientPacket high byte)
+[06:17:38.214] [SERVER] Payload[02] = 010 (0x0A) (Position data byte 1)
+[06:17:38.215] [SERVER] Payload[03] = 042 (0x2A) (Position data byte 2)
+[06:17:38.215] [SERVER] Payload[04] = 002 (0x02) (Position data byte 3)
+[06:17:38.215] [SERVER] Payload[05] = 038 (0x26) (Position data byte 4)
+[06:17:38.215] [SERVER] Payload[06] = 152 (0x98) (Position data byte 5)
+[06:17:38.215] [SERVER] Payload[07] = 003 (0x03) (Position data byte 6)
+[06:17:38.215] [SERVER] Payload[08] = 000 (0x00) (Position data byte 7)
+[06:17:38.215] [SERVER] Payload[09] = 000 (0x00) (Position data byte 8)
+[06:17:38.216] [SERVER] Payload[10] = 166 (0xA6) (Position data byte 9)
+[06:17:38.216] [SERVER] Payload[11] = 252 (0xFC) (Position data byte 10)
+[06:17:38.216] [SERVER] Payload[12] = 000 (0x00) (Position data byte 11)
+[06:17:38.216] [SERVER] Payload[13] = 000 (0x00) (Position data byte 12)
+[06:17:38.216] [SERVER] Payload[14] = 200 (0xC8) (Rotation data byte 1)
+[06:17:38.216] [SERVER] Payload[15] = 006 (0x06) (Rotation data byte 2)
+[06:17:38.217] [SERVER] Payload[16] = 175 (0xAF) (Rotation data byte 3)
+[06:17:38.217] [SERVER] Payload[17] = 237 (0xED) (Rotation data byte 4)
+[06:17:38.217] [SERVER] Payload[18] = 000 (0x00) (Rotation data byte 5)
+[06:17:38.217] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 6)
+[06:17:38.217] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 7)
+[06:17:38.217] [SERVER] Payload[21] = 000 (0x00) (Rotation data byte 8)
+[06:17:38.218] [SERVER] Payload[22] = 000 (0x00) (Rotation data byte 9)
+[06:17:38.218] [SERVER] ClientPacket as uint16: 0
+[06:17:38.218] [SERVER] Should be 0 for SyncEntity: YES
+[06:17:38.218] [SERVER] *** THIS IS A SYNCENTITY PACKET! ***
+[06:17:38.218] [SERVER] Processing unreliable packet seq=7 immediately
+[06:17:38.218] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[06:17:38.219] [SERVER] Buffer position after RestorePosition(0): 0
+[06:17:38.219] [SERVER] Buffer capacity: 24
+[06:17:38.219] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[06:17:38.219] [SERVER] FlatBuffer[0] = 000 (0x00) -> PacketType: Connect
+[06:17:38.219] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[06:17:38.220] [SERVER] FlatBuffer[2] = 010 (0x0A) -> ClientPacket high byte
+[06:17:38.220] [SERVER] FlatBuffer[3] = 042 (0x2A) -> Data byte
+[06:17:38.220] [SERVER] FlatBuffer[4] = 002 (0x02) -> Data byte
+[06:17:38.220] [SERVER] FlatBuffer[5] = 038 (0x26) -> Data byte
+[06:17:38.220] [SERVER] FlatBuffer[6] = 152 (0x98) -> Data byte
+[06:17:38.220] [SERVER] FlatBuffer[7] = 003 (0x03) -> Data byte
+[06:17:38.220] [SERVER] FlatBuffer[8] = 000 (0x00) -> Data byte
+[06:17:38.221] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[06:17:38.221] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[06:17:38.221] [SERVER] ✅ Processing SyncEntity packet directly
+[06:17:38.234] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:38.315] === RECEIVED Connect (seq=8) ===
+[06:17:38.315] [SERVER] Channel: Unreliable
+[06:17:38.315] [SERVER] Compressed: False
+[06:17:38.315] [SERVER] Decrypted Size: 23 bytes
+[06:17:38.315] [SERVER] RAW Decrypted Payload: 0000B12A1F2498030000A2FD00004509CFEE0000000000
+[06:17:38.315] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[06:17:38.315] [SERVER] Payload[00] = 000 (0x00) (ClientPacket low byte)
+[06:17:38.316] [SERVER] Payload[01] = 000 (0x00) (ClientPacket high byte)
+[06:17:38.316] [SERVER] Payload[02] = 177 (0xB1) (Position data byte 1)
+[06:17:38.316] [SERVER] Payload[03] = 042 (0x2A) (Position data byte 2)
+[06:17:38.316] [SERVER] Payload[04] = 031 (0x1F) (Position data byte 3)
+[06:17:38.316] [SERVER] Payload[05] = 036 (0x24) (Position data byte 4)
+[06:17:38.316] [SERVER] Payload[06] = 152 (0x98) (Position data byte 5)
+[06:17:38.317] [SERVER] Payload[07] = 003 (0x03) (Position data byte 6)
+[06:17:38.317] [SERVER] Payload[08] = 000 (0x00) (Position data byte 7)
+[06:17:38.317] [SERVER] Payload[09] = 000 (0x00) (Position data byte 8)
+[06:17:38.317] [SERVER] Payload[10] = 162 (0xA2) (Position data byte 9)
+[06:17:38.317] [SERVER] Payload[11] = 253 (0xFD) (Position data byte 10)
+[06:17:38.317] [SERVER] Payload[12] = 000 (0x00) (Position data byte 11)
+[06:17:38.318] [SERVER] Payload[13] = 000 (0x00) (Position data byte 12)
+[06:17:38.318] [SERVER] Payload[14] = 069 (0x45) (Rotation data byte 1)
+[06:17:38.318] [SERVER] Payload[15] = 009 (0x09) (Rotation data byte 2)
+[06:17:38.318] [SERVER] Payload[16] = 207 (0xCF) (Rotation data byte 3)
+[06:17:38.318] [SERVER] Payload[17] = 238 (0xEE) (Rotation data byte 4)
+[06:17:38.318] [SERVER] Payload[18] = 000 (0x00) (Rotation data byte 5)
+[06:17:38.318] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 6)
+[06:17:38.319] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 7)
+[06:17:38.319] [SERVER] Payload[21] = 000 (0x00) (Rotation data byte 8)
+[06:17:38.319] [SERVER] Payload[22] = 000 (0x00) (Rotation data byte 9)
+[06:17:38.319] [SERVER] ClientPacket as uint16: 0
+[06:17:38.319] [SERVER] Should be 0 for SyncEntity: YES
+[06:17:38.319] [SERVER] *** THIS IS A SYNCENTITY PACKET! ***
+[06:17:38.319] [SERVER] Processing unreliable packet seq=8 immediately
+[06:17:38.320] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[06:17:38.320] [SERVER] Buffer position after RestorePosition(0): 0
+[06:17:38.320] [SERVER] Buffer capacity: 24
+[06:17:38.320] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[06:17:38.320] [SERVER] FlatBuffer[0] = 000 (0x00) -> PacketType: Connect
+[06:17:38.321] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[06:17:38.321] [SERVER] FlatBuffer[2] = 177 (0xB1) -> ClientPacket high byte
+[06:17:38.321] [SERVER] FlatBuffer[3] = 042 (0x2A) -> Data byte
+[06:17:38.321] [SERVER] FlatBuffer[4] = 031 (0x1F) -> Data byte
+[06:17:38.321] [SERVER] FlatBuffer[5] = 036 (0x24) -> Data byte
+[06:17:38.322] [SERVER] FlatBuffer[6] = 152 (0x98) -> Data byte
+[06:17:38.322] [SERVER] FlatBuffer[7] = 003 (0x03) -> Data byte
+[06:17:38.322] [SERVER] FlatBuffer[8] = 000 (0x00) -> Data byte
+[06:17:38.322] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[06:17:38.322] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[06:17:38.322] [SERVER] ✅ Processing SyncEntity packet directly
+[06:17:38.336] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:38.418] === RECEIVED Connect (seq=9) ===
+[06:17:38.418] [SERVER] Channel: Unreliable
+[06:17:38.418] [SERVER] Compressed: False
+[06:17:38.419] [SERVER] Decrypted Size: 23 bytes
+[06:17:38.419] [SERVER] RAW Decrypted Payload: 0000102CC522980300009DFF00001D10E3F90000000000
+[06:17:38.419] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[06:17:38.419] [SERVER] Payload[00] = 000 (0x00) (ClientPacket low byte)
+[06:17:38.419] [SERVER] Payload[01] = 000 (0x00) (ClientPacket high byte)
+[06:17:38.419] [SERVER] Payload[02] = 016 (0x10) (Position data byte 1)
+[06:17:38.419] [SERVER] Payload[03] = 044 (0x2C) (Position data byte 2)
+[06:17:38.420] [SERVER] Payload[04] = 197 (0xC5) (Position data byte 3)
+[06:17:38.420] [SERVER] Payload[05] = 034 (0x22) (Position data byte 4)
+[06:17:38.420] [SERVER] Payload[06] = 152 (0x98) (Position data byte 5)
+[06:17:38.420] [SERVER] Payload[07] = 003 (0x03) (Position data byte 6)
+[06:17:38.420] [SERVER] Payload[08] = 000 (0x00) (Position data byte 7)
+[06:17:38.420] [SERVER] Payload[09] = 000 (0x00) (Position data byte 8)
+[06:17:38.421] [SERVER] Payload[10] = 157 (0x9D) (Position data byte 9)
+[06:17:38.421] [SERVER] Payload[11] = 255 (0xFF) (Position data byte 10)
+[06:17:38.421] [SERVER] Payload[12] = 000 (0x00) (Position data byte 11)
+[06:17:38.421] [SERVER] Payload[13] = 000 (0x00) (Position data byte 12)
+[06:17:38.421] [SERVER] Payload[14] = 029 (0x1D) (Rotation data byte 1)
+[06:17:38.421] [SERVER] Payload[15] = 016 (0x10) (Rotation data byte 2)
+[06:17:38.421] [SERVER] Payload[16] = 227 (0xE3) (Rotation data byte 3)
+[06:17:38.422] [SERVER] Payload[17] = 249 (0xF9) (Rotation data byte 4)
+[06:17:38.422] [SERVER] Payload[18] = 000 (0x00) (Rotation data byte 5)
+[06:17:38.422] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 6)
+[06:17:38.422] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 7)
+[06:17:38.422] [SERVER] Payload[21] = 000 (0x00) (Rotation data byte 8)
+[06:17:38.422] [SERVER] Payload[22] = 000 (0x00) (Rotation data byte 9)
+[06:17:38.422] [SERVER] ClientPacket as uint16: 0
+[06:17:38.423] [SERVER] Should be 0 for SyncEntity: YES
+[06:17:38.423] [SERVER] *** THIS IS A SYNCENTITY PACKET! ***
+[06:17:38.423] [SERVER] Processing unreliable packet seq=9 immediately
+[06:17:38.423] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[06:17:38.423] [SERVER] Buffer position after RestorePosition(0): 0
+[06:17:38.423] [SERVER] Buffer capacity: 24
+[06:17:38.423] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[06:17:38.424] [SERVER] FlatBuffer[0] = 000 (0x00) -> PacketType: Connect
+[06:17:38.424] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[06:17:38.424] [SERVER] FlatBuffer[2] = 016 (0x10) -> ClientPacket high byte
+[06:17:38.424] [SERVER] FlatBuffer[3] = 044 (0x2C) -> Data byte
+[06:17:38.424] [SERVER] FlatBuffer[4] = 197 (0xC5) -> Data byte
+[06:17:38.424] [SERVER] FlatBuffer[5] = 034 (0x22) -> Data byte
+[06:17:38.424] [SERVER] FlatBuffer[6] = 152 (0x98) -> Data byte
+[06:17:38.425] [SERVER] FlatBuffer[7] = 003 (0x03) -> Data byte
+[06:17:38.425] [SERVER] FlatBuffer[8] = 000 (0x00) -> Data byte
+[06:17:38.425] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[06:17:38.425] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[06:17:38.425] [SERVER] ✅ Processing SyncEntity packet directly
+[06:17:38.438] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:38.518] === RECEIVED Connect (seq=10) ===
+[06:17:38.518] [SERVER] Channel: Unreliable
+[06:17:38.519] [SERVER] Compressed: False
+[06:17:38.519] [SERVER] Decrypted Size: 23 bytes
+[06:17:38.519] [SERVER] RAW Decrypted Payload: 0000972D0323980300008D010000890C60080000000000
+[06:17:38.519] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[06:17:38.519] [SERVER] Payload[00] = 000 (0x00) (ClientPacket low byte)
+[06:17:38.519] [SERVER] Payload[01] = 000 (0x00) (ClientPacket high byte)
+[06:17:38.519] [SERVER] Payload[02] = 151 (0x97) (Position data byte 1)
+[06:17:38.520] [SERVER] Payload[03] = 045 (0x2D) (Position data byte 2)
+[06:17:38.520] [SERVER] Payload[04] = 003 (0x03) (Position data byte 3)
+[06:17:38.520] [SERVER] Payload[05] = 035 (0x23) (Position data byte 4)
+[06:17:38.520] [SERVER] Payload[06] = 152 (0x98) (Position data byte 5)
+[06:17:38.520] [SERVER] Payload[07] = 003 (0x03) (Position data byte 6)
+[06:17:38.521] [SERVER] Payload[08] = 000 (0x00) (Position data byte 7)
+[06:17:38.521] [SERVER] Payload[09] = 000 (0x00) (Position data byte 8)
+[06:17:38.521] [SERVER] Payload[10] = 141 (0x8D) (Position data byte 9)
+[06:17:38.521] [SERVER] Payload[11] = 001 (0x01) (Position data byte 10)
+[06:17:38.521] [SERVER] Payload[12] = 000 (0x00) (Position data byte 11)
+[06:17:38.521] [SERVER] Payload[13] = 000 (0x00) (Position data byte 12)
+[06:17:38.522] [SERVER] Payload[14] = 137 (0x89) (Rotation data byte 1)
+[06:17:38.522] [SERVER] Payload[15] = 012 (0x0C) (Rotation data byte 2)
+[06:17:38.522] [SERVER] Payload[16] = 096 (0x60) (Rotation data byte 3)
+[06:17:38.522] [SERVER] Payload[17] = 008 (0x08) (Rotation data byte 4)
+[06:17:38.522] [SERVER] Payload[18] = 000 (0x00) (Rotation data byte 5)
+[06:17:38.522] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 6)
+[06:17:38.522] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 7)
+[06:17:38.523] [SERVER] Payload[21] = 000 (0x00) (Rotation data byte 8)
+[06:17:38.523] [SERVER] Payload[22] = 000 (0x00) (Rotation data byte 9)
+[06:17:38.523] [SERVER] ClientPacket as uint16: 0
+[06:17:38.523] [SERVER] Should be 0 for SyncEntity: YES
+[06:17:38.523] [SERVER] *** THIS IS A SYNCENTITY PACKET! ***
+[06:17:38.523] [SERVER] Processing unreliable packet seq=10 immediately
+[06:17:38.524] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[06:17:38.524] [SERVER] Buffer position after RestorePosition(0): 0
+[06:17:38.524] [SERVER] Buffer capacity: 24
+[06:17:38.524] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[06:17:38.524] [SERVER] FlatBuffer[0] = 000 (0x00) -> PacketType: Connect
+[06:17:38.525] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[06:17:38.525] [SERVER] FlatBuffer[2] = 151 (0x97) -> ClientPacket high byte
+[06:17:38.525] [SERVER] FlatBuffer[3] = 045 (0x2D) -> Data byte
+[06:17:38.525] [SERVER] FlatBuffer[4] = 003 (0x03) -> Data byte
+[06:17:38.525] [SERVER] FlatBuffer[5] = 035 (0x23) -> Data byte
+[06:17:38.525] [SERVER] FlatBuffer[6] = 152 (0x98) -> Data byte
+[06:17:38.526] [SERVER] FlatBuffer[7] = 003 (0x03) -> Data byte
+[06:17:38.526] [SERVER] FlatBuffer[8] = 000 (0x00) -> Data byte
+[06:17:38.526] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[06:17:38.526] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[06:17:38.526] [SERVER] ✅ Processing SyncEntity packet directly
+[06:17:38.537] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:38.619] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:38.719] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:38.822] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:38.920] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:39.020] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:39.120] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:39.220] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:39.321] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:39.422] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:39.521] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:39.622] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:39.722] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:39.823] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:39.922] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:40.022] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:40.122] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4
+[06:17:40.221] [SERVER] Error processing SyncEntity packet: Read exceeds buffer size (24) at 22 with size 4

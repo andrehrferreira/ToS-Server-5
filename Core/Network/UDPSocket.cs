@@ -538,6 +538,12 @@ public class UDPSocket
     {
         PacketType packetType = (PacketType)buffer.Read<byte>();
 
+        // Log game packet processing for first few packets
+        if (ReliableSequenceReceive <= 5 || (!isReliable && ReliableSequenceReceive <= 10))
+        {
+            FileLogger.Log($"[SERVER] ProcessGamePacket: PacketType={packetType}, IsReliable={isReliable}");
+        }
+
         switch (packetType)
         {
             case PacketType.BenckmarkTest:

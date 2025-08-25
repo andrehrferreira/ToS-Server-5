@@ -171,8 +171,8 @@ void UDPClient::Send(UFlatBuffer* buffer)
 void UDPClient::SendEncrypted(UFlatBuffer* buffer, bool reliable)
 {
     TArray<uint8> Payload;
-    Payload.SetNumUninitialized(buffer->GetLength() - 1);
-    FMemory::Memcpy(Payload.GetData(), buffer->GetRawBuffer() + 1, buffer->GetLength() - 1);
+    Payload.SetNumUninitialized(buffer->GetLength());
+    FMemory::Memcpy(Payload.GetData(), buffer->GetRawBuffer(), buffer->GetLength());
 
     // Create a temporary header to get the sequence BEFORE encryption
     FPacketHeader Header;
@@ -181,18 +181,71 @@ void UDPClient::SendEncrypted(UFlatBuffer* buffer, bool reliable)
     Header.Flags = EPacketHeaderFlags::Encrypted | EPacketHeaderFlags::AEAD_ChaCha20Poly1305;
     Header.Sequence = SecureSession.GetSeqTx(); // This will be the sequence used for encryption
 
-    UE_LOG(LogTemp, Warning, TEXT("[DEBUG] SendEncrypted: Header.Sequence=%llu, SeqTx before encrypt=%llu"), (unsigned long long)Header.Sequence, (unsigned long long)SecureSession.GetSeqTx());
+    // Remove verbose debug logs since crypto is working
 
     TArray<uint8> AAD = Header.GetAAD();
     TArray<uint8> Result;
     bool bWasCompressed = false;
 
-    // Log crypto data to file (only first packet)
+    // Log crypto data to file for first packet
     if (Header.Sequence == 0)
     {
+        ClientFileLog(FString::Printf(TEXT("=== ENCRYPTING RELIABLE HANDSHAKE PACKET ===")));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT] ConnectionId: %u"), Header.ConnectionId));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT] Sequence: %llu"), (unsigned long long)Header.Sequence));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT] Channel: %d"), (int32)Header.Channel));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT] Flags: %d"), (int32)Header.Flags));
         ClientFileLogHex(TEXT("[CLIENT] AAD"), AAD);
         ClientFileLogHex(TEXT("[CLIENT] Payload"), Payload);
     }
+
+               // Log position update packets (unreliable channel with specific patterns)
+           if (Header.Channel == EPacketChannel::Unreliable && Header.Sequence > 0 && Header.Sequence <= 10)
+           {
+               // Identify packet type from payload
+               FString PacketTypeName = TEXT("Unknown");
+               if (Payload.Num() > 0)
+               {
+                   uint8 FirstByte = Payload[0];
+                   switch ((EPacketType)FirstByte)
+                   {
+                       case EPacketType::Connect: PacketTypeName = TEXT("Connect"); break;
+                       case EPacketType::Ping: PacketTypeName = TEXT("Ping"); break;
+                       case EPacketType::Pong: PacketTypeName = TEXT("Pong"); break;
+                       case EPacketType::BenckmarkTest: PacketTypeName = TEXT("Benchmark Test"); break;
+                       case EPacketType::ReliableHandshake: PacketTypeName = TEXT("Reliable Handshake"); break;
+                       case EPacketType::Disconnect: PacketTypeName = TEXT("Disconnect"); break;
+                       default: PacketTypeName = FString::Printf(TEXT("Unknown Type %d"), FirstByte); break;
+                   }
+               }
+
+               ClientFileLog(FString::Printf(TEXT("=== SENDING %s (seq=%llu) ==="), *PacketTypeName, (unsigned long long)Header.Sequence));
+               ClientFileLog(FString::Printf(TEXT("[CLIENT] Channel: %s"), (Header.Channel == EPacketChannel::Unreliable) ? TEXT("Unreliable") : TEXT("Reliable")));
+               ClientFileLog(FString::Printf(TEXT("[CLIENT] Payload Size: %d bytes"), Payload.Num()));
+               ClientFileLogHex(TEXT("[CLIENT] RAW Payload"), Payload);
+
+               // Log COMPLETE byte-by-byte analysis
+               ClientFileLog(TEXT("[CLIENT] === DETAILED PAYLOAD ANALYSIS ==="));
+               for (int32 i = 0; i < FMath::Min(Payload.Num(), 24); i++)
+               {
+                   FString ByteDescription;
+                   if (i == 0) ByteDescription = TEXT(" (Should be EPacketType)");
+                   else if (i == 1) ByteDescription = TEXT(" (ClientPacket low byte)");
+                   else if (i == 2) ByteDescription = TEXT(" (ClientPacket high byte)");
+                   else if (i >= 3 && i <= 14) ByteDescription = FString::Printf(TEXT(" (Position data byte %d)"), i - 2);
+                   else if (i >= 15 && i <= 26) ByteDescription = FString::Printf(TEXT(" (Rotation data byte %d)"), i - 14);
+
+                   ClientFileLog(FString::Printf(TEXT("[CLIENT] Payload[%02d] = %3d (0x%02X)%s"), i, Payload[i], Payload[i], *ByteDescription));
+               }
+
+               // Interpret key fields
+               if (Payload.Num() >= 3)
+               {
+                   uint16 ClientPacketValue = (uint16)Payload[1] | ((uint16)Payload[2] << 8);
+                   ClientFileLog(FString::Printf(TEXT("[CLIENT] ClientPacket interpreted as uint16: %d"), ClientPacketValue));
+                   ClientFileLog(FString::Printf(TEXT("[CLIENT] Should be 0 for SyncEntity: %s"), (ClientPacketValue == 0) ? TEXT("YES") : TEXT("NO")));
+               }
+           }
 
     // Now encrypt - this will increment SeqTx internally
     if (!SecureSession.EncryptPayloadWithCompression(Payload, AAD, Result, bWasCompressed))
@@ -204,10 +257,12 @@ void UDPClient::SendEncrypted(UFlatBuffer* buffer, bool reliable)
     if (bWasCompressed)
         Header.Flags |= EPacketHeaderFlags::Compressed;
 
-    // Log ciphertext for comparison (only first packet)
+        // Log encryption results for first packet
     if (Header.Sequence == 0)
     {
+        ClientFileLog(FString::Printf(TEXT("[CLIENT] Compression: %s"), bWasCompressed ? TEXT("true") : TEXT("false")));
         ClientFileLogHex(TEXT("[CLIENT] Ciphertext"), Result);
+        ClientFileLog(FString::Printf(TEXT("[CLIENT] Ciphertext Length: %d bytes"), Result.Num()));
 
         FString TxKeyHex;
         for (int32 i = 0; i < 32; i++)
@@ -226,10 +281,19 @@ void UDPClient::SendEncrypted(UFlatBuffer* buffer, bool reliable)
     uint32 Sign = FCRC32C::Compute(FinalPacket.GetData(), FinalPacket.Num());
     FinalPacket.Append(reinterpret_cast<uint8*>(&Sign), sizeof(uint32));
 
+    // Log final packet info for first packet
+    if (Header.Sequence == 0)
+    {
+        ClientFileLog(FString::Printf(TEXT("[CLIENT] Final Packet Size: %d bytes (Header: %d + Ciphertext: %d + CRC32: 4)"),
+            FinalPacket.Num(), FPacketHeader::Size, Result.Num()));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT] CRC32 Signature: %08X"), Sign));
+        ClientFileLogHex(TEXT("[CLIENT] Complete Packet"), FinalPacket);
+    }
+
     int32 BytesSent = 0;
     Socket->SendTo(FinalPacket.GetData(), FinalPacket.Num(), BytesSent, *RemoteEndpoint);
 
-    UE_LOG(LogTemp, Warning, TEXT("[DEBUG] SendEncrypted: SeqTx after encrypt=%llu, sent %d bytes"), (unsigned long long)SecureSession.GetSeqTx(), BytesSent);
+    // Crypto working - removing verbose logs
 
     // Store for reliable tracking if needed
     if (reliable)

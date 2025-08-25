@@ -13,22 +13,56 @@ public:
         return Instance;
     }
 
-    void ClearLog()
+private:
+    FString GetLogPath() const
     {
-        FScopeLock Lock(&LogMutex);
-        const FString ClientLogPath = FPaths::ProjectDir() + TEXT("client_debug.log");
-        FPlatformFileManager::Get().GetPlatformFile().DeleteFile(*ClientLogPath);
+        // Use a more accessible location - save in the server directory
+        return TEXT("G:\\ToS\\Server\\client_debug.log");
     }
 
-    void Log(const FString& Message)
+public:
+
+        void ClearLog()
+    {
+        FScopeLock Lock(&LogMutex);
+        const FString ClientLogPath = GetLogPath();
+        FPlatformFileManager::Get().GetPlatformFile().DeleteFile(*ClientLogPath);
+
+        // Log the file location to UE console
+        UE_LOG(LogTemp, Warning, TEXT("[LOG] Client debug log: %s"), *ClientLogPath);
+
+                        // Add session header with proper timestamp
+        FDateTime Now = FDateTime::Now();
+        FString SessionHeader = FString::Printf(TEXT("=== CLIENT SESSION STARTED: %04d-%02d-%02d %02d:%02d:%02d ===\r\n"),
+            Now.GetYear(), Now.GetMonth(), Now.GetDay(), Now.GetHour(), Now.GetMinute(), Now.GetSecond());
+        FFileHelper::SaveStringToFile(SessionHeader, *ClientLogPath, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM, &IFileManager::Get(), FILEWRITE_Append);
+    }
+
+                    void Log(const FString& Message)
     {
         FScopeLock Lock(&LogMutex);
 
-        const FString ClientLogPath = FPaths::ProjectDir() + TEXT("client_debug.log");
-        FString Timestamp = FDateTime::Now().ToString(TEXT("HH:mm:ss.fff"));
-        FString LogLine = FString::Printf(TEXT("[%s] %s\n"), *Timestamp, *Message);
+        const FString ClientLogPath = GetLogPath();
+        FDateTime Now = FDateTime::Now();
+        FString Timestamp = FString::Printf(TEXT("%02d:%02d:%02d.%03d"),
+            Now.GetHour(), Now.GetMinute(), Now.GetSecond(), Now.GetMillisecond());
 
-        FFileHelper::SaveStringToFile(LogLine, *ClientLogPath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), FILEWRITE_Append);
+        // Convert emojis to text equivalents to avoid binary corruption
+        FString CleanMessage = Message;
+        CleanMessage = CleanMessage.Replace(TEXT("🎯"), TEXT("[TARGET]"));
+        CleanMessage = CleanMessage.Replace(TEXT("🚀"), TEXT("[ROCKET]"));
+        CleanMessage = CleanMessage.Replace(TEXT("❌"), TEXT("[X]"));
+        CleanMessage = CleanMessage.Replace(TEXT("📡"), TEXT("[SATELLITE]"));
+        CleanMessage = CleanMessage.Replace(TEXT("📤"), TEXT("[OUTBOX]"));
+        CleanMessage = CleanMessage.Replace(TEXT("✅"), TEXT("[CHECK]"));
+        CleanMessage = CleanMessage.Replace(TEXT("🔧"), TEXT("[WRENCH]"));
+        CleanMessage = CleanMessage.Replace(TEXT("🌐"), TEXT("[GLOBE]"));
+        CleanMessage = CleanMessage.Replace(TEXT("📦"), TEXT("[PACKAGE]"));
+        CleanMessage = CleanMessage.Replace(TEXT("🔍"), TEXT("[MAGNIFYING]"));
+
+        FString LogLine = FString::Printf(TEXT("[%s] %s\r\n"), *Timestamp, *CleanMessage);
+
+        FFileHelper::SaveStringToFile(LogLine, *ClientLogPath, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM, &IFileManager::Get(), FILEWRITE_Append);
     }
 
     void LogHex(const FString& Prefix, const TArray<uint8>& Data)

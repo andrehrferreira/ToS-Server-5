@@ -3,6 +3,7 @@
 #include "Controllers/ToS_GameInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/AnimInstance.h"
+#include "Utils/FileLogger.h"
 
 ASyncEntity::ASyncEntity()
 {
@@ -32,14 +33,24 @@ void ASyncEntity::BeginPlay()
 
 	if (UWorld* World = GetWorld())
 	{
-		if (UTOSGameInstance* TosGameInstance = Cast<UTOSGameInstance>(World->GetGameInstance()))		
-			NetSubsystem = TosGameInstance->GetSubsystem<UENetSubsystem>();		
-		else		
+		if (UTOSGameInstance* TosGameInstance = Cast<UTOSGameInstance>(World->GetGameInstance()))
+		{
+			NetSubsystem = TosGameInstance->GetSubsystem<UENetSubsystem>();
+			UE_LOG(LogTemp, Warning, TEXT("🔧 SyncEntity: NetSubsystem found: %s"), NetSubsystem ? TEXT("YES") : TEXT("NO"));
+			ClientFileLog(FString::Printf(TEXT("🔧 SyncEntity: NetSubsystem found: %s"), NetSubsystem ? TEXT("YES") : TEXT("NO")));
+		}
+		else
+		{
 			NetSubsystem = nullptr;
+			UE_LOG(LogTemp, Error, TEXT("❌ SyncEntity: TOSGameInstance not found!"));
+			ClientFileLog(TEXT("❌ SyncEntity: TOSGameInstance not found!"));
+		}
 	}
 	else
 	{
 		NetSubsystem = nullptr;
+		UE_LOG(LogTemp, Error, TEXT("❌ SyncEntity: World not found!"));
+		ClientFileLog(TEXT("❌ SyncEntity: World not found!"));
 	}
 }
 
@@ -71,7 +82,7 @@ void ASyncEntity::UpdateAnimationFromNetwork(FVector Velocity, uint32 Animation,
 	if (UCharacterMovementComponent* Movement = GetCharacterMovement())
 	{
 		Movement->Velocity = Velocity;
-		Movement->RequestDirectMove(Velocity.GetSafeNormal() * Movement->GetMaxSpeed(), false);	
+		Movement->RequestDirectMove(Velocity.GetSafeNormal() * Movement->GetMaxSpeed(), false);
 		Movement->SetMovementMode(IsFalling ? MOVE_Falling : MOVE_Walking);
 	}
 

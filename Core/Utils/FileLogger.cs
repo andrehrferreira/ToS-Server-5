@@ -4,13 +4,20 @@ using System.Text;
 
 public static class FileLogger
 {
-    private static string _serverLogPath = "server_debug.log";
+    private static string _serverLogPath = @"G:\ToS\Server\server_debug.log";
     private static readonly object _lock = new object();
 
-    static FileLogger()
+        static FileLogger()
     {
         // Clear log file on startup
         ClearLog();
+
+        // Log the file location to console
+        Console.WriteLine($"[LOG] Server debug log: {_serverLogPath}");
+
+        // Add session header
+        var sessionHeader = $"=== SERVER SESSION STARTED: {DateTime.Now:yyyy-MM-dd HH:mm:ss} ==={Environment.NewLine}";
+        File.AppendAllText(_serverLogPath, sessionHeader, Encoding.UTF8);
     }
 
     public static void ClearLog()
