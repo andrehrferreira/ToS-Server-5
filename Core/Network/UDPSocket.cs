@@ -596,11 +596,21 @@ public class UDPSocket
                     // Handle reliable handshake packet
                     ServerMonitor.Log($"[QUEUE] Processing ReliableHandshake packet from client {Id}");
 
+                    FileLogger.Log($"=== RELIABLE HANDSHAKE RECEIVED ===");
+                    FileLogger.Log($"[SERVER] 🤝 Received ReliableHandshake from client: {Id}");
+                    FileLogger.Log($"[SERVER] 🤝 Buffer size: {buffer.Capacity} bytes");
+                    FileLogger.Log($"[SERVER] 🤝 Crypto ready: {(Session.ConnectionId != 0 ? "YES" : "NO")}");
+
                     // Send reliable handshake response
                     var response = new ReliableHandshakePacket { Message = "Handshake Complete" };
+
+                    FileLogger.Log($"[SERVER] 🤝 Sending ReliableHandshake response");
+                    FileLogger.Log($"[SERVER] 🤝 Response message: {response.Message}");
+
                     SendReliablePacket(response);
 
                     ServerMonitor.Log($"[QUEUE] Sent reliable handshake response to client {Id}");
+                    FileLogger.Log($"[SERVER] 🤝 Reliable handshake complete for client: {Id}");
                 }
                 break;
         }

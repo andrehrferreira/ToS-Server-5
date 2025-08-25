@@ -144,27 +144,14 @@ void UDPClient::Send(UFlatBuffer* buffer)
     if (buffer->GetLength() <= 0)
         return;
 
-    if (bEncryptionEnabled && bIsConnected)
+    // Send packets encrypted if crypto is ready, otherwise use legacy
+    if (IsCryptoReady())
     {
-        uint8 packetType = buffer->GetRawBuffer()[0];
-
-        if (packetType == static_cast<uint8>(EPacketType::CryptoTest) || packetType == static_cast<uint8>(EPacketType::CryptoTestAck))
-        {
-            SendLegacy(buffer);
-            return;
-        }
-
-        if (!IsCryptoReady())
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Blocked send before crypto handshake complete"));
-            return;
-        }
-
-        SendEncrypted(buffer);
+        SendEncrypted(buffer, false); // Unreliable encrypted
     }
     else
     {
-        SendLegacy(buffer);
+        SendLegacy(buffer); // Fallback to unencrypted during handshake
     }
 }
 
@@ -450,9 +437,15 @@ void UDPClient::PollIncomingPackets()
 
                                 ClientTestValue = 0xA1B2C3D4;
                                 UFlatBuffer* TestBuffer = UFlatBuffer::CreateFlatBuffer(8);
+                                // Fixed: Use simplified structure for CryptoTest
                                 TestBuffer->WriteByte(static_cast<uint8>(EPacketType::CryptoTest));
                                 TestBuffer->WriteUInt32(ClientTestValue);
-                                Send(TestBuffer);
+
+                                ClientFileLog(FString::Printf(TEXT("=== CRYPTO HANDSHAKE START ===")));
+                                ClientFileLog(FString::Printf(TEXT("[CLIENT] 🔐 Sending CryptoTest: %u"), ClientTestValue));
+                                ClientFileLog(FString::Printf(TEXT("[CLIENT] 🔐 Buffer size: %d bytes"), TestBuffer->GetLength()));
+
+                                SendLegacy(TestBuffer); // Use legacy for handshake compatibility
                                 UE_LOG(LogTemp, Log, TEXT("Client sent CryptoTest %u"), ClientTestValue);
                             }
                             else
@@ -487,6 +480,10 @@ void UDPClient::PollIncomingPackets()
                         UFlatBuffer* AckBuffer = UFlatBuffer::CreateFlatBuffer(8);
                         AckBuffer->WriteByte(static_cast<uint8>(EPacketType::CryptoTestAck));
                         AckBuffer->WriteUInt32(value);
+
+                        ClientFileLog(FString::Printf(TEXT("[CLIENT] 🔐 Sending CryptoTestAck: %u"), value));
+                        ClientFileLog(FString::Printf(TEXT("[CLIENT] 🔐 Server crypto confirmed: %s"), bServerCryptoConfirmed ? TEXT("YES") : TEXT("NO")));
+
                         Send(AckBuffer);
                         UE_LOG(LogTemp, Log, TEXT("Sent CryptoTestAck %u to server"), value);
                         bServerCryptoConfirmed = true;
@@ -496,12 +493,18 @@ void UDPClient::PollIncomingPackets()
                             bHandshakeComplete = true;
                             UE_LOG(LogTemp, Log, TEXT("Client crypto handshake complete"));
 
-                            // Send reliable handshake packet to complete full connection
-                            TArray<uint8> HandshakeData;
-                            HandshakeData.Add(static_cast<uint8>(EPacketType::ReliableHandshake));
-                            HandshakeData.Add(0x01); // Handshake marker
+                            // Fixed: Use simplified structure for reliable handshake
+                            UFlatBuffer* HandshakeBuffer = UFlatBuffer::CreateFlatBuffer(2);
+                            HandshakeBuffer->WriteByte(static_cast<uint8>(EPacketType::ReliableHandshake));
+                            HandshakeBuffer->WriteByte(0x01); // Handshake marker
+
+                            ClientFileLog(FString::Printf(TEXT("=== RELIABLE HANDSHAKE START ===")));
+                            ClientFileLog(FString::Printf(TEXT("[CLIENT] 🤝 Crypto ready: %s"), IsCryptoReady() ? TEXT("YES") : TEXT("NO")));
+                            ClientFileLog(FString::Printf(TEXT("[CLIENT] 🤝 Sending ReliableHandshake packet (2 bytes)")));
+                            ClientFileLog(FString::Printf(TEXT("[CLIENT] 🤝 Buffer: [0x%02X, 0x01]"), static_cast<uint8>(EPacketType::ReliableHandshake)));
+
                             UE_LOG(LogTemp, Log, TEXT("Attempting to send reliable handshake packet, IsCryptoReady: %s"), IsCryptoReady() ? TEXT("true") : TEXT("false"));
-                            SendReliablePacket(HandshakeData);
+                            SendLegacy(HandshakeBuffer); // Use legacy for compatibility
                             UE_LOG(LogTemp, Log, TEXT("Sent reliable handshake packet"));
 
                             if (OnConnect)
@@ -511,11 +514,17 @@ void UDPClient::PollIncomingPackets()
                     break;
                     case EPacketType::ReliableHandshake:
                     {
+                        ClientFileLog(FString::Printf(TEXT("=== RELIABLE HANDSHAKE RESPONSE ===")));
+                        ClientFileLog(FString::Printf(TEXT("[CLIENT] 🤝 Received ReliableHandshake response from server")));
+
                         UE_LOG(LogTemp, Log, TEXT("Received reliable handshake response from server"));
                         bReliableHandshakeComplete = true;
 
                         if (IsFullyConnected())
                         {
+                            ClientFileLog(FString::Printf(TEXT("[CLIENT] 🤝 Full connection established (crypto + reliable)")));
+                            ClientFileLog(FString::Printf(TEXT("[CLIENT] 🤝 Connection ID: %u"), SecureSession.GetConnectionId()));
+
                             UE_LOG(LogTemp, Log, TEXT("Full connection established (crypto + reliable)"));
                             if (OnConnect)
                                 OnConnect(SecureSession.GetConnectionId());
@@ -604,65 +613,58 @@ void UDPClient::PollIncomingPackets()
 
 void UDPClient::ProcessEncryptedPacket(UFlatBuffer* Buffer, int32 BytesRead, const FPacketHeader& Header)
 {
-    try
+    // Verify this is our connection
+    if (Header.ConnectionId != SecureSession.GetConnectionId())
     {
-        // Verify this is our connection
-        if (Header.ConnectionId != SecureSession.GetConnectionId())
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Received packet for wrong connection ID"));
-            return;
-        }
-
-        // Check if handshake is complete
-        if (!IsCryptoReady())
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Dropping encrypted packet before crypto handshake complete"));
-            return;
-        }
-
-        // Extract payload (skip header)
-        int32 PayloadSize = BytesRead - FPacketHeader::Size - 4; // -4 for CRC32
-        if (PayloadSize <= 16) // ChaCha20Poly1305 adds 16 bytes
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Encrypted packet payload too small"));
-            return;
-        }
-
-        TArray<uint8> Payload;
-        Payload.SetNumUninitialized(PayloadSize);
-        FMemory::Memcpy(Payload.GetData(), Buffer->GetRawBuffer() + FPacketHeader::Size, PayloadSize);
-
-        TArray<uint8> AAD = Header.GetAAD();
-        bool bIsCompressed = (Header.Flags & EPacketHeaderFlags::Compressed) != EPacketHeaderFlags::None;
-        bool bIsAcknowledgment = (Header.Flags & EPacketHeaderFlags::Acknowledgment) != EPacketHeaderFlags::None;
-        TArray<uint8> Plaintext;
-
-        if (!SecureSession.DecryptPayloadWithDecompression(Payload, AAD, Header.Sequence, bIsCompressed, Plaintext))
-        {
-            UE_LOG(LogTemp, Error, TEXT("Failed to decrypt packet"));
-            return;
-        }
-
-        // Handle acknowledgment packets
-        if (bIsAcknowledgment)
-        {
-            AcknowledgeReliablePacket(Header.Sequence);
-            return;
-        }
-
-        // Route to appropriate queue based on channel
-        if (Header.Channel == EPacketChannel::ReliableOrdered)
-        {
-            ProcessReliablePacket(Header.Sequence, Plaintext);
-        }
-        else
-        {
-            UnreliableEventQueue.Enqueue(Plaintext);
-        }
+        UE_LOG(LogTemp, Warning, TEXT("Received packet for wrong connection ID"));
+        return;
     }
-    catch (...)
+
+    // Check if handshake is complete
+    if (!IsCryptoReady())
     {
-        UE_LOG(LogTemp, Error, TEXT("Exception processing encrypted packet"));
+        UE_LOG(LogTemp, Warning, TEXT("Dropping encrypted packet before crypto handshake complete"));
+        return;
+    }
+
+    // Extract payload (skip header)
+    int32 PayloadSize = BytesRead - FPacketHeader::Size - 4; // -4 for CRC32
+    if (PayloadSize <= 16) // ChaCha20Poly1305 adds 16 bytes
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Encrypted packet payload too small"));
+        return;
+    }
+
+    TArray<uint8> Payload;
+    Payload.SetNumUninitialized(PayloadSize);
+    FMemory::Memcpy(Payload.GetData(), Buffer->GetRawBuffer() + FPacketHeader::Size, PayloadSize);
+
+    TArray<uint8> AAD = Header.GetAAD();
+    bool bIsCompressed = (Header.Flags & EPacketHeaderFlags::Compressed) != EPacketHeaderFlags::None;
+    bool bIsAcknowledgment = (Header.Flags & EPacketHeaderFlags::Acknowledgment) != EPacketHeaderFlags::None;
+    TArray<uint8> Plaintext;
+
+    if (!SecureSession.DecryptPayloadWithDecompression(Payload, AAD, Header.Sequence, bIsCompressed, Plaintext))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to decrypt packet"));
+        return;
+    }
+
+    // Handle acknowledgment packets
+    if (bIsAcknowledgment)
+    {
+        AcknowledgeReliablePacket(Header.Sequence);
+        return;
+    }
+
+    // Route to appropriate queue based on channel
+    if (Header.Channel == EPacketChannel::ReliableOrdered)
+    {
+        ProcessReliablePacket(Header.Sequence, Plaintext);
+    }
+    else
+    {
+        UnreliableEventQueue.Enqueue(Plaintext);
     }
 }
 

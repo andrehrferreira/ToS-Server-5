@@ -24,6 +24,7 @@ public:
 
         void ClearLog()
     {
+#if !UE_BUILD_SHIPPING
         FScopeLock Lock(&LogMutex);
         const FString ClientLogPath = GetLogPath();
         FPlatformFileManager::Get().GetPlatformFile().DeleteFile(*ClientLogPath);
@@ -36,6 +37,7 @@ public:
         FString SessionHeader = FString::Printf(TEXT("=== CLIENT SESSION STARTED: %04d-%02d-%02d %02d:%02d:%02d ===\r\n"),
             Now.GetYear(), Now.GetMonth(), Now.GetDay(), Now.GetHour(), Now.GetMinute(), Now.GetSecond());
         FFileHelper::SaveStringToFile(SessionHeader, *ClientLogPath, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM, &IFileManager::Get(), FILEWRITE_Append);
+#endif
     }
 
                     void Log(const FString& Message)
@@ -89,10 +91,14 @@ private:
 // Global functions for easy access
 void ClientFileLog(const FString& Message)
 {
+#if !UE_BUILD_SHIPPING
     FFileLogger::Get().Log(Message);
+#endif
 }
 
 void ClientFileLogHex(const FString& Prefix, const TArray<uint8>& Data)
 {
+#if !UE_BUILD_SHIPPING
     FFileLogger::Get().LogHex(Prefix, Data);
+#endif
 }

@@ -30,23 +30,72 @@ public abstract class PacketHandler
     public abstract ClientPackets Type { get; }
     public abstract void Consume(PlayerController ctrl, ref FlatBuffer buffer);
 
-    static PacketHandler()
+        static PacketHandler()
     {
-        foreach (Type t in AppDomain.CurrentDomain.GetAssemblies()
+        var logMsg = "[PACKETHANDLER] 🔧 Initializing packet handlers...";
+        Console.WriteLine(logMsg);
+        FileLogger.Log(logMsg);
+
+        var handlerTypes = AppDomain.CurrentDomain.GetAssemblies()
                    .SelectMany(t => t.GetTypes())
-                   .Where(t => t.IsClass && t.Namespace == "Packets.Handler"))
+                   .Where(t => t.IsClass && t.Namespace == "Packets.Handler")
+                   .ToList();
+
+        logMsg = $"[PACKETHANDLER] 📋 Found {handlerTypes.Count} handler types in Packets.Handler namespace";
+        Console.WriteLine(logMsg);
+        FileLogger.Log(logMsg);
+
+        foreach (Type t in handlerTypes)
         {
-            if (Activator.CreateInstance(t) is PacketHandler packetHandler)
+            try
             {
-                Handlers[(int)packetHandler.Type] = packetHandler;
+                if (Activator.CreateInstance(t) is PacketHandler packetHandler)
+                {
+                    Handlers[(int)packetHandler.Type] = packetHandler;
+                    logMsg = $"[PACKETHANDLER] ✅ Registered {t.Name} for {packetHandler.Type} (index: {(int)packetHandler.Type})";
+                    Console.WriteLine(logMsg);
+                    FileLogger.Log(logMsg);
+                }
+            }
+            catch (Exception ex)
+            {
+                logMsg = $"[PACKETHANDLER] ❌ Failed to register {t.Name}: {ex.Message}";
+                Console.WriteLine(logMsg);
+                FileLogger.Log(logMsg);
             }
         }
+
+        logMsg = "[PACKETHANDLER] 🏁 Handler initialization complete";
+        Console.WriteLine(logMsg);
+        FileLogger.Log(logMsg);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void HandlePacket(PlayerController ctrl, ref FlatBuffer buffer, ClientPackets type)
     {
-        Handlers[(int)type]?.Consume(ctrl, ref buffer);
+        try
+        {
+            FileLogger.Log($"[PACKETHANDLER] 🎯 Attempting to handle {type} (index: {(int)type})");
+
+            var handler = Handlers[(int)type];
+            if (handler == null)
+            {
+                FileLogger.Log($"[PACKETHANDLER] ❌ No handler found for {type}");
+                return;
+            }
+
+            FileLogger.Log($"[PACKETHANDLER] ✅ Handler found: {handler.GetType().Name}");
+            FileLogger.Log($"[PACKETHANDLER] 📦 Buffer position: {buffer.Position}, capacity: {buffer.Capacity}");
+
+            handler.Consume(ctrl, ref buffer);
+
+            FileLogger.Log($"[PACKETHANDLER] ✅ Handler {handler.GetType().Name} executed successfully");
+        }
+        catch (Exception ex)
+        {
+            FileLogger.Log($"[PACKETHANDLER] ❌ Error handling {type}: {ex.Message}");
+            FileLogger.Log($"[PACKETHANDLER] ❌ Stack trace: {ex.StackTrace}");
+        }
     }
 }
 

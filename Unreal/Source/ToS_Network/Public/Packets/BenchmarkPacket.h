@@ -22,7 +22,7 @@ struct FBenchmarkPacket
     FRotator Rotator;
 
 
-    int32 GetSize() const { return 31; }
+    int32 GetSize() const { return 19; }
 
     void Deserialize(UFlatBuffer* Buffer)
     {

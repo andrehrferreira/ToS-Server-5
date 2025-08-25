@@ -530,25 +530,28 @@ public sealed class UDPServer
                                 data.Resize(len - 4);
                                 conn.TimeoutLeft = 30f;
 
-                                if (!conn.CryptoHandshakeComplete)
-                                {
-#if DEBUG
-                                    ServerMonitor.Log($"Dropping {(type == PacketType.Reliable ? "Reliable" : "Unreliable")} packet before crypto handshake complete from {address}");
-#endif
-                                    data.Free();
-                                    break;
-                                }
+                                                                                                // Original structure: EPacketType + ClientPackets + Data
+                                // Handler expects to read from position 0
+                                data.RestorePosition(0);
 
-                                if (len >= PacketHeader.Size + 16)
-                                {
-                                    if (ProcessEncryptedPacket(data, conn, len))
-                                        return;
-                                }
-
+                                // Original structure: EPacketType(1) + ClientPackets(2) + Data(21) = 24 bytes total
+                                // Peek at ClientPackets for logging (without consuming)
+                                data.Read<byte>(); // Skip PacketType
                                 ClientPackets clientPacket = (ClientPackets)data.Read<short>();
+                                data.RestorePosition(0); // Reset for handler to position 0
+
+                                FileLogger.Log($"[SERVER] 🎯 Processing {type} packet - ClientPacket: {clientPacket}");
+                                FileLogger.Log($"[SERVER] 📦 Buffer position before handler: {data.Position}, capacity: {data.Capacity}");
 
                                 if(PlayerController.TryGet(conn.Id, out var controller))
+                                {
                                     PacketHandler.HandlePacket(controller, ref data, clientPacket);
+                                    FileLogger.Log($"[SERVER] ✅ Routed {clientPacket} to PacketHandler");
+                                }
+                                else
+                                {
+                                    FileLogger.Log($"[SERVER] ❌ No PlayerController found for connection {conn.Id}");
+                                }
                             }
                         }
 
@@ -563,10 +566,20 @@ public sealed class UDPServer
 #if DEBUG
                             ServerMonitor.Log($"Received CryptoTest {value} from {address}");
 #endif
+
+                            FileLogger.Log($"=== CRYPTO HANDSHAKE RECEIVED ===");
+                            FileLogger.Log($"[SERVER] 🔐 Received CryptoTest: {value}");
+                            FileLogger.Log($"[SERVER] 🔐 From: {address}");
+                            FileLogger.Log($"[SERVER] 🔐 Session exists: {(conn.Session.ConnectionId != 0 ? "YES" : "NO")}");
+
                             conn.ClientTestValue = value;
                             var ackBuf = new FlatBuffer(5);
                             ackBuf.Write(PacketType.CryptoTestAck);
                             ackBuf.Write(value);
+
+                            FileLogger.Log($"[SERVER] 🔐 Sending CryptoTestAck: {value}");
+                            FileLogger.Log($"[SERVER] 🔐 Buffer size: {ackBuf.Capacity} bytes");
+
                             conn.Send(ref ackBuf, false);
                             ackBuf.Free();
 #if DEBUG
@@ -606,6 +619,12 @@ public sealed class UDPServer
 #if DEBUG
                             ServerMonitor.Log($"Received CryptoTestAck {value} from {address}");
 #endif
+
+                            FileLogger.Log($"=== CRYPTO ACK RECEIVED ===");
+                            FileLogger.Log($"[SERVER] 🔐 Received CryptoTestAck: {value}");
+                            FileLogger.Log($"[SERVER] 🔐 Expected: {conn.ServerTestValue}");
+                            FileLogger.Log($"[SERVER] 🔐 Match: {(value == conn.ServerTestValue ? "YES" : "NO")}");
+
                             if (value == conn.ServerTestValue)
                                 conn.ServerCryptoConfirmed = true;
 
@@ -706,32 +725,16 @@ public sealed class UDPServer
 
     internal static void ProcessPacket(FlatBuffer buffer, int len, Address address)
     {
-        // Check if this is an encrypted packet with new header format first
-        if (len >= PacketHeader.Size + 16 && Clients.TryGetValue(address, out var conn))
+        // Check if packet is encrypted (has encryption header)
+        if (len > 12 && Clients.TryGetValue(address, out var conn) && conn.Session.ConnectionId != 0)
         {
-            try
-            {
-                unsafe
-                {
-                    var header = PacketHeader.Deserialize(buffer.Data);
-
-                    if (header.Flags.HasFlag(PacketHeaderFlags.Encrypted) &&
-                        header.Flags.HasFlag(PacketHeaderFlags.AEAD_ChaCha20Poly1305) &&
-                        header.ConnectionId == conn.Session.ConnectionId)
-                    {
-
-                        ProcessEncryptedPacket(buffer, conn, len);
-                        return;
-                    }
-                }
-            }
-            catch
-            {
-                // If header parsing fails, fall back to legacy processing
-            }
+            FileLogger.Log($"[SERVER] 🔄 Processing encrypted packet ({len} bytes) using LEGACY header-based method");
+            // Try to process as encrypted packet first
+            if (ProcessEncryptedPacket_Legacy(buffer, conn, len))
+                return;
         }
 
-        // Legacy packet processing
+        // Fallback to unencrypted processing (for handshake packets)
         PacketType packetType = (PacketType)buffer.Read<byte>();
 
         if (packetType == PacketType.Fragment)
@@ -906,9 +909,81 @@ public sealed class UDPServer
     {
         try
         {
-            var header = PacketHeader.Deserialize(data.Data);
+            // Simple structure: Just encrypted payload, no complex headers
+            // Format: CRC32 + Encrypted(EPacketType + ClientPackets + Data)
 
-            if (header.ConnectionId != conn.Session.ConnectionId)
+            uint signature = data.ReadSign(totalLen);
+            uint crc32c = CRC32C.Compute(data.Data, totalLen - 4);
+
+            if (signature != crc32c)
+            {
+                ServerMonitor.Log($"CRC32 validation failed for encrypted packet from {conn.RemoteAddress}");
+                return false;
+            }
+
+            // Prepare for decryption - payload is everything except CRC32
+            int payloadLen = totalLen - 4;
+            var payload = new ReadOnlySpan<byte>(data.Data, payloadLen);
+
+            // Simple decryption using sequence as nonce
+            Span<byte> plaintext = stackalloc byte[payloadLen];
+
+            if (conn.Session.ConnectionId == 0 || !conn.Session.DecryptPayload(payload, new ReadOnlySpan<byte>(), 0, plaintext, out int plaintextLen))
+            {
+                FileLogger.Log($"[CRYPTO] Decrypt failed for packet from {conn.RemoteAddress}");
+                return false;
+            }
+
+            // Create buffer with decrypted content
+            var decryptedBuffer = new FlatBuffer(plaintextLen);
+            decryptedBuffer.WriteBytes(plaintext.Slice(0, plaintextLen).ToArray());
+            decryptedBuffer.RestorePosition(0);
+
+            // Now process as normal packet: EPacketType + ClientPackets + Data
+            PacketType packetType = (PacketType)decryptedBuffer.Read<byte>();
+
+            if (packetType == PacketType.Unreliable)
+            {
+                // Route to unreliable queue for processing
+                if (!conn.UnreliableEventQueue.Writer.TryWrite(decryptedBuffer))
+                {
+                    decryptedBuffer.Free();
+                }
+
+                // Update connection timeout
+                conn.TimeoutLeft = 30f;
+                return true;
+            }
+            else if (packetType == PacketType.Reliable)
+            {
+                // Route to reliable queue for processing
+                if (conn.Session.ConnectionId != 0)
+                    conn.ProcessReliablePacket(conn.Session.SeqRx, decryptedBuffer);
+                return true;
+            }
+            else
+            {
+                FileLogger.Log($"[SERVER] Unknown packet type: {packetType}");
+                decryptedBuffer.Free();
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            FileLogger.Log($"[SERVER] Error processing encrypted packet: {ex.Message}");
+            return false;
+        }
+    }
+
+    private static unsafe bool ProcessEncryptedPacket_Legacy(FlatBuffer data, UDPSocket conn, int totalLen)
+    {
+        try
+        {
+            FileLogger.Log($"[SERVER] 🔓 LEGACY: Starting header-based decryption for {totalLen} bytes");
+            var header = PacketHeader.Deserialize(data.Data);
+            FileLogger.Log($"[SERVER] 🔓 LEGACY: Header parsed - ConnectionId: {header.ConnectionId}, Sequence: {header.Sequence}");
+
+            if (conn.Session.ConnectionId == 0 || header.ConnectionId != conn.Session.ConnectionId)
                 return false;
 
             if (!header.Flags.HasFlag(PacketHeaderFlags.Encrypted) ||
@@ -928,7 +1003,7 @@ public sealed class UDPServer
 
             Span<byte> plaintext = stackalloc byte[payloadLen * 4]; // Extra space for decompression
 
-            if (!conn.Session.DecryptPayloadWithDecompression(payload, aad, header.Sequence, isCompressed, plaintext, out int plaintextLen))
+            if (conn.Session.ConnectionId == 0 || !conn.Session.DecryptPayloadWithDecompression(payload, aad, header.Sequence, isCompressed, plaintext, out int plaintextLen))
             {
                 ServerMonitor.Log($"Failed to decrypt packet from {conn.RemoteAddress}");
                 return false;
@@ -995,12 +1070,15 @@ public sealed class UDPServer
             // Handle acknowledgment packets
             if (isAcknowledgment)
             {
+                FileLogger.Log($"[SERVER] 🔓 Processing ACK packet (sequence: {header.Sequence})");
                 conn.AcknowledgeReliablePacket(header.Sequence);
                 return true;
             }
 
             var decryptedBuffer = new FlatBuffer(plaintextLen + 1);
             decryptedBuffer.WriteBytes(plaintext.Slice(0, plaintextLen).ToArray());
+
+            FileLogger.Log($"[SERVER] 🔓 Decrypted packet: {plaintextLen} bytes, Channel: {header.Channel}");
 
             // Route to appropriate queue based on channel
             if (header.Channel == PacketChannel.ReliableOrdered)
@@ -1051,38 +1129,29 @@ public sealed class UDPServer
                     }
                 }
 
-                // Read packet structure: PacketType (byte) + ClientPacket (ushort)
-                PacketType packetType = (PacketType)decryptedBuffer.Read<byte>();
-                ClientPackets clientPacket = (ClientPackets)decryptedBuffer.Read<ushort>();
-
-                // Log first few unreliable packets
+                // Just peek at packet structure for logging without consuming
                 if (header.Sequence <= 10)
                 {
+                    int savedPos = decryptedBuffer.Position;
+                    PacketType packetType = (PacketType)decryptedBuffer.Read<byte>();
+                    ClientPackets clientPacket = (ClientPackets)decryptedBuffer.Read<ushort>();
+
                     FileLogger.Log($"[SERVER] Reading PacketType: {packetType} (raw value: {(byte)packetType})");
                     FileLogger.Log($"[SERVER] Reading ClientPacket: {clientPacket} (raw value: {(ushort)clientPacket})");
-                }
-
-                // Process based on ClientPacket type
-                if (clientPacket == ClientPackets.SyncEntity)
-                {
-                    if (header.Sequence <= 10)
-                    {
-                        FileLogger.Log($"[SERVER] ✅ Processing SyncEntity packet directly");
-                    }
-                    return ProcessSyncEntityPacket(decryptedBuffer, conn, header);
-                }
-
-                // Note: ReliableHandshake packets go through reliable channel, not unreliable
-                // All unreliable packets are ClientPackets - route to processing queue
-                if (header.Sequence <= 10)
-                {
                     FileLogger.Log($"[SERVER] Adding ClientPacket={clientPacket} seq={header.Sequence} to UnreliableEventQueue");
+
+                    // Restore position for handler processing
+                    decryptedBuffer.RestorePosition(savedPos);
                 }
 
+                // Send complete buffer to processing queue (starting from position 0)
                 if (!conn.UnreliableEventQueue.Writer.TryWrite(decryptedBuffer))
                 {
                     decryptedBuffer.Free();
                 }
+
+                // Update connection timeout to prevent disconnection
+                conn.TimeoutLeft = 30f;
                 return true;
             }
         }
@@ -1093,49 +1162,7 @@ public sealed class UDPServer
         }
     }
 
-        private static bool ProcessSyncEntityPacket(FlatBuffer buffer, UDPSocket conn, PacketHeader header)
-    {
-        try
-        {
-            // Buffer already read PacketType (byte) and ClientPacket (ushort), now read SyncEntity data
 
-            // Read SyncEntity data according to contract structure
-            float x = buffer.Read<float>();
-            float y = buffer.Read<float>();
-            float z = buffer.Read<float>();
-
-            float rx = buffer.Read<float>();
-            float ry = buffer.Read<float>();
-            float rz = buffer.Read<float>();
-
-            float vx = buffer.Read<float>();
-            float vy = buffer.Read<float>();
-            float vz = buffer.Read<float>();
-
-            uint animState = buffer.Read<uint>();
-            bool isFalling = buffer.Read<bool>();
-
-            if (header.Sequence <= 10)
-            {
-                FileLogger.Log($"[SERVER] 📍 SyncEntity Data:");
-                FileLogger.Log($"[SERVER]   Position: ({x:F2}, {y:F2}, {z:F2})");
-                FileLogger.Log($"[SERVER]   Rotation: ({rx:F2}, {ry:F2}, {rz:F2})");
-                FileLogger.Log($"[SERVER]   Velocity: ({vx:F2}, {vy:F2}, {vz:F2})");
-                FileLogger.Log($"[SERVER]   AnimState: {animState}, IsFalling: {isFalling}");
-            }
-
-            // Here you would normally process the sync data
-            // For now, just log that we successfully processed it
-            ServerMonitor.Log($"✅ Processed SyncEntity from client {conn.Id}: Pos=({x:F1},{y:F1},{z:F1})");
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            FileLogger.Log($"[SERVER] Error processing SyncEntity packet: {ex.Message}");
-            return false;
-        }
-    }
 
     private static unsafe void PrintBuffer(byte* buffer, int len)
     {

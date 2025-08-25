@@ -148,7 +148,7 @@ public class ContractTranspiler : AbstractTranspiler
                 string fieldType = fieldAttr != null ? fieldAttr.Type : field.FieldType.Name.ToLower();
                 if (string.IsNullOrEmpty(fieldType)) continue;
 
-                switch (fieldType)
+                switch (fieldType.ToLower()) // Convert to lowercase for case-insensitive matching
                 {
                     case "integer":
                     case "int":
@@ -169,10 +169,11 @@ public class ContractTranspiler : AbstractTranspiler
                     case "boolean":
                         totalBytes += 1; break;
                     case "long":
+                    case "ulong":
                         totalBytes += 8; break;
                     case "fvector":
                     case "frotator":
-                        totalBytes += 6; break; // quantized (assumed)
+                        totalBytes += 6; break; // quantized (6 bytes each)
                     case "byte[]":
                         totalBytes += fieldAttr?.ByteCount ?? 0; break;
                     default:
@@ -206,7 +207,7 @@ public class ContractTranspiler : AbstractTranspiler
                     var fieldAttr = field.GetCustomAttribute<ContractFieldAttribute>();
                     string fieldType = fieldAttr != null ? fieldAttr.Type : field.FieldType.Name.ToLower();
                     var fieldName = field.Name;
-                    switch (fieldType)
+                    switch (fieldType.ToLower()) // Convert to lowercase for case-insensitive matching
                     {
                         case "integer":
                         case "int":
@@ -217,6 +218,7 @@ public class ContractTranspiler : AbstractTranspiler
                         case "byte":
                         case "float":
                         case "long":
+                        case "ulong":
                         case "decimal":
                             writer.WriteLine($"        buffer.Write({fieldName});");
                             break;
@@ -256,7 +258,7 @@ public class ContractTranspiler : AbstractTranspiler
                 var fieldAttr = field.GetCustomAttribute<ContractFieldAttribute>();
                 string fieldType = fieldAttr != null ? fieldAttr.Type : field.FieldType.Name.ToLower();
                 var fieldName = field.Name;
-                switch (fieldType)
+                switch (fieldType.ToLower()) // Convert to lowercase for case-insensitive matching
                 {
                     case "integer":
                     case "int":

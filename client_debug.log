@@ -1,436 +1,865 @@
-=== CLIENT SESSION STARTED: 2025-08-25 06:17:37 ===
-[06:17:37.285] [WRENCH] SyncEntity: NetSubsystem found: YES
-[06:17:37.285] [TARGET] SyncPlayer::BeginPlay - NetSubsystem: FOUND
-[06:17:37.285] [ROCKET] SyncPlayer: Timer started for SendSyncToServer every 0.1s
-[06:17:37.310] [SATELLITE] SendSyncToServer #0: Pos=X=900.000 Y=1110.000 Z=92.013, Rot=P=0.000000 Y=0.000000 R=0.000000, Vel=X=0.000 Y=0.000 Z=0.000
-[06:17:37.310] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:37.311] === SENDING SyncEntityPacket #1 ===
-[06:17:37.311] [CLIENT] Position: X=900.000 Y=1110.000 Z=92.013
-[06:17:37.312] [CLIENT] Rotation: P=0.000000 Y=0.000000 R=0.000000
-[06:17:37.312] [CLIENT] Velocity: X=0.000 Y=0.000 Z=0.000
-[06:17:37.312] [CLIENT] AnimID: 0, IsFalling: false
-[06:17:37.312] [CLIENT] About to serialize SyncEntityPacket...
-[06:17:37.313] [CLIENT] Buffer created with length: 24
-[06:17:37.313] [CLIENT] First 10 bytes: 04000028235C2B980300
-[06:17:37.313] [CLIENT] First byte (should be 4 for Unreliable): 4
-[06:17:37.313] [CLIENT] Bytes 2-3 (should be 0,0 for SyncEntity): 0, 0
-[06:17:37.313] [CLIENT] Sending SyncEntityPacket via UdpClient...
-[06:17:37.313] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:37.320] === ENCRYPTING RELIABLE HANDSHAKE PACKET ===
-[06:17:37.320] [CLIENT] ConnectionId: 391288704
-[06:17:37.321] [CLIENT] Sequence: 0
-[06:17:37.321] [CLIENT] Channel: 1
-[06:17:37.321] [CLIENT] Flags: 3
-[06:17:37.321] [CLIENT] AAD: 8097521701030000000000000000
-[06:17:37.321] [CLIENT] Payload: 1001
-[06:17:37.322] [CLIENT] Nonce: 809752170000000000000000
-[06:17:37.322] [CLIENT] TxKey: 17C64F5563AF97DD74ADB3FBD97AF09D86B424FD8B8369108A901CFFBBA8806C
-[06:17:37.322] [CLIENT] Compression: false
-[06:17:37.322] [CLIENT] Ciphertext: 61A2BA2FF368F2B1673B4FB2696BBB2A3A73
-[06:17:37.323] [CLIENT] Ciphertext Length: 18 bytes
-[06:17:37.323] [CLIENT] TxKey: 17C64F5563AF97DD74ADB3FBD97AF09D86B424FD8B8369108A901CFFBBA8806C
-[06:17:37.323] [CLIENT] Final Packet Size: 36 bytes (Header: 14 + Ciphertext: 18 + CRC32: 4)
-[06:17:37.323] [CLIENT] CRC32 Signature: B9A80734
-[06:17:37.323] [CLIENT] Complete Packet: 809752170103000000000000000061A2BA2FF368F2B1673B4FB2696BBB2A3A733407A8B9
-[06:17:37.613] [SATELLITE] SendSyncToServer #1: Pos=X=901.563 Y=1110.005 Z=92.013, Rot=P=0.000000 Y=0.175000 R=0.000000, Vel=X=62.501 Y=0.191 Z=0.000
-[06:17:37.613] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:37.613] === SENDING SyncEntityPacket #2 ===
-[06:17:37.613] [CLIENT] Position: X=901.563 Y=1110.005 Z=92.013
-[06:17:37.613] [CLIENT] Rotation: P=0.000000 Y=0.175000 R=0.000000
-[06:17:37.613] [CLIENT] Velocity: X=62.501 Y=0.191 Z=0.000
-[06:17:37.614] [CLIENT] AnimID: 0, IsFalling: false
-[06:17:37.614] [CLIENT] About to serialize SyncEntityPacket...
-[06:17:37.614] [CLIENT] Buffer created with length: 24
-[06:17:37.614] [CLIENT] First 10 bytes: 04000038235C2B980300
-[06:17:37.614] [CLIENT] First byte (should be 4 for Unreliable): 4
-[06:17:37.614] [CLIENT] Bytes 2-3 (should be 0,0 for SyncEntity): 0, 0
-[06:17:37.615] [CLIENT] Sending SyncEntityPacket via UdpClient...
-[06:17:37.615] === SENDING Connect (seq=1) ===
-[06:17:37.615] [CLIENT] Channel: Unreliable
-[06:17:37.615] [CLIENT] Payload Size: 23 bytes
-[06:17:37.615] [CLIENT] RAW Payload: 000038235C2B9803000002000000710202000000000000
-[06:17:37.615] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[06:17:37.615] [CLIENT] Payload[00] =   0 (0x00) (Should be EPacketType)
-[06:17:37.615] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
-[06:17:37.616] [CLIENT] Payload[02] =  56 (0x38) (ClientPacket high byte)
-[06:17:37.616] [CLIENT] Payload[03] =  35 (0x23) (Position data byte 1)
-[06:17:37.616] [CLIENT] Payload[04] =  92 (0x5C) (Position data byte 2)
-[06:17:37.616] [CLIENT] Payload[05] =  43 (0x2B) (Position data byte 3)
-[06:17:37.616] [CLIENT] Payload[06] = 152 (0x98) (Position data byte 4)
-[06:17:37.616] [CLIENT] Payload[07] =   3 (0x03) (Position data byte 5)
-[06:17:37.617] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[06:17:37.617] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[06:17:37.617] [CLIENT] Payload[10] =   2 (0x02) (Position data byte 8)
-[06:17:37.617] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
-[06:17:37.617] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[06:17:37.617] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
-[06:17:37.617] [CLIENT] Payload[14] = 113 (0x71) (Position data byte 12)
-[06:17:37.617] [CLIENT] Payload[15] =   2 (0x02) (Rotation data byte 1)
-[06:17:37.618] [CLIENT] Payload[16] =   2 (0x02) (Rotation data byte 2)
-[06:17:37.618] [CLIENT] Payload[17] =   0 (0x00) (Rotation data byte 3)
-[06:17:37.618] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
-[06:17:37.618] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
-[06:17:37.618] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
-[06:17:37.618] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[06:17:37.618] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[06:17:37.619] [CLIENT] ClientPacket interpreted as uint16: 14336
-[06:17:37.619] [CLIENT] Should be 0 for SyncEntity: NO
-[06:17:37.619] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:37.714] [SATELLITE] SendSyncToServer #2: Pos=X=916.300 Y=1110.243 Z=92.013, Rot=P=0.000000 Y=2.975000 R=0.000000, Vel=X=214.143 Y=6.010 Z=0.000
-[06:17:37.714] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:37.714] === SENDING SyncEntityPacket #3 ===
-[06:17:37.714] [CLIENT] Position: X=916.300 Y=1110.243 Z=92.013
-[06:17:37.714] [CLIENT] Rotation: P=0.000000 Y=2.975000 R=0.000000
-[06:17:37.715] [CLIENT] Velocity: X=214.143 Y=6.010 Z=0.000
-[06:17:37.715] [CLIENT] AnimID: 0, IsFalling: false
-[06:17:37.715] [CLIENT] About to serialize SyncEntityPacket...
-[06:17:37.715] [CLIENT] Buffer created with length: 24
-[06:17:37.715] [CLIENT] First 10 bytes: 040000CB235E2B980300
-[06:17:37.716] [CLIENT] First byte (should be 4 for Unreliable): 4
-[06:17:37.716] [CLIENT] Bytes 2-3 (should be 0,0 for SyncEntity): 0, 0
-[06:17:37.716] [CLIENT] Sending SyncEntityPacket via UdpClient...
-[06:17:37.716] === SENDING Connect (seq=2) ===
-[06:17:37.716] [CLIENT] Channel: Unreliable
-[06:17:37.716] [CLIENT] Payload Size: 23 bytes
-[06:17:37.717] [CLIENT] RAW Payload: 0000CB235E2B980300001E0000005D083C000000000000
-[06:17:37.717] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[06:17:37.717] [CLIENT] Payload[00] =   0 (0x00) (Should be EPacketType)
-[06:17:37.717] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
-[06:17:37.717] [CLIENT] Payload[02] = 203 (0xCB) (ClientPacket high byte)
-[06:17:37.718] [CLIENT] Payload[03] =  35 (0x23) (Position data byte 1)
-[06:17:37.718] [CLIENT] Payload[04] =  94 (0x5E) (Position data byte 2)
-[06:17:37.718] [CLIENT] Payload[05] =  43 (0x2B) (Position data byte 3)
-[06:17:37.718] [CLIENT] Payload[06] = 152 (0x98) (Position data byte 4)
-[06:17:37.718] [CLIENT] Payload[07] =   3 (0x03) (Position data byte 5)
-[06:17:37.718] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[06:17:37.719] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[06:17:37.719] [CLIENT] Payload[10] =  30 (0x1E) (Position data byte 8)
-[06:17:37.719] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
-[06:17:37.719] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[06:17:37.719] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
-[06:17:37.720] [CLIENT] Payload[14] =  93 (0x5D) (Position data byte 12)
-[06:17:37.720] [CLIENT] Payload[15] =   8 (0x08) (Rotation data byte 1)
-[06:17:37.720] [CLIENT] Payload[16] =  60 (0x3C) (Rotation data byte 2)
-[06:17:37.720] [CLIENT] Payload[17] =   0 (0x00) (Rotation data byte 3)
-[06:17:37.720] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
-[06:17:37.721] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
-[06:17:37.721] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
-[06:17:37.721] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[06:17:37.721] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[06:17:37.721] [CLIENT] ClientPacket interpreted as uint16: 51968
-[06:17:37.722] [CLIENT] Should be 0 for SyncEntity: NO
-[06:17:37.722] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:37.809] [SATELLITE] SendSyncToServer #3: Pos=X=940.414 Y=1101.213 Z=92.013, Rot=P=0.000000 Y=-40.799988 R=0.000000, Vel=X=285.031 Y=-161.402 Z=0.000
-[06:17:37.809] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:37.809] === SENDING SyncEntityPacket #4 ===
-[06:17:37.809] [CLIENT] Position: X=940.414 Y=1101.213 Z=92.013
-[06:17:37.809] [CLIENT] Rotation: P=0.000000 Y=-40.799988 R=0.000000
-[06:17:37.809] [CLIENT] Velocity: X=285.031 Y=-161.402 Z=0.000
-[06:17:37.810] [CLIENT] AnimID: 0, IsFalling: false
-[06:17:37.810] [CLIENT] About to serialize SyncEntityPacket...
-[06:17:37.810] [CLIENT] Buffer created with length: 24
-[06:17:37.810] [CLIENT] First 10 bytes: 040000BC24042B980300
-[06:17:37.810] [CLIENT] First byte (should be 4 for Unreliable): 4
-[06:17:37.810] [CLIENT] Bytes 2-3 (should be 0,0 for SyncEntity): 0, 0
-[06:17:37.810] [CLIENT] Sending SyncEntityPacket via UdpClient...
-[06:17:37.811] === SENDING Connect (seq=3) ===
-[06:17:37.811] [CLIENT] Channel: Unreliable
-[06:17:37.811] [CLIENT] Payload Size: 23 bytes
-[06:17:37.811] [CLIENT] RAW Payload: 0000BC24042B9803000068FE0000220BB2F90000000000
-[06:17:37.811] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[06:17:37.811] [CLIENT] Payload[00] =   0 (0x00) (Should be EPacketType)
-[06:17:37.811] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
-[06:17:37.812] [CLIENT] Payload[02] = 188 (0xBC) (ClientPacket high byte)
-[06:17:37.812] [CLIENT] Payload[03] =  36 (0x24) (Position data byte 1)
-[06:17:37.812] [CLIENT] Payload[04] =   4 (0x04) (Position data byte 2)
-[06:17:37.812] [CLIENT] Payload[05] =  43 (0x2B) (Position data byte 3)
-[06:17:37.812] [CLIENT] Payload[06] = 152 (0x98) (Position data byte 4)
-[06:17:37.812] [CLIENT] Payload[07] =   3 (0x03) (Position data byte 5)
-[06:17:37.812] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[06:17:37.813] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[06:17:37.813] [CLIENT] Payload[10] = 104 (0x68) (Position data byte 8)
-[06:17:37.813] [CLIENT] Payload[11] = 254 (0xFE) (Position data byte 9)
-[06:17:37.813] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[06:17:37.813] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
-[06:17:37.813] [CLIENT] Payload[14] =  34 (0x22) (Position data byte 12)
-[06:17:37.814] [CLIENT] Payload[15] =  11 (0x0B) (Rotation data byte 1)
-[06:17:37.814] [CLIENT] Payload[16] = 178 (0xB2) (Rotation data byte 2)
-[06:17:37.814] [CLIENT] Payload[17] = 249 (0xF9) (Rotation data byte 3)
-[06:17:37.814] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
-[06:17:37.814] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
-[06:17:37.814] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
-[06:17:37.815] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[06:17:37.815] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[06:17:37.815] [CLIENT] ClientPacket interpreted as uint16: 48128
-[06:17:37.815] [CLIENT] Should be 0 for SyncEntity: NO
-[06:17:37.815] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:37.907] [SATELLITE] SendSyncToServer #4: Pos=X=973.115 Y=1078.432 Z=92.013, Rot=P=0.000000 Y=-40.799988 R=0.000000, Vel=X=374.978 Y=-286.277 Z=0.000
-[06:17:37.907] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:37.907] === SENDING SyncEntityPacket #5 ===
-[06:17:37.908] [CLIENT] Position: X=973.115 Y=1078.432 Z=92.013
-[06:17:37.908] [CLIENT] Rotation: P=0.000000 Y=-40.799988 R=0.000000
-[06:17:37.908] [CLIENT] Velocity: X=374.978 Y=-286.277 Z=0.000
-[06:17:37.908] [CLIENT] AnimID: 0, IsFalling: false
-[06:17:37.908] [CLIENT] About to serialize SyncEntityPacket...
-[06:17:37.908] [CLIENT] Buffer created with length: 24
-[06:17:37.908] [CLIENT] First 10 bytes: 0400000326202A980300
-[06:17:37.908] [CLIENT] First byte (should be 4 for Unreliable): 4
-[06:17:37.909] [CLIENT] Bytes 2-3 (should be 0,0 for SyncEntity): 0, 0
-[06:17:37.909] [CLIENT] Sending SyncEntityPacket via UdpClient...
-[06:17:37.909] === SENDING Connect (seq=4) ===
-[06:17:37.909] [CLIENT] Channel: Unreliable
-[06:17:37.909] [CLIENT] Payload Size: 23 bytes
-[06:17:37.909] [CLIENT] RAW Payload: 00000326202A9803000068FE0000A60ED1F40000000000
-[06:17:37.910] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[06:17:37.910] [CLIENT] Payload[00] =   0 (0x00) (Should be EPacketType)
-[06:17:37.910] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
-[06:17:37.910] [CLIENT] Payload[02] =   3 (0x03) (ClientPacket high byte)
-[06:17:37.910] [CLIENT] Payload[03] =  38 (0x26) (Position data byte 1)
-[06:17:37.910] [CLIENT] Payload[04] =  32 (0x20) (Position data byte 2)
-[06:17:37.910] [CLIENT] Payload[05] =  42 (0x2A) (Position data byte 3)
-[06:17:37.910] [CLIENT] Payload[06] = 152 (0x98) (Position data byte 4)
-[06:17:37.911] [CLIENT] Payload[07] =   3 (0x03) (Position data byte 5)
-[06:17:37.911] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[06:17:37.911] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[06:17:37.911] [CLIENT] Payload[10] = 104 (0x68) (Position data byte 8)
-[06:17:37.912] [CLIENT] Payload[11] = 254 (0xFE) (Position data byte 9)
-[06:17:37.912] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[06:17:37.912] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
-[06:17:37.912] [CLIENT] Payload[14] = 166 (0xA6) (Position data byte 12)
-[06:17:37.912] [CLIENT] Payload[15] =  14 (0x0E) (Rotation data byte 1)
-[06:17:37.913] [CLIENT] Payload[16] = 209 (0xD1) (Rotation data byte 2)
-[06:17:37.913] [CLIENT] Payload[17] = 244 (0xF4) (Rotation data byte 3)
-[06:17:37.913] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
-[06:17:37.913] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
-[06:17:37.913] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
-[06:17:37.914] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[06:17:37.914] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[06:17:37.914] [CLIENT] ClientPacket interpreted as uint16: 768
-[06:17:37.914] [CLIENT] Should be 0 for SyncEntity: NO
-[06:17:37.914] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:38.007] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:38.007] === SENDING Connect (seq=5) ===
-[06:17:38.007] [CLIENT] Channel: Unreliable
-[06:17:38.007] [CLIENT] Payload Size: 23 bytes
-[06:17:38.007] [CLIENT] RAW Payload: 00008827E7289803000068FE0000080F87F30000000000
-[06:17:38.007] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[06:17:38.007] [CLIENT] Payload[00] =   0 (0x00) (Should be EPacketType)
-[06:17:38.008] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
-[06:17:38.008] [CLIENT] Payload[02] = 136 (0x88) (ClientPacket high byte)
-[06:17:38.008] [CLIENT] Payload[03] =  39 (0x27) (Position data byte 1)
-[06:17:38.008] [CLIENT] Payload[04] = 231 (0xE7) (Position data byte 2)
-[06:17:38.008] [CLIENT] Payload[05] =  40 (0x28) (Position data byte 3)
-[06:17:38.008] [CLIENT] Payload[06] = 152 (0x98) (Position data byte 4)
-[06:17:38.009] [CLIENT] Payload[07] =   3 (0x03) (Position data byte 5)
-[06:17:38.009] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[06:17:38.009] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[06:17:38.009] [CLIENT] Payload[10] = 104 (0x68) (Position data byte 8)
-[06:17:38.009] [CLIENT] Payload[11] = 254 (0xFE) (Position data byte 9)
-[06:17:38.009] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[06:17:38.009] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
-[06:17:38.009] [CLIENT] Payload[14] =   8 (0x08) (Position data byte 12)
-[06:17:38.010] [CLIENT] Payload[15] =  15 (0x0F) (Rotation data byte 1)
-[06:17:38.010] [CLIENT] Payload[16] = 135 (0x87) (Rotation data byte 2)
-[06:17:38.010] [CLIENT] Payload[17] = 243 (0xF3) (Rotation data byte 3)
-[06:17:38.010] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
-[06:17:38.010] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
-[06:17:38.010] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
-[06:17:38.010] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[06:17:38.011] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[06:17:38.011] [CLIENT] ClientPacket interpreted as uint16: 34816
-[06:17:38.011] [CLIENT] Should be 0 for SyncEntity: NO
-[06:17:38.011] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:38.112] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:38.112] === SENDING Connect (seq=6) ===
-[06:17:38.112] [CLIENT] Channel: Unreliable
-[06:17:38.113] [CLIENT] Payload Size: 23 bytes
-[06:17:38.113] [CLIENT] RAW Payload: 00001A2993279803000068FE0000DC0E53F30000000000
-[06:17:38.113] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[06:17:38.113] [CLIENT] Payload[00] =   0 (0x00) (Should be EPacketType)
-[06:17:38.113] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
-[06:17:38.113] [CLIENT] Payload[02] =  26 (0x1A) (ClientPacket high byte)
-[06:17:38.113] [CLIENT] Payload[03] =  41 (0x29) (Position data byte 1)
-[06:17:38.113] [CLIENT] Payload[04] = 147 (0x93) (Position data byte 2)
-[06:17:38.114] [CLIENT] Payload[05] =  39 (0x27) (Position data byte 3)
-[06:17:38.114] [CLIENT] Payload[06] = 152 (0x98) (Position data byte 4)
-[06:17:38.114] [CLIENT] Payload[07] =   3 (0x03) (Position data byte 5)
-[06:17:38.114] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[06:17:38.114] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[06:17:38.115] [CLIENT] Payload[10] = 104 (0x68) (Position data byte 8)
-[06:17:38.115] [CLIENT] Payload[11] = 254 (0xFE) (Position data byte 9)
-[06:17:38.115] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[06:17:38.115] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
-[06:17:38.115] [CLIENT] Payload[14] = 220 (0xDC) (Position data byte 12)
-[06:17:38.115] [CLIENT] Payload[15] =  14 (0x0E) (Rotation data byte 1)
-[06:17:38.116] [CLIENT] Payload[16] =  83 (0x53) (Rotation data byte 2)
-[06:17:38.116] [CLIENT] Payload[17] = 243 (0xF3) (Rotation data byte 3)
-[06:17:38.116] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
-[06:17:38.116] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
-[06:17:38.116] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
-[06:17:38.116] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[06:17:38.116] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[06:17:38.117] [CLIENT] ClientPacket interpreted as uint16: 6656
-[06:17:38.117] [CLIENT] Should be 0 for SyncEntity: NO
-[06:17:38.117] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:38.207] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:38.207] === SENDING Connect (seq=7) ===
-[06:17:38.207] [CLIENT] Channel: Unreliable
-[06:17:38.207] [CLIENT] Payload Size: 23 bytes
-[06:17:38.207] [CLIENT] RAW Payload: 00000A2A022698030000A6FC0000C806AFED0000000000
-[06:17:38.207] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[06:17:38.207] [CLIENT] Payload[00] =   0 (0x00) (Should be EPacketType)
-[06:17:38.208] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
-[06:17:38.208] [CLIENT] Payload[02] =  10 (0x0A) (ClientPacket high byte)
-[06:17:38.208] [CLIENT] Payload[03] =  42 (0x2A) (Position data byte 1)
-[06:17:38.208] [CLIENT] Payload[04] =   2 (0x02) (Position data byte 2)
-[06:17:38.208] [CLIENT] Payload[05] =  38 (0x26) (Position data byte 3)
-[06:17:38.208] [CLIENT] Payload[06] = 152 (0x98) (Position data byte 4)
-[06:17:38.208] [CLIENT] Payload[07] =   3 (0x03) (Position data byte 5)
-[06:17:38.209] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[06:17:38.209] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[06:17:38.209] [CLIENT] Payload[10] = 166 (0xA6) (Position data byte 8)
-[06:17:38.209] [CLIENT] Payload[11] = 252 (0xFC) (Position data byte 9)
-[06:17:38.209] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[06:17:38.209] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
-[06:17:38.210] [CLIENT] Payload[14] = 200 (0xC8) (Position data byte 12)
-[06:17:38.210] [CLIENT] Payload[15] =   6 (0x06) (Rotation data byte 1)
-[06:17:38.210] [CLIENT] Payload[16] = 175 (0xAF) (Rotation data byte 2)
-[06:17:38.210] [CLIENT] Payload[17] = 237 (0xED) (Rotation data byte 3)
-[06:17:38.210] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
-[06:17:38.210] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
-[06:17:38.210] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
-[06:17:38.211] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[06:17:38.211] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[06:17:38.211] [CLIENT] ClientPacket interpreted as uint16: 2560
-[06:17:38.211] [CLIENT] Should be 0 for SyncEntity: NO
-[06:17:38.212] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:38.310] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:38.310] === SENDING Connect (seq=8) ===
-[06:17:38.310] [CLIENT] Channel: Unreliable
-[06:17:38.310] [CLIENT] Payload Size: 23 bytes
-[06:17:38.310] [CLIENT] RAW Payload: 0000B12A1F2498030000A2FD00004509CFEE0000000000
-[06:17:38.310] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[06:17:38.311] [CLIENT] Payload[00] =   0 (0x00) (Should be EPacketType)
-[06:17:38.311] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
-[06:17:38.311] [CLIENT] Payload[02] = 177 (0xB1) (ClientPacket high byte)
-[06:17:38.311] [CLIENT] Payload[03] =  42 (0x2A) (Position data byte 1)
-[06:17:38.311] [CLIENT] Payload[04] =  31 (0x1F) (Position data byte 2)
-[06:17:38.311] [CLIENT] Payload[05] =  36 (0x24) (Position data byte 3)
-[06:17:38.311] [CLIENT] Payload[06] = 152 (0x98) (Position data byte 4)
-[06:17:38.311] [CLIENT] Payload[07] =   3 (0x03) (Position data byte 5)
-[06:17:38.312] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[06:17:38.312] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[06:17:38.312] [CLIENT] Payload[10] = 162 (0xA2) (Position data byte 8)
-[06:17:38.312] [CLIENT] Payload[11] = 253 (0xFD) (Position data byte 9)
-[06:17:38.312] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[06:17:38.312] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
-[06:17:38.312] [CLIENT] Payload[14] =  69 (0x45) (Position data byte 12)
-[06:17:38.313] [CLIENT] Payload[15] =   9 (0x09) (Rotation data byte 1)
-[06:17:38.313] [CLIENT] Payload[16] = 207 (0xCF) (Rotation data byte 2)
-[06:17:38.313] [CLIENT] Payload[17] = 238 (0xEE) (Rotation data byte 3)
-[06:17:38.313] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
-[06:17:38.313] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
-[06:17:38.313] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
-[06:17:38.313] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[06:17:38.314] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[06:17:38.314] [CLIENT] ClientPacket interpreted as uint16: 45312
-[06:17:38.314] [CLIENT] Should be 0 for SyncEntity: NO
-[06:17:38.314] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:38.413] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:38.414] === SENDING Connect (seq=9) ===
-[06:17:38.414] [CLIENT] Channel: Unreliable
-[06:17:38.414] [CLIENT] Payload Size: 23 bytes
-[06:17:38.414] [CLIENT] RAW Payload: 0000102CC522980300009DFF00001D10E3F90000000000
-[06:17:38.414] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[06:17:38.414] [CLIENT] Payload[00] =   0 (0x00) (Should be EPacketType)
-[06:17:38.414] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
-[06:17:38.414] [CLIENT] Payload[02] =  16 (0x10) (ClientPacket high byte)
-[06:17:38.414] [CLIENT] Payload[03] =  44 (0x2C) (Position data byte 1)
-[06:17:38.414] [CLIENT] Payload[04] = 197 (0xC5) (Position data byte 2)
-[06:17:38.415] [CLIENT] Payload[05] =  34 (0x22) (Position data byte 3)
-[06:17:38.415] [CLIENT] Payload[06] = 152 (0x98) (Position data byte 4)
-[06:17:38.415] [CLIENT] Payload[07] =   3 (0x03) (Position data byte 5)
-[06:17:38.415] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[06:17:38.415] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[06:17:38.415] [CLIENT] Payload[10] = 157 (0x9D) (Position data byte 8)
-[06:17:38.416] [CLIENT] Payload[11] = 255 (0xFF) (Position data byte 9)
-[06:17:38.416] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[06:17:38.416] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
-[06:17:38.416] [CLIENT] Payload[14] =  29 (0x1D) (Position data byte 12)
-[06:17:38.416] [CLIENT] Payload[15] =  16 (0x10) (Rotation data byte 1)
-[06:17:38.416] [CLIENT] Payload[16] = 227 (0xE3) (Rotation data byte 2)
-[06:17:38.417] [CLIENT] Payload[17] = 249 (0xF9) (Rotation data byte 3)
-[06:17:38.417] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
-[06:17:38.417] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
-[06:17:38.417] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
-[06:17:38.417] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[06:17:38.417] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[06:17:38.417] [CLIENT] ClientPacket interpreted as uint16: 4096
-[06:17:38.418] [CLIENT] Should be 0 for SyncEntity: NO
-[06:17:38.418] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:38.512] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:38.512] === SENDING Connect (seq=10) ===
-[06:17:38.512] [CLIENT] Channel: Unreliable
-[06:17:38.513] [CLIENT] Payload Size: 23 bytes
-[06:17:38.513] [CLIENT] RAW Payload: 0000972D0323980300008D010000890C60080000000000
-[06:17:38.513] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[06:17:38.513] [CLIENT] Payload[00] =   0 (0x00) (Should be EPacketType)
-[06:17:38.513] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
-[06:17:38.513] [CLIENT] Payload[02] = 151 (0x97) (ClientPacket high byte)
-[06:17:38.513] [CLIENT] Payload[03] =  45 (0x2D) (Position data byte 1)
-[06:17:38.514] [CLIENT] Payload[04] =   3 (0x03) (Position data byte 2)
-[06:17:38.514] [CLIENT] Payload[05] =  35 (0x23) (Position data byte 3)
-[06:17:38.514] [CLIENT] Payload[06] = 152 (0x98) (Position data byte 4)
-[06:17:38.514] [CLIENT] Payload[07] =   3 (0x03) (Position data byte 5)
-[06:17:38.514] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[06:17:38.514] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[06:17:38.515] [CLIENT] Payload[10] = 141 (0x8D) (Position data byte 8)
-[06:17:38.515] [CLIENT] Payload[11] =   1 (0x01) (Position data byte 9)
-[06:17:38.515] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[06:17:38.515] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
-[06:17:38.515] [CLIENT] Payload[14] = 137 (0x89) (Position data byte 12)
-[06:17:38.516] [CLIENT] Payload[15] =  12 (0x0C) (Rotation data byte 1)
-[06:17:38.516] [CLIENT] Payload[16] =  96 (0x60) (Rotation data byte 2)
-[06:17:38.516] [CLIENT] Payload[17] =   8 (0x08) (Rotation data byte 3)
-[06:17:38.516] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
-[06:17:38.516] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
-[06:17:38.516] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
-[06:17:38.516] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[06:17:38.517] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[06:17:38.517] [CLIENT] ClientPacket interpreted as uint16: 38656
-[06:17:38.517] [CLIENT] Should be 0 for SyncEntity: NO
-[06:17:38.517] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:38.607] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:38.607] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:38.707] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:38.708] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:38.807] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:38.807] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:38.907] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:38.908] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:39.007] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:39.007] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:39.108] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:39.108] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:39.208] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:39.208] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:39.307] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:39.307] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:39.409] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:39.410] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:39.509] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:39.510] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:39.608] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:39.609] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:39.709] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:39.710] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:39.810] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:39.810] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:39.909] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:39.910] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:40.009] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:40.010] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:40.110] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:40.110] [CHECK] NetSubsystem->SendEntitySync completed
-[06:17:40.210] [OUTBOX] Calling NetSubsystem->SendEntitySync...
-[06:17:40.210] [CHECK] NetSubsystem->SendEntitySync completed
+=== CLIENT SESSION STARTED: 2025-08-25 08:06:07 ===
+[08:06:07.890] [WRENCH] SyncEntity: NetSubsystem found: YES
+[08:06:07.890] [TARGET] SyncPlayer::BeginPlay - NetSubsystem: FOUND
+[08:06:07.890] [ROCKET] SyncPlayer: Timer started for SendSyncToServer every 0.1s
+[08:06:07.915] [SATELLITE] SendSyncToServer #0: Pos=X=900.000 Y=1110.000 Z=92.013, Rot=P=0.000000 Y=0.000000 R=0.000000, Vel=X=0.000 Y=0.000 Z=0.000
+[08:06:07.916] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:07.916] === SENDING SyncEntityPacket #1 ===
+[08:06:07.916] [CLIENT] Position: X=900.000 Y=1110.000 Z=92.013
+[08:06:07.916] [CLIENT] Rotation: P=0.000000 Y=0.000000 R=0.000000
+[08:06:07.916] [CLIENT] Velocity: X=0.000 Y=0.000 Z=0.000
+[08:06:07.917] [CLIENT] AnimID: 0, IsFalling: false
+[08:06:07.917] [CLIENT] About to serialize SyncEntityPacket...
+[08:06:07.917] [CLIENT] Before serialization - Buffer capacity: 42
+[08:06:07.917] [CLIENT] Buffer created with length: 24
+[08:06:07.918] [CLIENT] First 10 bytes: 04000028235C2B980300
+[08:06:07.918] [CLIENT] First byte (should be 4 for Unreliable): 4
+[08:06:07.918] [CLIENT] Bytes 2-3 (should be 0,0 for SyncEntity): 0, 0
+[08:06:07.918] [CLIENT] Sending SyncEntityPacket via UdpClient...
+[08:06:07.919] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:07.920] === CRYPTO HANDSHAKE START ===
+[08:06:07.920] [CLIENT] 🔐 Sending CryptoTest: 2712847316
+[08:06:07.920] [CLIENT] 🔐 Buffer size: 5 bytes
+[08:06:08.087] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[08:06:08.087] [CLIENT] 🔐 Server crypto confirmed: NO
+[08:06:08.088] === RELIABLE HANDSHAKE START ===
+[08:06:08.088] [CLIENT] 🤝 Crypto ready: YES
+[08:06:08.088] [CLIENT] 🤝 Sending ReliableHandshake packet (2 bytes)
+[08:06:08.089] [CLIENT] 🤝 Buffer: [0x10, 0x01]
+[08:06:08.089] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[08:06:08.089] [CLIENT] 🔐 Server crypto confirmed: YES
+[08:06:08.090] === ENCRYPTING RELIABLE HANDSHAKE PACKET ===
+[08:06:08.090] [CLIENT] ConnectionId: 908305280
+[08:06:08.090] [CLIENT] Sequence: 0
+[08:06:08.090] [CLIENT] Channel: 0
+[08:06:08.090] [CLIENT] Flags: 3
+[08:06:08.090] [CLIENT] AAD: 80A3233600030000000000000000
+[08:06:08.090] [CLIENT] Payload: 0F4D3C2B1A
+[08:06:08.091] [CLIENT] Nonce: 80A323360000000000000000
+[08:06:08.091] [CLIENT] TxKey: A60D437E9F4AB4BE4C8D0C4DE222A791E7345B9C9AEC0BB0BF1FAC54239AA180
+[08:06:08.091] [CLIENT] Compression: false
+[08:06:08.091] [CLIENT] Ciphertext: 389F4293D4B362151C7703C7F09E7B4268F68A5D67
+[08:06:08.091] [CLIENT] Ciphertext Length: 21 bytes
+[08:06:08.092] [CLIENT] TxKey: A60D437E9F4AB4BE4C8D0C4DE222A791E7345B9C9AEC0BB0BF1FAC54239AA180
+[08:06:08.092] [CLIENT] Final Packet Size: 39 bytes (Header: 14 + Ciphertext: 21 + CRC32: 4)
+[08:06:08.092] [CLIENT] CRC32 Signature: 92686DD7
+[08:06:08.092] [CLIENT] Complete Packet: 80A3233600030000000000000000389F4293D4B362151C7703C7F09E7B4268F68A5D67D76D6892
+[08:06:08.319] [SATELLITE] SendSyncToServer #1: Pos=X=902.279 Y=1110.343 Z=92.013, Rot=P=0.000000 Y=9.625000 R=0.000000, Vel=X=76.028 Y=11.956 Z=0.000
+[08:06:08.319] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:08.319] === SENDING SyncEntityPacket #2 ===
+[08:06:08.319] [CLIENT] Position: X=902.279 Y=1110.343 Z=92.013
+[08:06:08.319] [CLIENT] Rotation: P=0.000000 Y=9.625000 R=0.000000
+[08:06:08.320] [CLIENT] Velocity: X=76.028 Y=11.956 Z=0.000
+[08:06:08.320] [CLIENT] AnimID: 0, IsFalling: false
+[08:06:08.320] [CLIENT] About to serialize SyncEntityPacket...
+[08:06:08.320] [CLIENT] Before serialization - Buffer capacity: 42
+[08:06:08.320] [CLIENT] Buffer created with length: 24
+[08:06:08.320] [CLIENT] First 10 bytes: 0400003F235F2B980300
+[08:06:08.320] [CLIENT] First byte (should be 4 for Unreliable): 4
+[08:06:08.320] [CLIENT] Bytes 2-3 (should be 0,0 for SyncEntity): 0, 0
+[08:06:08.321] [CLIENT] Sending SyncEntityPacket via UdpClient...
+[08:06:08.321] === SENDING Unknown Type 4 (seq=1) ===
+[08:06:08.321] [CLIENT] Channel: Unreliable
+[08:06:08.321] [CLIENT] Payload Size: 24 bytes
+[08:06:08.321] [CLIENT] RAW Payload: 0400003F235F2B9803000060000000F80278000000000000
+[08:06:08.321] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:06:08.321] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:06:08.322] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:06:08.322] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:06:08.322] [CLIENT] Payload[03] =  63 (0x3F) (Position data byte 1)
+[08:06:08.322] [CLIENT] Payload[04] =  35 (0x23) (Position data byte 2)
+[08:06:08.322] [CLIENT] Payload[05] =  95 (0x5F) (Position data byte 3)
+[08:06:08.322] [CLIENT] Payload[06] =  43 (0x2B) (Position data byte 4)
+[08:06:08.323] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:06:08.323] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:06:08.323] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:06:08.323] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:06:08.323] [CLIENT] Payload[11] =  96 (0x60) (Position data byte 9)
+[08:06:08.323] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
+[08:06:08.323] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:06:08.324] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:06:08.324] [CLIENT] Payload[15] = 248 (0xF8) (Rotation data byte 1)
+[08:06:08.324] [CLIENT] Payload[16] =   2 (0x02) (Rotation data byte 2)
+[08:06:08.324] [CLIENT] Payload[17] = 120 (0x78) (Rotation data byte 3)
+[08:06:08.324] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
+[08:06:08.324] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:06:08.324] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:06:08.325] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:06:08.325] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:06:08.325] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:06:08.325] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:06:08.325] [CLIENT] Should be 0 for SyncEntity: YES
+[08:06:08.325] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:08.420] [SATELLITE] SendSyncToServer #2: Pos=X=918.023 Y=1113.010 Z=92.013, Rot=P=0.000000 Y=10.500000 R=0.000000, Vel=X=223.862 Y=39.336 Z=0.000
+[08:06:08.420] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:08.420] === SENDING SyncEntityPacket #3 ===
+[08:06:08.420] [CLIENT] Position: X=918.023 Y=1113.010 Z=92.013
+[08:06:08.420] [CLIENT] Rotation: P=0.000000 Y=10.500000 R=0.000000
+[08:06:08.420] [CLIENT] Velocity: X=223.862 Y=39.336 Z=0.000
+[08:06:08.420] [CLIENT] AnimID: 0, IsFalling: false
+[08:06:08.421] [CLIENT] About to serialize SyncEntityPacket...
+[08:06:08.421] [CLIENT] Before serialization - Buffer capacity: 42
+[08:06:08.421] [CLIENT] Buffer created with length: 24
+[08:06:08.421] [CLIENT] First 10 bytes: 040000DC237A2B980300
+[08:06:08.421] [CLIENT] First byte (should be 4 for Unreliable): 4
+[08:06:08.421] [CLIENT] Bytes 2-3 (should be 0,0 for SyncEntity): 0, 0
+[08:06:08.421] [CLIENT] Sending SyncEntityPacket via UdpClient...
+[08:06:08.421] === SENDING Unknown Type 4 (seq=2) ===
+[08:06:08.422] [CLIENT] Channel: Unreliable
+[08:06:08.422] [CLIENT] Payload Size: 24 bytes
+[08:06:08.422] [CLIENT] RAW Payload: 040000DC237A2B9803000069000000BF0889010000000000
+[08:06:08.422] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:06:08.422] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:06:08.422] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:06:08.422] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:06:08.422] [CLIENT] Payload[03] = 220 (0xDC) (Position data byte 1)
+[08:06:08.423] [CLIENT] Payload[04] =  35 (0x23) (Position data byte 2)
+[08:06:08.423] [CLIENT] Payload[05] = 122 (0x7A) (Position data byte 3)
+[08:06:08.423] [CLIENT] Payload[06] =  43 (0x2B) (Position data byte 4)
+[08:06:08.423] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:06:08.423] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:06:08.423] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:06:08.423] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:06:08.423] [CLIENT] Payload[11] = 105 (0x69) (Position data byte 9)
+[08:06:08.424] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
+[08:06:08.424] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:06:08.424] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:06:08.424] [CLIENT] Payload[15] = 191 (0xBF) (Rotation data byte 1)
+[08:06:08.424] [CLIENT] Payload[16] =   8 (0x08) (Rotation data byte 2)
+[08:06:08.424] [CLIENT] Payload[17] = 137 (0x89) (Rotation data byte 3)
+[08:06:08.424] [CLIENT] Payload[18] =   1 (0x01) (Rotation data byte 4)
+[08:06:08.424] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:06:08.424] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:06:08.425] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:06:08.425] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:06:08.425] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:06:08.425] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:06:08.425] [CLIENT] Should be 0 for SyncEntity: YES
+[08:06:08.425] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:08.525] [SATELLITE] SendSyncToServer #3: Pos=X=950.398 Y=1116.720 Z=92.013, Rot=P=0.000000 Y=-6.792542 R=0.000000, Vel=X=357.331 Y=-29.175 Z=0.000
+[08:06:08.526] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:08.526] === SENDING SyncEntityPacket #4 ===
+[08:06:08.526] [CLIENT] Position: X=950.398 Y=1116.720 Z=92.013
+[08:06:08.526] [CLIENT] Rotation: P=0.000000 Y=-6.792542 R=0.000000
+[08:06:08.526] [CLIENT] Velocity: X=357.331 Y=-29.175 Z=0.000
+[08:06:08.526] [CLIENT] AnimID: 0, IsFalling: false
+[08:06:08.526] [CLIENT] About to serialize SyncEntityPacket...
+[08:06:08.526] [CLIENT] Before serialization - Buffer capacity: 42
+[08:06:08.527] [CLIENT] Buffer created with length: 24
+[08:06:08.527] [CLIENT] First 10 bytes: 04000020259F2B980300
+[08:06:08.527] [CLIENT] First byte (should be 4 for Unreliable): 4
+[08:06:08.527] [CLIENT] Bytes 2-3 (should be 0,0 for SyncEntity): 0, 0
+[08:06:08.527] [CLIENT] Sending SyncEntityPacket via UdpClient...
+[08:06:08.527] === SENDING Unknown Type 4 (seq=3) ===
+[08:06:08.527] [CLIENT] Channel: Unreliable
+[08:06:08.527] [CLIENT] Payload Size: 24 bytes
+[08:06:08.528] [CLIENT] RAW Payload: 04000020259F2B98030000BCFF0000F50DDCFE0000000000
+[08:06:08.528] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:06:08.528] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:06:08.528] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:06:08.528] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:06:08.528] [CLIENT] Payload[03] =  32 (0x20) (Position data byte 1)
+[08:06:08.528] [CLIENT] Payload[04] =  37 (0x25) (Position data byte 2)
+[08:06:08.528] [CLIENT] Payload[05] = 159 (0x9F) (Position data byte 3)
+[08:06:08.529] [CLIENT] Payload[06] =  43 (0x2B) (Position data byte 4)
+[08:06:08.530] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:06:08.530] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:06:08.530] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:06:08.530] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:06:08.530] [CLIENT] Payload[11] = 188 (0xBC) (Position data byte 9)
+[08:06:08.530] [CLIENT] Payload[12] = 255 (0xFF) (Position data byte 10)
+[08:06:08.530] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:06:08.530] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:06:08.530] [CLIENT] Payload[15] = 245 (0xF5) (Rotation data byte 1)
+[08:06:08.530] [CLIENT] Payload[16] =  13 (0x0D) (Rotation data byte 2)
+[08:06:08.530] [CLIENT] Payload[17] = 220 (0xDC) (Rotation data byte 3)
+[08:06:08.530] [CLIENT] Payload[18] = 254 (0xFE) (Rotation data byte 4)
+[08:06:08.530] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:06:08.531] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:06:08.531] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:06:08.531] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:06:08.531] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:06:08.531] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:06:08.531] [CLIENT] Should be 0 for SyncEntity: YES
+[08:06:08.532] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:08.624] [SATELLITE] SendSyncToServer #4: Pos=X=990.552 Y=1104.441 Z=92.013, Rot=P=0.000000 Y=-30.299988 R=0.000000, Vel=X=451.590 Y=-186.731 Z=0.000
+[08:06:08.624] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:08.624] === SENDING SyncEntityPacket #5 ===
+[08:06:08.625] [CLIENT] Position: X=990.552 Y=1104.441 Z=92.013
+[08:06:08.625] [CLIENT] Rotation: P=0.000000 Y=-30.299988 R=0.000000
+[08:06:08.625] [CLIENT] Velocity: X=451.590 Y=-186.731 Z=0.000
+[08:06:08.625] [CLIENT] AnimID: 0, IsFalling: false
+[08:06:08.625] [CLIENT] About to serialize SyncEntityPacket...
+[08:06:08.625] [CLIENT] Before serialization - Buffer capacity: 42
+[08:06:08.625] [CLIENT] Buffer created with length: 24
+[08:06:08.625] [CLIENT] First 10 bytes: 040000B226242B980300
+[08:06:08.625] [CLIENT] First byte (should be 4 for Unreliable): 4
+[08:06:08.626] [CLIENT] Bytes 2-3 (should be 0,0 for SyncEntity): 0, 0
+[08:06:08.626] [CLIENT] Sending SyncEntityPacket via UdpClient...
+[08:06:08.626] === SENDING Unknown Type 4 (seq=4) ===
+[08:06:08.626] [CLIENT] Channel: Unreliable
+[08:06:08.626] [CLIENT] Payload Size: 24 bytes
+[08:06:08.626] [CLIENT] RAW Payload: 040000B226242B98030000D1FE0000A411B5F80000000000
+[08:06:08.626] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:06:08.626] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:06:08.626] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:06:08.627] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:06:08.627] [CLIENT] Payload[03] = 178 (0xB2) (Position data byte 1)
+[08:06:08.627] [CLIENT] Payload[04] =  38 (0x26) (Position data byte 2)
+[08:06:08.627] [CLIENT] Payload[05] =  36 (0x24) (Position data byte 3)
+[08:06:08.627] [CLIENT] Payload[06] =  43 (0x2B) (Position data byte 4)
+[08:06:08.627] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:06:08.627] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:06:08.628] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:06:08.628] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:06:08.628] [CLIENT] Payload[11] = 209 (0xD1) (Position data byte 9)
+[08:06:08.628] [CLIENT] Payload[12] = 254 (0xFE) (Position data byte 10)
+[08:06:08.628] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:06:08.628] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:06:08.628] [CLIENT] Payload[15] = 164 (0xA4) (Rotation data byte 1)
+[08:06:08.628] [CLIENT] Payload[16] =  17 (0x11) (Rotation data byte 2)
+[08:06:08.629] [CLIENT] Payload[17] = 181 (0xB5) (Rotation data byte 3)
+[08:06:08.629] [CLIENT] Payload[18] = 248 (0xF8) (Rotation data byte 4)
+[08:06:08.629] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:06:08.629] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:06:08.629] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:06:08.629] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:06:08.629] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:06:08.629] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:06:08.630] [CLIENT] Should be 0 for SyncEntity: YES
+[08:06:08.630] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:08.722] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:08.723] === SENDING Unknown Type 4 (seq=5) ===
+[08:06:08.723] [CLIENT] Channel: Unreliable
+[08:06:08.723] [CLIENT] Payload Size: 24 bytes
+[08:06:08.723] [CLIENT] RAW Payload: 0400006D284E2A98030000D1FE00004A11EAF60000000000
+[08:06:08.723] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:06:08.723] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:06:08.724] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:06:08.724] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:06:08.724] [CLIENT] Payload[03] = 109 (0x6D) (Position data byte 1)
+[08:06:08.724] [CLIENT] Payload[04] =  40 (0x28) (Position data byte 2)
+[08:06:08.724] [CLIENT] Payload[05] =  78 (0x4E) (Position data byte 3)
+[08:06:08.724] [CLIENT] Payload[06] =  42 (0x2A) (Position data byte 4)
+[08:06:08.724] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:06:08.724] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:06:08.725] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:06:08.725] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:06:08.725] [CLIENT] Payload[11] = 209 (0xD1) (Position data byte 9)
+[08:06:08.725] [CLIENT] Payload[12] = 254 (0xFE) (Position data byte 10)
+[08:06:08.725] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:06:08.725] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:06:08.725] [CLIENT] Payload[15] =  74 (0x4A) (Rotation data byte 1)
+[08:06:08.725] [CLIENT] Payload[16] =  17 (0x11) (Rotation data byte 2)
+[08:06:08.726] [CLIENT] Payload[17] = 234 (0xEA) (Rotation data byte 3)
+[08:06:08.726] [CLIENT] Payload[18] = 246 (0xF6) (Rotation data byte 4)
+[08:06:08.726] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:06:08.726] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:06:08.726] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:06:08.726] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:06:08.726] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:06:08.726] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:06:08.726] [CLIENT] Should be 0 for SyncEntity: YES
+[08:06:08.727] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:08.822] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:08.822] === SENDING Unknown Type 4 (seq=6) ===
+[08:06:08.823] [CLIENT] Channel: Unreliable
+[08:06:08.823] [CLIENT] Payload Size: 24 bytes
+[08:06:08.823] [CLIENT] RAW Payload: 040000B829E128980300000FFD0000FC0937EF0000000000
+[08:06:08.823] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:06:08.823] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:06:08.823] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:06:08.823] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:06:08.824] [CLIENT] Payload[03] = 184 (0xB8) (Position data byte 1)
+[08:06:08.824] [CLIENT] Payload[04] =  41 (0x29) (Position data byte 2)
+[08:06:08.824] [CLIENT] Payload[05] = 225 (0xE1) (Position data byte 3)
+[08:06:08.824] [CLIENT] Payload[06] =  40 (0x28) (Position data byte 4)
+[08:06:08.824] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:06:08.824] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:06:08.824] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:06:08.824] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:06:08.824] [CLIENT] Payload[11] =  15 (0x0F) (Position data byte 9)
+[08:06:08.825] [CLIENT] Payload[12] = 253 (0xFD) (Position data byte 10)
+[08:06:08.825] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:06:08.825] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:06:08.825] [CLIENT] Payload[15] = 252 (0xFC) (Rotation data byte 1)
+[08:06:08.825] [CLIENT] Payload[16] =   9 (0x09) (Rotation data byte 2)
+[08:06:08.825] [CLIENT] Payload[17] =  55 (0x37) (Rotation data byte 3)
+[08:06:08.825] [CLIENT] Payload[18] = 239 (0xEF) (Rotation data byte 4)
+[08:06:08.826] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:06:08.826] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:06:08.826] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:06:08.826] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:06:08.826] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:06:08.826] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:06:08.826] [CLIENT] Should be 0 for SyncEntity: YES
+[08:06:08.826] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:08.918] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:08.918] === SENDING Unknown Type 4 (seq=7) ===
+[08:06:08.919] [CLIENT] Channel: Unreliable
+[08:06:08.919] [CLIENT] Payload Size: 24 bytes
+[08:06:08.919] [CLIENT] RAW Payload: 0400007B2A2D27980300000FFD0000BE06ABED0000000000
+[08:06:08.919] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:06:08.919] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:06:08.919] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:06:08.919] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:06:08.920] [CLIENT] Payload[03] = 123 (0x7B) (Position data byte 1)
+[08:06:08.920] [CLIENT] Payload[04] =  42 (0x2A) (Position data byte 2)
+[08:06:08.920] [CLIENT] Payload[05] =  45 (0x2D) (Position data byte 3)
+[08:06:08.920] [CLIENT] Payload[06] =  39 (0x27) (Position data byte 4)
+[08:06:08.920] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:06:08.920] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:06:08.920] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:06:08.920] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:06:08.921] [CLIENT] Payload[11] =  15 (0x0F) (Position data byte 9)
+[08:06:08.921] [CLIENT] Payload[12] = 253 (0xFD) (Position data byte 10)
+[08:06:08.921] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:06:08.921] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:06:08.921] [CLIENT] Payload[15] = 190 (0xBE) (Rotation data byte 1)
+[08:06:08.921] [CLIENT] Payload[16] =   6 (0x06) (Rotation data byte 2)
+[08:06:08.922] [CLIENT] Payload[17] = 171 (0xAB) (Rotation data byte 3)
+[08:06:08.922] [CLIENT] Payload[18] = 237 (0xED) (Rotation data byte 4)
+[08:06:08.922] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:06:08.922] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:06:08.922] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:06:08.922] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:06:08.922] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:06:08.923] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:06:08.923] [CLIENT] Should be 0 for SyncEntity: YES
+[08:06:08.923] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:09.020] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:09.021] === SENDING Unknown Type 4 (seq=8) ===
+[08:06:09.021] [CLIENT] Channel: Unreliable
+[08:06:09.021] [CLIENT] Payload Size: 24 bytes
+[08:06:09.021] [CLIENT] RAW Payload: 040000182B4B25980300003AFD0000CB06B0ED0000000000
+[08:06:09.021] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:06:09.021] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:06:09.021] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:06:09.021] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:06:09.022] [CLIENT] Payload[03] =  24 (0x18) (Position data byte 1)
+[08:06:09.022] [CLIENT] Payload[04] =  43 (0x2B) (Position data byte 2)
+[08:06:09.022] [CLIENT] Payload[05] =  75 (0x4B) (Position data byte 3)
+[08:06:09.022] [CLIENT] Payload[06] =  37 (0x25) (Position data byte 4)
+[08:06:09.022] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:06:09.022] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:06:09.022] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:06:09.022] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:06:09.022] [CLIENT] Payload[11] =  58 (0x3A) (Position data byte 9)
+[08:06:09.023] [CLIENT] Payload[12] = 253 (0xFD) (Position data byte 10)
+[08:06:09.023] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:06:09.023] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:06:09.023] [CLIENT] Payload[15] = 203 (0xCB) (Rotation data byte 1)
+[08:06:09.023] [CLIENT] Payload[16] =   6 (0x06) (Rotation data byte 2)
+[08:06:09.023] [CLIENT] Payload[17] = 176 (0xB0) (Rotation data byte 3)
+[08:06:09.023] [CLIENT] Payload[18] = 237 (0xED) (Rotation data byte 4)
+[08:06:09.024] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:06:09.024] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:06:09.024] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:06:09.024] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:06:09.024] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:06:09.024] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:06:09.024] [CLIENT] Should be 0 for SyncEntity: YES
+[08:06:09.025] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:09.121] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:09.121] === SENDING Unknown Type 4 (seq=9) ===
+[08:06:09.121] [CLIENT] Channel: Unreliable
+[08:06:09.121] [CLIENT] Payload Size: 24 bytes
+[08:06:09.121] [CLIENT] RAW Payload: 040000492CBA2398030000D1FE00003D0EA1F20000000000
+[08:06:09.121] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:06:09.121] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:06:09.121] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:06:09.122] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:06:09.122] [CLIENT] Payload[03] =  73 (0x49) (Position data byte 1)
+[08:06:09.122] [CLIENT] Payload[04] =  44 (0x2C) (Position data byte 2)
+[08:06:09.122] [CLIENT] Payload[05] = 186 (0xBA) (Position data byte 3)
+[08:06:09.122] [CLIENT] Payload[06] =  35 (0x23) (Position data byte 4)
+[08:06:09.123] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:06:09.123] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:06:09.123] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:06:09.123] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:06:09.123] [CLIENT] Payload[11] = 209 (0xD1) (Position data byte 9)
+[08:06:09.123] [CLIENT] Payload[12] = 254 (0xFE) (Position data byte 10)
+[08:06:09.124] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:06:09.124] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:06:09.124] [CLIENT] Payload[15] =  61 (0x3D) (Rotation data byte 1)
+[08:06:09.124] [CLIENT] Payload[16] =  14 (0x0E) (Rotation data byte 2)
+[08:06:09.124] [CLIENT] Payload[17] = 161 (0xA1) (Rotation data byte 3)
+[08:06:09.124] [CLIENT] Payload[18] = 242 (0xF2) (Rotation data byte 4)
+[08:06:09.125] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:06:09.125] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:06:09.125] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:06:09.125] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:06:09.125] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:06:09.125] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:06:09.125] [CLIENT] Should be 0 for SyncEntity: YES
+[08:06:09.126] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:09.217] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:09.218] === SENDING Unknown Type 4 (seq=10) ===
+[08:06:09.218] [CLIENT] Channel: Unreliable
+[08:06:09.218] [CLIENT] Payload Size: 24 bytes
+[08:06:09.218] [CLIENT] RAW Payload: 040000042E1A2398030000930000006C13F3FD0000000000
+[08:06:09.218] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:06:09.219] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:06:09.219] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:06:09.219] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:06:09.219] [CLIENT] Payload[03] =   4 (0x04) (Position data byte 1)
+[08:06:09.219] [CLIENT] Payload[04] =  46 (0x2E) (Position data byte 2)
+[08:06:09.219] [CLIENT] Payload[05] =  26 (0x1A) (Position data byte 3)
+[08:06:09.219] [CLIENT] Payload[06] =  35 (0x23) (Position data byte 4)
+[08:06:09.219] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:06:09.220] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:06:09.220] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:06:09.220] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:06:09.220] [CLIENT] Payload[11] = 147 (0x93) (Position data byte 9)
+[08:06:09.220] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
+[08:06:09.220] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:06:09.220] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:06:09.220] [CLIENT] Payload[15] = 108 (0x6C) (Rotation data byte 1)
+[08:06:09.221] [CLIENT] Payload[16] =  19 (0x13) (Rotation data byte 2)
+[08:06:09.221] [CLIENT] Payload[17] = 243 (0xF3) (Rotation data byte 3)
+[08:06:09.221] [CLIENT] Payload[18] = 253 (0xFD) (Rotation data byte 4)
+[08:06:09.221] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:06:09.221] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:06:09.221] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:06:09.221] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:06:09.221] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:06:09.221] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:06:09.222] [CLIENT] Should be 0 for SyncEntity: YES
+[08:06:09.222] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:09.322] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:09.323] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:09.426] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:09.426] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:09.519] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:09.520] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:09.620] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:09.620] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:09.720] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:09.720] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:09.821] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:09.822] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:09.921] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:09.921] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:10.021] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:10.022] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:10.121] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:10.121] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:10.222] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:10.222] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:10.323] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:10.323] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:10.423] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:10.423] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:10.523] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:10.523] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:10.623] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:10.623] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:10.723] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:10.723] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:10.824] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:10.825] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:10.925] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:10.925] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:11.018] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:11.018] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:11.119] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:11.119] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:11.218] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:11.219] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:11.319] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:11.320] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:11.419] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:11.419] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:11.521] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:11.522] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:11.621] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:11.622] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:11.721] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:11.722] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:11.821] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:11.821] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:11.921] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:11.922] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:12.021] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:12.022] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:12.121] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:12.121] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:12.221] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:12.222] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:12.321] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:12.321] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:12.421] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:12.421] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:12.521] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:12.522] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:12.622] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:12.622] [CHECK] NetSubsystem->SendEntitySync completed
+[08:06:12.722] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:06:12.722] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:10.930] [WRENCH] SyncEntity: NetSubsystem found: YES
+[08:11:10.930] [TARGET] SyncPlayer::BeginPlay - NetSubsystem: FOUND
+[08:11:10.930] [ROCKET] SyncPlayer: Timer started for SendSyncToServer every 0.1s
+[08:11:10.950] === CRYPTO HANDSHAKE START ===
+[08:11:10.950] [CLIENT] 🔐 Sending CryptoTest: 2712847316
+[08:11:10.950] [CLIENT] 🔐 Buffer size: 5 bytes
+[08:11:10.951] === CRYPTO HANDSHAKE START ===
+[08:11:10.951] [CLIENT] 🔐 Sending CryptoTest: 2712847316
+[08:11:10.951] [CLIENT] 🔐 Buffer size: 5 bytes
+[08:11:10.952] === CRYPTO HANDSHAKE START ===
+[08:11:10.952] [CLIENT] 🔐 Sending CryptoTest: 2712847316
+[08:11:10.952] [CLIENT] 🔐 Buffer size: 5 bytes
+[08:11:10.954] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:10.954] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:10.955] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[08:11:10.955] [CLIENT] 🔐 Server crypto confirmed: NO
+[08:11:10.956] === RELIABLE HANDSHAKE START ===
+[08:11:10.956] [CLIENT] 🤝 Crypto ready: YES
+[08:11:10.956] [CLIENT] 🤝 Sending ReliableHandshake packet (2 bytes)
+[08:11:10.957] [CLIENT] 🤝 Buffer: [0x10, 0x01]
+[08:11:10.958] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[08:11:10.958] [CLIENT] 🔐 Server crypto confirmed: YES
+[08:11:10.958] === ENCRYPTING RELIABLE HANDSHAKE PACKET ===
+[08:11:10.958] [CLIENT] ConnectionId: 1587940247
+[08:11:10.958] [CLIENT] Sequence: 0
+[08:11:10.958] [CLIENT] Channel: 0
+[08:11:10.959] [CLIENT] Flags: 3
+[08:11:10.959] [CLIENT] AAD: 970BA65E00030000000000000000
+[08:11:10.959] [CLIENT] Payload: 0F4D3C2B1A
+[08:11:10.959] [CLIENT] Nonce: 970BA65E0000000000000000
+[08:11:10.959] [CLIENT] TxKey: 4B809390DEDE400C2868A96BDBC02F901F971B12A79068810AAFF2B6780EADFE
+[08:11:10.959] [CLIENT] Compression: false
+[08:11:10.960] [CLIENT] Ciphertext: 510344E99097862A865103204F8BDA17E0582C534E
+[08:11:10.960] [CLIENT] Ciphertext Length: 21 bytes
+[08:11:10.960] [CLIENT] TxKey: 4B809390DEDE400C2868A96BDBC02F901F971B12A79068810AAFF2B6780EADFE
+[08:11:10.960] [CLIENT] Final Packet Size: 39 bytes (Header: 14 + Ciphertext: 21 + CRC32: 4)
+[08:11:10.960] [CLIENT] CRC32 Signature: FAF856DA
+[08:11:10.961] [CLIENT] Complete Packet: 970BA65E00030000000000000000510344E99097862A865103204F8BDA17E0582C534EDA56F8FA
+[08:11:10.965] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[08:11:10.965] [CLIENT] 🔐 Server crypto confirmed: YES
+[08:11:10.965] === SENDING Unknown Type 15 (seq=1) ===
+[08:11:10.966] [CLIENT] Channel: Unreliable
+[08:11:10.966] [CLIENT] Payload Size: 5 bytes
+[08:11:10.966] [CLIENT] RAW Payload: 0F4D3C2B1A
+[08:11:10.966] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:11:10.966] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[08:11:10.966] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[08:11:10.967] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[08:11:10.967] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[08:11:10.968] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[08:11:10.968] [CLIENT] ClientPacket interpreted as uint16: 15437
+[08:11:10.968] [CLIENT] Should be 0 for SyncEntity: NO
+[08:11:10.968] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[08:11:10.969] [CLIENT] 🔐 Server crypto confirmed: YES
+[08:11:10.969] === SENDING Unknown Type 15 (seq=2) ===
+[08:11:10.969] [CLIENT] Channel: Unreliable
+[08:11:10.969] [CLIENT] Payload Size: 5 bytes
+[08:11:10.969] [CLIENT] RAW Payload: 0F4D3C2B1A
+[08:11:10.970] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:11:10.970] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[08:11:10.970] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[08:11:10.970] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[08:11:10.970] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[08:11:10.970] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[08:11:10.970] [CLIENT] ClientPacket interpreted as uint16: 15437
+[08:11:10.971] [CLIENT] Should be 0 for SyncEntity: NO
+[08:11:10.971] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[08:11:10.971] [CLIENT] 🔐 Server crypto confirmed: YES
+[08:11:10.972] === SENDING Unknown Type 15 (seq=3) ===
+[08:11:10.972] [CLIENT] Channel: Unreliable
+[08:11:10.972] [CLIENT] Payload Size: 5 bytes
+[08:11:10.972] [CLIENT] RAW Payload: 0F4D3C2B1A
+[08:11:10.972] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:11:10.973] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[08:11:10.973] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[08:11:10.973] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[08:11:10.973] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[08:11:10.973] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[08:11:10.973] [CLIENT] ClientPacket interpreted as uint16: 15437
+[08:11:10.973] [CLIENT] Should be 0 for SyncEntity: NO
+[08:11:10.974] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[08:11:10.974] [CLIENT] 🔐 Server crypto confirmed: YES
+[08:11:10.974] === SENDING Unknown Type 15 (seq=4) ===
+[08:11:10.974] [CLIENT] Channel: Unreliable
+[08:11:10.975] [CLIENT] Payload Size: 5 bytes
+[08:11:10.975] [CLIENT] RAW Payload: 0F4D3C2B1A
+[08:11:10.975] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:11:10.975] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[08:11:10.975] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[08:11:10.975] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[08:11:10.976] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[08:11:10.976] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[08:11:10.976] [CLIENT] ClientPacket interpreted as uint16: 15437
+[08:11:10.976] [CLIENT] Should be 0 for SyncEntity: NO
+[08:11:10.986] [WRENCH] SyncEntity: NetSubsystem found: YES
+[08:11:11.491] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:11.492] === SENDING Unknown Type 4 (seq=5) ===
+[08:11:11.492] [CLIENT] Channel: Unreliable
+[08:11:11.492] [CLIENT] Payload Size: 24 bytes
+[08:11:11.492] [CLIENT] RAW Payload: 04000032235C2B980300000A000000F40109000000000000
+[08:11:11.492] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:11:11.492] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:11:11.492] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:11:11.493] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:11:11.493] [CLIENT] Payload[03] =  50 (0x32) (Position data byte 1)
+[08:11:11.493] [CLIENT] Payload[04] =  35 (0x23) (Position data byte 2)
+[08:11:11.493] [CLIENT] Payload[05] =  92 (0x5C) (Position data byte 3)
+[08:11:11.493] [CLIENT] Payload[06] =  43 (0x2B) (Position data byte 4)
+[08:11:11.493] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:11:11.493] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:11:11.493] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:11:11.494] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:11:11.494] [CLIENT] Payload[11] =  10 (0x0A) (Position data byte 9)
+[08:11:11.494] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
+[08:11:11.494] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:11:11.494] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:11:11.494] [CLIENT] Payload[15] = 244 (0xF4) (Rotation data byte 1)
+[08:11:11.494] [CLIENT] Payload[16] =   1 (0x01) (Rotation data byte 2)
+[08:11:11.494] [CLIENT] Payload[17] =   9 (0x09) (Rotation data byte 3)
+[08:11:11.495] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
+[08:11:11.495] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:11:11.495] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:11:11.495] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:11:11.495] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:11:11.496] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:11:11.496] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:11:11.496] [CLIENT] Should be 0 for SyncEntity: YES
+[08:11:11.496] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:11.591] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:11.591] === SENDING Unknown Type 4 (seq=6) ===
+[08:11:11.591] [CLIENT] Channel: Unreliable
+[08:11:11.591] [CLIENT] Payload Size: 24 bytes
+[08:11:11.591] [CLIENT] RAW Payload: 040000B423602B9803000021000000C00747000000000000
+[08:11:11.592] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:11:11.592] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:11:11.592] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:11:11.592] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:11:11.592] [CLIENT] Payload[03] = 180 (0xB4) (Position data byte 1)
+[08:11:11.592] [CLIENT] Payload[04] =  35 (0x23) (Position data byte 2)
+[08:11:11.592] [CLIENT] Payload[05] =  96 (0x60) (Position data byte 3)
+[08:11:11.592] [CLIENT] Payload[06] =  43 (0x2B) (Position data byte 4)
+[08:11:11.592] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:11:11.592] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:11:11.593] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:11:11.593] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:11:11.593] [CLIENT] Payload[11] =  33 (0x21) (Position data byte 9)
+[08:11:11.593] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
+[08:11:11.593] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:11:11.593] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:11:11.593] [CLIENT] Payload[15] = 192 (0xC0) (Rotation data byte 1)
+[08:11:11.593] [CLIENT] Payload[16] =   7 (0x07) (Rotation data byte 2)
+[08:11:11.594] [CLIENT] Payload[17] =  71 (0x47) (Rotation data byte 3)
+[08:11:11.594] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
+[08:11:11.594] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:11:11.594] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:11:11.594] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:11:11.594] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:11:11.594] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:11:11.595] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:11:11.595] [CLIENT] Should be 0 for SyncEntity: YES
+[08:11:11.595] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:11.692] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:11.692] === SENDING Unknown Type 4 (seq=7) ===
+[08:11:11.692] [CLIENT] Channel: Unreliable
+[08:11:11.692] [CLIENT] Payload Size: 24 bytes
+[08:11:11.693] [CLIENT] RAW Payload: 040000B4241E2B980300009DFE00006B0BA8FA0000000000
+[08:11:11.693] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:11:11.693] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:11:11.693] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:11:11.693] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:11:11.693] [CLIENT] Payload[03] = 180 (0xB4) (Position data byte 1)
+[08:11:11.693] [CLIENT] Payload[04] =  36 (0x24) (Position data byte 2)
+[08:11:11.693] [CLIENT] Payload[05] =  30 (0x1E) (Position data byte 3)
+[08:11:11.694] [CLIENT] Payload[06] =  43 (0x2B) (Position data byte 4)
+[08:11:11.694] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:11:11.694] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:11:11.694] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:11:11.694] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:11:11.694] [CLIENT] Payload[11] = 157 (0x9D) (Position data byte 9)
+[08:11:11.694] [CLIENT] Payload[12] = 254 (0xFE) (Position data byte 10)
+[08:11:11.695] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:11:11.695] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:11:11.695] [CLIENT] Payload[15] = 107 (0x6B) (Rotation data byte 1)
+[08:11:11.695] [CLIENT] Payload[16] =  11 (0x0B) (Rotation data byte 2)
+[08:11:11.695] [CLIENT] Payload[17] = 168 (0xA8) (Rotation data byte 3)
+[08:11:11.695] [CLIENT] Payload[18] = 250 (0xFA) (Rotation data byte 4)
+[08:11:11.696] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:11:11.696] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:11:11.696] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:11:11.696] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:11:11.696] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:11:11.696] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:11:11.696] [CLIENT] Should be 0 for SyncEntity: YES
+[08:11:11.697] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:11.793] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:11.794] === SENDING Unknown Type 4 (seq=8) ===
+[08:11:11.794] [CLIENT] Channel: Unreliable
+[08:11:11.794] [CLIENT] Payload Size: 24 bytes
+[08:11:11.794] [CLIENT] RAW Payload: 040000E525322A9803000085FD0000C309E2F20000000000
+[08:11:11.794] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:11:11.794] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:11:11.794] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:11:11.795] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:11:11.795] [CLIENT] Payload[03] = 229 (0xE5) (Position data byte 1)
+[08:11:11.795] [CLIENT] Payload[04] =  37 (0x25) (Position data byte 2)
+[08:11:11.795] [CLIENT] Payload[05] =  50 (0x32) (Position data byte 3)
+[08:11:11.795] [CLIENT] Payload[06] =  42 (0x2A) (Position data byte 4)
+[08:11:11.795] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:11:11.796] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:11:11.796] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:11:11.796] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:11:11.796] [CLIENT] Payload[11] = 133 (0x85) (Position data byte 9)
+[08:11:11.796] [CLIENT] Payload[12] = 253 (0xFD) (Position data byte 10)
+[08:11:11.796] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:11:11.796] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:11:11.797] [CLIENT] Payload[15] = 195 (0xC3) (Rotation data byte 1)
+[08:11:11.797] [CLIENT] Payload[16] =   9 (0x09) (Rotation data byte 2)
+[08:11:11.797] [CLIENT] Payload[17] = 226 (0xE2) (Rotation data byte 3)
+[08:11:11.797] [CLIENT] Payload[18] = 242 (0xF2) (Rotation data byte 4)
+[08:11:11.797] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:11:11.797] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:11:11.797] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:11:11.798] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:11:11.798] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:11:11.798] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:11:11.798] [CLIENT] Should be 0 for SyncEntity: YES
+[08:11:11.798] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:11.891] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:11.891] === SENDING Unknown Type 4 (seq=9) ===
+[08:11:11.891] [CLIENT] Channel: Unreliable
+[08:11:11.891] [CLIENT] Payload Size: 24 bytes
+[08:11:11.892] [CLIENT] RAW Payload: 040000AB268B2898030000E3FC000064068BED0000000000
+[08:11:11.892] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:11:11.892] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:11:11.892] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:11:11.892] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:11:11.892] [CLIENT] Payload[03] = 171 (0xAB) (Position data byte 1)
+[08:11:11.892] [CLIENT] Payload[04] =  38 (0x26) (Position data byte 2)
+[08:11:11.892] [CLIENT] Payload[05] = 139 (0x8B) (Position data byte 3)
+[08:11:11.893] [CLIENT] Payload[06] =  40 (0x28) (Position data byte 4)
+[08:11:11.893] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:11:11.893] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:11:11.893] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:11:11.893] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:11:11.893] [CLIENT] Payload[11] = 227 (0xE3) (Position data byte 9)
+[08:11:11.894] [CLIENT] Payload[12] = 252 (0xFC) (Position data byte 10)
+[08:11:11.894] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:11:11.894] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:11:11.894] [CLIENT] Payload[15] = 100 (0x64) (Rotation data byte 1)
+[08:11:11.894] [CLIENT] Payload[16] =   6 (0x06) (Rotation data byte 2)
+[08:11:11.894] [CLIENT] Payload[17] = 139 (0x8B) (Rotation data byte 3)
+[08:11:11.894] [CLIENT] Payload[18] = 237 (0xED) (Rotation data byte 4)
+[08:11:11.894] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:11:11.895] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:11:11.895] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:11:11.895] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:11:11.895] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:11:11.895] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:11:11.895] [CLIENT] Should be 0 for SyncEntity: YES
+[08:11:11.896] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:11.993] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:11.993] === SENDING Unknown Type 4 (seq=10) ===
+[08:11:11.994] [CLIENT] Channel: Unreliable
+[08:11:11.994] [CLIENT] Payload Size: 24 bytes
+[08:11:11.994] [CLIENT] RAW Payload: 0400002F279F2698030000D9FC00004A04F2EC0000000000
+[08:11:11.994] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[08:11:11.994] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[08:11:11.994] [CLIENT] Payload[01] =   0 (0x00) (ClientPacket low byte)
+[08:11:11.994] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[08:11:11.994] [CLIENT] Payload[03] =  47 (0x2F) (Position data byte 1)
+[08:11:11.994] [CLIENT] Payload[04] =  39 (0x27) (Position data byte 2)
+[08:11:11.994] [CLIENT] Payload[05] = 159 (0x9F) (Position data byte 3)
+[08:11:11.994] [CLIENT] Payload[06] =  38 (0x26) (Position data byte 4)
+[08:11:11.995] [CLIENT] Payload[07] = 152 (0x98) (Position data byte 5)
+[08:11:11.995] [CLIENT] Payload[08] =   3 (0x03) (Position data byte 6)
+[08:11:11.995] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[08:11:11.995] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[08:11:11.995] [CLIENT] Payload[11] = 217 (0xD9) (Position data byte 9)
+[08:11:11.995] [CLIENT] Payload[12] = 252 (0xFC) (Position data byte 10)
+[08:11:11.995] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[08:11:11.996] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[08:11:11.996] [CLIENT] Payload[15] =  74 (0x4A) (Rotation data byte 1)
+[08:11:11.996] [CLIENT] Payload[16] =   4 (0x04) (Rotation data byte 2)
+[08:11:11.996] [CLIENT] Payload[17] = 242 (0xF2) (Rotation data byte 3)
+[08:11:11.996] [CLIENT] Payload[18] = 236 (0xEC) (Rotation data byte 4)
+[08:11:11.996] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[08:11:11.996] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[08:11:11.997] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[08:11:11.997] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[08:11:11.997] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[08:11:11.997] [CLIENT] ClientPacket interpreted as uint16: 0
+[08:11:11.997] [CLIENT] Should be 0 for SyncEntity: YES
+[08:11:11.997] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:12.092] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:12.092] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:12.194] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:12.194] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:12.286] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:12.286] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:12.388] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:12.388] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:12.489] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:12.489] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:12.590] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:12.590] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:12.692] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:12.692] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:12.793] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:12.793] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:12.885] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:12.885] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:12.989] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:12.989] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:13.089] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:13.089] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:13.191] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:13.191] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:13.293] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:13.293] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:13.393] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:13.394] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:13.493] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:13.493] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:13.586] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:13.586] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:13.688] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:13.688] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:13.790] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:13.790] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:13.891] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:13.891] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:13.993] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:13.993] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:14.087] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:14.087] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:14.187] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:14.188] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:14.289] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:14.289] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:14.392] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:14.392] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:14.485] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:14.486] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:14.586] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:14.586] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:14.688] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:14.688] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:14.789] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:14.789] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:14.890] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:14.890] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:14.991] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:14.992] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:15.091] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:15.092] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:15.192] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:15.193] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:15.293] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:15.293] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:15.385] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:15.386] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:15.485] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:15.485] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:15.586] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:15.587] [CHECK] NetSubsystem->SendEntitySync completed
+[08:11:15.688] [OUTBOX] Calling NetSubsystem->SendEntitySync...
+[08:11:15.688] [CHECK] NetSubsystem->SendEntitySync completed

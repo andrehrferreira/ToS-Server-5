@@ -106,7 +106,7 @@ public class UnrealTranspiler : AbstractTranspiler
         writer.WriteLine();
         writer.WriteLine($"template<> TOS_NETWORK_API UEnum* StaticEnum<E{enumName}>();");
 
-        
+
     }
 
     private static void GenerateHeader(string directory, string structName, string rawName, FieldInfo[] fields, ContractAttribute attribute)
@@ -232,19 +232,19 @@ public class UnrealTranspiler : AbstractTranspiler
         _ => "int32",
     };
 
-    private static int TypeSize(string type, int byteCount) => type switch
+    private static int TypeSize(string type, int byteCount) => type.ToLower() switch
     {
         "integer" or "int" or "int32" or "uint" or "float" or "decimal" or "id" => 4,
         "ushort" or "short" => 2,
         "byte" or "bool" or "boolean" => 1,
         "long" or "ulong" => 8,
-        "FVector" or "FRotator" => 12,
+        "fvector" or "frotator" => 6, // Convert to lowercase for case-insensitive matching
         "str" or "string" => 3600,
         "byte[]" => byteCount,
         _ => 0,
     };
 
-    private static string GetSerializeLine(string type, string name, int byteCount) => type switch
+    private static string GetSerializeLine(string type, string name, int byteCount) => type.ToLower() switch
     {
         "integer" or "int" or "int32" => $"        Buffer->Write<int32>({name});",
         "uint" => $"        Buffer->Write<uint32>(static_cast<uint32>({name}));",
@@ -256,15 +256,15 @@ public class UnrealTranspiler : AbstractTranspiler
         "ulong" => $"        Buffer->Write<int64>(static_cast<int64>({name}));",
         "bool" or "boolean" => $"        Buffer->Write<bool>({name});",
         "decimal" => $"        Buffer->Write<float>({name});",
-        "FVector" => $"        Buffer->Write<FVector>({name});",
-        "FRotator" => $"        Buffer->Write<FRotator>({name});",
+        "fvector" => $"        Buffer->Write<FVector>({name});", // Convert to lowercase for case-insensitive matching
+        "frotator" => $"        Buffer->Write<FRotator>({name});", // Convert to lowercase for case-insensitive matching
         "id" => $"        Buffer->WriteInt32(UBase36::Base36ToInt({name}));",
         "str" or "string" => $"        Buffer->WriteString({name});",
         "byte[]" => $"        Buffer->WriteBytes({name}.GetData(), {byteCount});",
         _ => $"    // Unsupported type: {type}",
     };
 
-    private static string GetDeserializeLine(string type, string name, int byteCount) => type switch
+    private static string GetDeserializeLine(string type, string name, int byteCount) => type.ToLower() switch
     {
         "integer" or "int" or "int32" => $"        {name} = Buffer->Read<int32>();",
         "uint" => $"        {name} = static_cast<int32>(Buffer->Read<uint32>());",
@@ -276,8 +276,8 @@ public class UnrealTranspiler : AbstractTranspiler
         "ulong" => $"        {name} = Buffer->Read<int64>();",
         "bool" or "boolean" => $"        {name} = Buffer->Read<bool>();",
         "decimal" => $"        {name} = Buffer->Read<float>();",
-        "FVector" => $"        {name} = Buffer->Read<FVector>();",
-        "FRotator" => $"        {name} = Buffer->Read<FRotator>();",
+        "fvector" => $"        {name} = Buffer->Read<FVector>();", // Convert to lowercase for case-insensitive matching
+        "frotator" => $"        {name} = Buffer->Read<FRotator>();", // Convert to lowercase for case-insensitive matching
         "id" => $"        {name} = UBase36::IntToBase36(Buffer->ReadInt32());",
         "str" or "string" => $"        {name} = Buffer->ReadString();",
         "byte[]" => $"        {name}.SetNumUninitialized({byteCount});\n        Buffer->ReadBytes({name}.GetData(), {byteCount});",
@@ -394,7 +394,7 @@ public class UnrealTranspiler : AbstractTranspiler
                 {
                     result.AppendLine($"    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(F{packet}Handler, F{packet}Packet, Data);");
                 }
-            }                
+            }
         }
 
         return result.ToString();
@@ -484,7 +484,7 @@ public class UnrealTranspiler : AbstractTranspiler
             var attribute = contract.GetCustomAttribute<ContractAttribute>();
 
             if (
-                attribute.LayerType == PacketLayerType.Server && 
+                attribute.LayerType == PacketLayerType.Server &&
                 attribute.PacketType == PacketType.None &&
                 attribute.Flags != ContractPacketFlags.None
             )
@@ -532,7 +532,7 @@ public class UnrealTranspiler : AbstractTranspiler
 
                 switchBuilder.AppendLine(ident + "}");
                 switchBuilder.AppendLine(ident + "break;");
-            }            
+            }
         }
 
         return switchBuilder.ToString();

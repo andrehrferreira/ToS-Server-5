@@ -190,7 +190,7 @@ void UENetSubsystem::SendEntitySync(FVector Position, FRotator Rotation, int32 A
         ClientFileLog(FString::Printf(TEXT("[CLIENT] AnimID: %d, IsFalling: %s"), AnimID, IsFalling ? TEXT("true") : TEXT("false")));
     }
 
-    UFlatBuffer* syncBuffer = UFlatBuffer::CreateFlatBuffer(34);
+    UFlatBuffer* syncBuffer = UFlatBuffer::CreateFlatBuffer(42); // Full SyncEntity packet size
     FSyncEntityPacket syncPacket = FSyncEntityPacket();
     syncPacket.Positon = Position;
     syncPacket.Rotator = Rotation;
@@ -201,6 +201,11 @@ void UENetSubsystem::SendEntitySync(FVector Position, FRotator Rotation, int32 A
     if (SyncCount <= 5)
     {
         ClientFileLog(TEXT("[CLIENT] About to serialize SyncEntityPacket..."));
+    }
+
+    if (SyncCount <= 5)
+    {
+        ClientFileLog(FString::Printf(TEXT("[CLIENT] Before serialization - Buffer capacity: %d"), syncBuffer->GetCapacity()));
     }
 
     syncPacket.Serialize(syncBuffer);

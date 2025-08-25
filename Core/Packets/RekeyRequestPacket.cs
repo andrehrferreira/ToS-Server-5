@@ -4,14 +4,14 @@ using System.Runtime.CompilerServices;
 
 public partial struct RekeyRequestPacket: INetworkPacket
 {
-    public int Size => 19;
+    public int Size => 27;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
         buffer.Write(PacketType.Reliable);
         buffer.Write((ushort)ServerPackets.RekeyRequest);
-        // Unsupported type: ulong
+        buffer.Write(CurrentSequence);
         buffer.WriteBytes(NewSalt);
     }
 

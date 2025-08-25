@@ -342,6 +342,8 @@ public unsafe struct FlatBuffer : IDisposable
         return new FVector(x * factor, y * factor, z * factor);
     }
 
+
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public FRotator ReadFRotator(float factor = 0.1f)
     {
@@ -350,6 +352,8 @@ public unsafe struct FlatBuffer : IDisposable
         short roll = Read<short>();
         return new FRotator(pitch * factor, yaw * factor, roll * factor);
     }
+
+
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public uint GetHashFast()

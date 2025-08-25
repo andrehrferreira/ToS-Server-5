@@ -31,7 +31,7 @@ struct FUpdateEntityPacket
     int32 Flags;
 
 
-    int32 GetSize() const { return 49; }
+    int32 GetSize() const { return 31; }
 
     void Deserialize(UFlatBuffer* Buffer)
     {

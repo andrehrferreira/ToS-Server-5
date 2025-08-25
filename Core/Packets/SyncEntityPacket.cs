@@ -4,15 +4,15 @@ using System.Runtime.CompilerServices;
 
 public partial struct SyncEntityPacket: INetworkPacketRecive
 {
-    public int Size => 6;
+    public int Size => 24;
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deserialize(ref FlatBuffer buffer)
     {
-        // Unsupported type: FVector
-        // Unsupported type: FRotator
-        // Unsupported type: FVector
+        Positon = buffer.ReadFVector(0.1f);
+        Rotator = buffer.ReadFRotator(0.1f);
+        Velocity = buffer.ReadFVector(0.1f);
         AnimationState = buffer.Read<ushort>();
         IsFalling = buffer.Read<bool>();
     }
