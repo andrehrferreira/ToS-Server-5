@@ -37,21 +37,10 @@ namespace Packets.Handler
             ctrl.Entity.SetAnimState(syncEntityPacket.AnimationState);
             ctrl.Entity.SetFlag(EntityState.IsFalling, syncEntityPacket.IsFalling);
 
-            // Replicate to other clients (broadcast to all connected clients except sender)
-            // Use the same pattern as BenchmarkPacket for broadcasting
+                        // Replicate to other clients (broadcast to all connected clients except sender)
             var count = UDPServer.Clients.Count;
             if (count > 1) // Only replicate if there are other clients
             {
-                // Create a server-side entity sync packet to broadcast
-                var serverSyncPacket = new SyncEntityPacket
-                {
-                    Positon = syncEntityPacket.Positon,
-                    Rotator = syncEntityPacket.Rotator,
-                    Velocity = syncEntityPacket.Velocity,
-                    AnimationState = syncEntityPacket.AnimationState,
-                    IsFalling = syncEntityPacket.IsFalling
-                };
-
                 // Debug replication
                 if (syncCounter <= 20)
                 {
@@ -61,18 +50,35 @@ namespace Packets.Handler
                     Console.WriteLine($"[REPLICATION] 📡 Broadcasting EntityId {ctrl.EntityId} to {count - 1} other clients");
                 }
 
-                // Send to all other connected clients (exclude the sender)
+                                // Send to all other connected clients (exclude the sender)
                 foreach (var clientSocket in UDPServer.Clients.Values)
                 {
                     // Don't send back to the sender
                     if (clientSocket.Id != ctrl.Socket.Id)
                     {
-                        // Send as unreliable packet to other clients
-                        clientSocket.SendUnreliablePacket(serverSyncPacket);
-                        
+                                                // Create UpdateEntity packet for client (ServerPackets.UpdateEntity)
+                        var updateBuffer = new FlatBuffer(50); // Size for UpdateEntityPacket with full precision
+
+                        // Write packet structure: PacketType + ServerPackets + UpdateEntityPacket data
+                        updateBuffer.Write(PacketType.Unreliable);                    // 1 byte
+                        updateBuffer.Write((ushort)ServerPackets.UpdateEntity);      // 2 bytes
+                        updateBuffer.Write(ctrl.EntityId);                           // 4 bytes (EntityId as uint32)
+                        updateBuffer.WriteFVector(syncEntityPacket.Positon);         // 12 bytes (FULL precision FVector)
+                        updateBuffer.WriteFRotator(syncEntityPacket.Rotator);        // 12 bytes (FULL precision FRotator)
+                        updateBuffer.WriteFVector(syncEntityPacket.Velocity);        // 12 bytes (FULL precision FVector)
+                        updateBuffer.Write(syncEntityPacket.AnimationState);         // 2 bytes (uint16)
+
+                        // Calculate flags (IsFalling)
+                        uint flags = syncEntityPacket.IsFalling ? (uint)EntityState.IsFalling : 0u;
+                        updateBuffer.Write(flags);                                    // 4 bytes (uint32)
+
+                        // Send UpdateEntity packet to other clients
+                        clientSocket.Send(ref updateBuffer, true);
+
                         if (syncCounter <= 5) // Log first few replications
                         {
-                            FileLogger.Log($"[REPLICATION] 📤 Sent to client {clientSocket.Id}");
+                            FileLogger.Log($"[REPLICATION] 📤 Sent UpdateEntity ({updateBuffer.Position} bytes) to client {clientSocket.Id}");
+                            FileLogger.Log($"[REPLICATION] 📦 EntityId: {ctrl.EntityId}, Flags: {flags}");
                         }
                     }
                 }
