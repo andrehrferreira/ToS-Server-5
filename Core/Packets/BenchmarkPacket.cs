@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 public partial struct BenchmarkPacket: INetworkPacket
 {
-    public int Size => 7;
+    public int Size => 19;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
@@ -12,15 +12,15 @@ public partial struct BenchmarkPacket: INetworkPacket
         buffer.Write(PacketType.Unreliable);
         buffer.Write((ushort)ServerPackets.Benchmark);
         buffer.Write(Id);
-        // Unsupported type: FVector
-        // Unsupported type: FRotator
+        buffer.Write(Positon, 0.1f);
+        buffer.Write(Rotator, 0.1f);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deserialize(ref FlatBuffer buffer)
     {
         Id = buffer.Read<uint>();
-        // Unsupported type: FVector
-        // Unsupported type: FRotator
+        Positon = buffer.ReadFVector(0.1f);
+        Rotator = buffer.ReadFRotator(0.1f);
     }
 }

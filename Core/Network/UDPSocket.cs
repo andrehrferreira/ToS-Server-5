@@ -84,14 +84,34 @@ public class UDPSocket
     {
         public FlatBuffer Buffer;
         public DateTime SentAt;
+        public int RetryCount = 0;
+        public ulong Sequence;
     }
 
-    internal ConcurrentDictionary<short, ReliablePacketInfo> ReliablePackets =
-        new ConcurrentDictionary<short, ReliablePacketInfo>();
+    internal ConcurrentDictionary<ulong, ReliablePacketInfo> ReliablePackets =
+        new ConcurrentDictionary<ulong, ReliablePacketInfo>();
 
+    // Legacy event queue for backward compatibility
     public Channel<FlatBuffer> EventQueue;
 
-    private short Sequence = 1;
+    // Separate processing queues
+    public Channel<FlatBuffer> ReliableEventQueue;
+    public Channel<FlatBuffer> UnreliableEventQueue;
+
+    // Sequence management
+    private ulong ReliableSequenceSend = 1;
+    private ulong ReliableSequenceReceive = 0;
+    private ulong UnreliableSequenceSend = 1;
+
+    // Received packet ordering buffer for reliable packets
+    private ConcurrentDictionary<ulong, FlatBuffer> ReliablePacketBuffer =
+        new ConcurrentDictionary<ulong, FlatBuffer>();
+
+    // Acknowledgment management
+    private ConcurrentDictionary<ulong, DateTime> PendingAcks =
+        new ConcurrentDictionary<ulong, DateTime>();
+
+    private short Sequence = 1;  // Legacy sequence for old reliable system
 
     internal FlatBuffer ReliableBuffer;
     internal FlatBuffer UnreliableBuffer;
@@ -140,7 +160,21 @@ public class UDPSocket
         UnreliableBuffer = new FlatBuffer(UDPServer.Mtu);
         AckBuffer = new FlatBuffer(UDPServer.Mtu);
 
+                // Create legacy event queue for backward compatibility
         EventQueue = Channel.CreateUnbounded<FlatBuffer>(new UnboundedChannelOptions
+        {
+            SingleReader = true,
+            SingleWriter = false
+        });
+
+        // Create separate queues for reliable and unreliable packets
+        ReliableEventQueue = Channel.CreateUnbounded<FlatBuffer>(new UnboundedChannelOptions
+        {
+            SingleReader = true,
+            SingleWriter = false
+        });
+
+        UnreliableEventQueue = Channel.CreateUnbounded<FlatBuffer>(new UnboundedChannelOptions
         {
             SingleReader = true,
             SingleWriter = false
@@ -182,7 +216,7 @@ public class UDPSocket
             ConnectionId = Session.ConnectionId,
             Channel = reliable ? PacketChannel.ReliableOrdered : PacketChannel.Unreliable,
             Flags = PacketHeaderFlags.Encrypted | PacketHeaderFlags.AEAD_ChaCha20Poly1305,
-            Sequence = Session.SeqTx
+            Sequence = Session.SeqTx // This will be the sequence used for encryption
         };
 
         var aad = header.GetAAD();
@@ -308,12 +342,36 @@ public class UDPSocket
 
         float resendMs = Math.Max(Ping, (uint)UDPServer.ReliableTimeout.TotalMilliseconds);
 
+        // Handle retransmission for new reliable system
+        var reliablePacketsToRetry = new List<KeyValuePair<ulong, ReliablePacketInfo>>();
         foreach (var kv in ReliablePackets)
         {
             if ((DateTime.UtcNow - kv.Value.SentAt).TotalMilliseconds >= resendMs)
             {
-                UDPServer.Send(ref kv.Value.Buffer, kv.Value.Buffer.Position, this, false);
-                kv.Value.SentAt = DateTime.UtcNow;
+                reliablePacketsToRetry.Add(kv);
+            }
+        }
+
+        foreach (var kv in reliablePacketsToRetry)
+        {
+            kv.Value.RetryCount++;
+
+            // Max retry attempts before giving up
+            if (kv.Value.RetryCount >= 10)
+            {
+                ReliablePackets.TryRemove(kv.Key, out var removedInfo);
+                removedInfo?.Buffer.Free();
+                ServerMonitor.Log($"Reliable packet {kv.Key} dropped after 10 retries");
+                continue;
+            }
+
+            // Resend the packet
+            UDPServer.Send(ref kv.Value.Buffer, kv.Value.Buffer.Position, this, false);
+            kv.Value.SentAt = DateTime.UtcNow;
+
+            if (kv.Value.RetryCount > 3)
+            {
+                ServerMonitor.Log($"Reliable packet {kv.Key} retry #{kv.Value.RetryCount}");
             }
         }
 
@@ -351,13 +409,47 @@ public class UDPSocket
         var info = new ReliablePacketInfo
         {
             Buffer = buffer,
-            SentAt = DateTime.UtcNow
+            SentAt = DateTime.UtcNow,
+            Sequence = (ulong)packetId,
+            RetryCount = 0
         };
 
-        return ReliablePackets.TryAdd(packetId, info);
+        return ReliablePackets.TryAdd((ulong)packetId, info);
     }
 
     internal void Acknowledge(short sequence)
+    {
+        if (ReliablePackets.TryRemove((ulong)sequence, out var info))
+        {
+            info.Buffer.Free();
+        }
+    }
+
+    // New reliability system methods
+    public void SendReliablePacket(INetworkPacket networkPacket)
+    {
+        SendEncrypted(networkPacket, true); // Use original SendEncrypted with reliable=true
+    }
+
+    public void SendUnreliablePacket(INetworkPacket networkPacket)
+    {
+        SendEncrypted(networkPacket, false); // Use original SendEncrypted with reliable=false
+    }
+
+    private bool AddReliablePacketNew(ulong sequenceId, FlatBuffer buffer)
+    {
+        var info = new ReliablePacketInfo
+        {
+            Buffer = buffer,
+            SentAt = DateTime.UtcNow,
+            Sequence = sequenceId,
+            RetryCount = 0
+        };
+
+        return ReliablePackets.TryAdd(sequenceId, info);
+    }
+
+    public void AcknowledgeReliablePacket(ulong sequence)
     {
         if (ReliablePackets.TryRemove(sequence, out var info))
         {
@@ -365,63 +457,162 @@ public class UDPSocket
         }
     }
 
+        public void SendAcknowledgment(ulong sequence)
+    {
+        // Use original legacy ACK system that worked - break ulong into two uint
+        var buffer = new FlatBuffer(9);
+        buffer.Write(PacketType.Ack);
+        buffer.Write((uint)(sequence & 0xFFFFFFFF));        // Low 32 bits
+        buffer.Write((uint)((sequence >> 32) & 0xFFFFFFFF)); // High 32 bits
+
+        UDPServer.Send(ref buffer, buffer.Position, this, false);
+    }
+
+    public void ProcessReliablePacket(ulong sequence, FlatBuffer buffer)
+    {
+        // Send acknowledgment immediately
+        SendAcknowledgment(sequence);
+
+        // Check if this is the next expected sequence
+        if (sequence == ReliableSequenceReceive + 1)
+        {
+            // Process this packet and any buffered consecutive ones
+            ReliableSequenceReceive = sequence;
+            if (!ReliableEventQueue.Writer.TryWrite(buffer))
+            {
+                buffer.Free();
+            }
+
+            // Check for buffered packets
+            while (ReliablePacketBuffer.TryRemove(ReliableSequenceReceive + 1, out var nextBuffer))
+            {
+                ReliableSequenceReceive++;
+                if (!ReliableEventQueue.Writer.TryWrite(nextBuffer))
+                {
+                    nextBuffer.Free();
+                }
+            }
+        }
+        else if (sequence > ReliableSequenceReceive + 1)
+        {
+            // Buffer out-of-order packet
+            ReliablePacketBuffer.TryAdd(sequence, buffer);
+        }
+        else
+        {
+            // Duplicate or old packet, discard
+            buffer.Free();
+        }
+    }
+
     public void ProcessPacket()
     {
-        while (EventQueue.Reader.TryRead(out var buffer))
+        // Process reliable packets with ordering guarantee
+        while (ReliableEventQueue.Reader.TryRead(out var reliableBuffer))
         {
             try
             {
-                PacketType packetType = (PacketType)buffer.Read<byte>();
-
-                switch (packetType)
-                {
-                    case PacketType.BenckmarkTest:
-                        {
-                            try
-                            {
-                                var newLocation = buffer.ReadFVector();
-                                var newRotation = buffer.ReadFRotator();
-                                var count = UDPServer.Clients.Count;
-
-                                if (count == 0)
-                                    break;
-
-                                var rnd = Random.Shared;
-                                int limit = Math.Min(100, count);
-                                var packet = new BenchmarkPacket
-                                {
-                                    Id = Id,
-                                    Positon = newLocation,
-                                    Rotator = newRotation
-                                };
-
-                                for (int i = 0; i < limit; i++)
-                                {
-                                    var randomValue = UDPServer.Clients.Values.ElementAt(rnd.Next(count));
-                                    FlatBuffer bufferSent = new FlatBuffer(20);
-                                    packet.Serialize(ref bufferSent);
-
-                                    if(randomValue.Send(ref bufferSent))
-                                    {
-                                        Interlocked.Increment(ref UDPServer._packetsSent);
-                                        Interlocked.Add(ref UDPServer._bytesSent, packet.Size);
-                                    }
-
-                                    bufferSent.Free();
-                                }
-                            }
-                            catch(Exception ex)
-                            {
-                                ServerMonitor.Log($"Error processing BenchmarkTest packet: {ex.Message}");
-                            }
-                        }
-                        break;
-                }
+                ProcessGamePacket(reliableBuffer, true);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error processing packet: {ex.Message}");
+                ServerMonitor.Log($"Error processing reliable packet: {ex.Message}");
             }
+        }
+
+        // Process unreliable packets (no ordering required)
+        while (UnreliableEventQueue.Reader.TryRead(out var unreliableBuffer))
+        {
+            try
+            {
+                ProcessGamePacket(unreliableBuffer, false);
+            }
+            catch (Exception ex)
+            {
+                ServerMonitor.Log($"Error processing unreliable packet: {ex.Message}");
+            }
+        }
+    }
+
+    private void ProcessGamePacket(FlatBuffer buffer, bool isReliable)
+    {
+        PacketType packetType = (PacketType)buffer.Read<byte>();
+
+        // Log game packet processing for first few packets
+        if (ReliableSequenceReceive <= 5 || (!isReliable && ReliableSequenceReceive <= 10))
+        {
+            FileLogger.Log($"[SERVER] ProcessGamePacket: PacketType={packetType}, IsReliable={isReliable}");
+        }
+
+        switch (packetType)
+        {
+            case PacketType.BenckmarkTest:
+                {
+                    try
+                    {
+                        var newLocation = buffer.ReadFVector();
+                        var newRotation = buffer.ReadFRotator();
+                        var count = UDPServer.Clients.Count;
+
+                        if (count == 0)
+                            break;
+
+                        var rnd = Random.Shared;
+                        int limit = Math.Min(100, count);
+                        var packet = new BenchmarkPacket
+                        {
+                            Id = Id,
+                            Positon = newLocation,
+                            Rotator = newRotation
+                        };
+
+                        for (int i = 0; i < limit; i++)
+                        {
+                            var randomValue = UDPServer.Clients.Values.ElementAt(rnd.Next(count));
+
+                            // Send via the new reliability system
+                            if (isReliable)
+                            {
+                                randomValue.SendReliablePacket(packet);
+                            }
+                            else
+                            {
+                                randomValue.SendUnreliablePacket(packet);
+                            }
+
+                            Interlocked.Increment(ref UDPServer._packetsSent);
+                            Interlocked.Add(ref UDPServer._bytesSent, packet.Size);
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        ServerMonitor.Log($"Error processing BenchmarkTest packet: {ex.Message}");
+                    }
+                }
+                break;
+
+            case PacketType.ReliableHandshake:
+                {
+                    // Handle reliable handshake packet
+                    ServerMonitor.Log($"[QUEUE] Processing ReliableHandshake packet from client {Id}");
+
+                    FileLogger.Log($"=== RELIABLE HANDSHAKE RECEIVED ===");
+                    FileLogger.Log($"[SERVER] 🤝 Received ReliableHandshake from client: {Id}");
+                    FileLogger.Log($"[SERVER] 🤝 Buffer size: {buffer.Capacity} bytes");
+                    FileLogger.Log($"[SERVER] 🤝 Crypto ready: {(Session.ConnectionId != 0 ? "YES" : "NO")}");
+
+                    // Send reliable handshake response
+                    var response = new ReliableHandshakePacket { Message = "Handshake Complete" };
+
+                    FileLogger.Log($"[SERVER] 🤝 Sending ReliableHandshake response");
+                    FileLogger.Log($"[SERVER] 🤝 Response message: {response.Message}");
+
+                    SendReliablePacket(response);
+
+                    ServerMonitor.Log($"[QUEUE] Sent reliable handshake response to client {Id}");
+                    FileLogger.Log($"[SERVER] 🤝 Reliable handshake complete for client: {Id}");
+                }
+                break;
         }
     }
 }

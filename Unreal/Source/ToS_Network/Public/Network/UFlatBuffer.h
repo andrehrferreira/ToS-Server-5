@@ -72,7 +72,7 @@ public:
 			UE_LOG(LogTemp, Error, TEXT("UFlatBuffer::Read - Buffer underflow. Cannot read value of size %d"), Size);
 			return T{};
 		}
-					
+
 		T Value;
 		FMemory::Memcpy(&Value, Data + Position, Size);
 		Position += Size;
@@ -256,7 +256,6 @@ template<>
 inline void UFlatBuffer::Write<FVector>(const FVector& Value)
 {
     constexpr float Factor = 0.1f;
-	int64 X = FMath::RoundToInt(Value.X / Factor);
     Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.X / Factor)));
     Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Y / Factor)));
     Write<int16>(static_cast<int16>(FMath::RoundToInt(Value.Z / Factor)));

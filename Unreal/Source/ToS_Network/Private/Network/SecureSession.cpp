@@ -1,5 +1,6 @@
 #include "Network/SecureSession.h"
 #include "Utils/LZ4.h"
+#include "Utils/FileLogger.h"
 #include "HAL/UnrealMemory.h"
 
 static FString BytesToHexString(const TArray<uint8>& Bytes)
@@ -46,8 +47,6 @@ bool FSecureSession::InitializeAsClient(const TArray<uint8>& ClientPrivateKey, c
 {
     if (ClientPrivateKey.Num() != 32 || ServerPublicKey.Num() != 32 || Salt.Num() != 16)
         return false;
-
-
 
     uint8 SharedSecret[32];
     if (crypto_scalarmult_curve25519(SharedSecret, ClientPrivateKey.GetData(), ServerPublicKey.GetData()) != 0)
@@ -102,6 +101,12 @@ bool FSecureSession::EncryptPayload(const TArray<uint8>& Plaintext, const TArray
     TArray<uint8> Nonce;
     GenerateNonce(SeqTx, Nonce);
 
+    // Log crypto data to file (only first packet)
+    if (SeqTx == 0)
+    {
+        ClientFileLogHex(TEXT("[CLIENT] Nonce"), Nonce);
+    }
+
 
 
     Ciphertext.SetNumUninitialized(Plaintext.Num() + crypto_aead_chacha20poly1305_ietf_ABYTES);
@@ -124,6 +129,16 @@ bool FSecureSession::EncryptPayload(const TArray<uint8>& Plaintext, const TArray
     Ciphertext.SetNum(CiphertextLen);
 
     SeqTx++;
+
+    // Log TxKey to file (only once)
+    if (SeqTx == 1)
+    {
+        TArray<uint8> TxKeyArray;
+        TxKeyArray.SetNumUninitialized(32);
+        FMemory::Memcpy(TxKeyArray.GetData(), TxKey, 32);
+        ClientFileLogHex(TEXT("[CLIENT] TxKey"), TxKeyArray);
+    }
+
     return true;
 }
 
@@ -156,6 +171,87 @@ bool FSecureSession::EncryptPayloadWithCompression(const TArray<uint8>& Plaintex
     return true;
 }
 
+bool FSecureSession::EncryptPayloadWithSequence(const TArray<uint8>& Plaintext, const TArray<uint8>& AAD, uint64 Sequence, TArray<uint8>& Result, bool& bWasCompressed)
+{
+    bWasCompressed = false;
+
+    // Use specific sequence instead of internal SeqTx
+    TArray<uint8> Nonce;
+    GenerateNonce(Sequence, Nonce);
+
+    TArray<uint8> Encrypted;
+    Encrypted.SetNumUninitialized(Plaintext.Num() + crypto_aead_chacha20poly1305_ietf_ABYTES);
+
+    unsigned long long CiphertextLen;
+    int EncryptResult = crypto_aead_chacha20poly1305_ietf_encrypt(
+        Encrypted.GetData(), &CiphertextLen,
+        Plaintext.GetData(), Plaintext.Num(),
+        AAD.GetData(), AAD.Num(),
+        nullptr,
+        Nonce.GetData(), TxKey
+    );
+
+    if (EncryptResult != 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CRYPTO] Encrypt failed with result: %d"), EncryptResult);
+        return false;
+    }
+
+    Encrypted.SetNum(CiphertextLen);
+
+    // Increment SeqTx to keep crypto sequence in sync
+    SeqTx++;
+
+    if (Encrypted.Num() > 512)
+    {
+        TArray<uint8> Compressed;
+        Compressed.SetNumUninitialized(Encrypted.Num() + 1024);
+
+        int32 CompressedLength = FLZ4::Compress(Encrypted.GetData(), Encrypted.Num(), Compressed.GetData(), Compressed.Num());
+
+        if (CompressedLength > 0 && CompressedLength < Encrypted.Num())
+        {
+            bWasCompressed = true;
+            Result.SetNumUninitialized(CompressedLength);
+            FMemory::Memcpy(Result.GetData(), Compressed.GetData(), CompressedLength);
+            return true;
+        }
+    }
+
+    Result = MoveTemp(Encrypted);
+    return true;
+}
+
+bool FSecureSession::EncryptPayloadWithSpecificSequence(const TArray<uint8>& Plaintext, const TArray<uint8>& AAD, uint64 Sequence, TArray<uint8>& Ciphertext)
+{
+    // Use specific sequence instead of internal SeqTx
+    TArray<uint8> Nonce;
+    GenerateNonce(Sequence, Nonce);
+
+    Ciphertext.SetNumUninitialized(Plaintext.Num() + crypto_aead_chacha20poly1305_ietf_ABYTES);
+
+    unsigned long long CiphertextLen;
+    int Result = crypto_aead_chacha20poly1305_ietf_encrypt(
+        Ciphertext.GetData(), &CiphertextLen,
+        Plaintext.GetData(), Plaintext.Num(),
+        AAD.GetData(), AAD.Num(),
+        nullptr,
+        Nonce.GetData(), TxKey
+    );
+
+    if (Result != 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CRYPTO] Encrypt failed with result: %d"), Result);
+        return false;
+    }
+
+    Ciphertext.SetNum(CiphertextLen);
+
+    // Increment SeqTx to keep crypto sequence in sync
+    SeqTx++;
+    return true;
+}
+
 bool FSecureSession::DecryptPayload(const TArray<uint8>& Ciphertext, const TArray<uint8>& AAD, uint64 Sequence, TArray<uint8>& Plaintext)
 {
     if (!IsSequenceValid(Sequence))
@@ -169,11 +265,7 @@ bool FSecureSession::DecryptPayload(const TArray<uint8>& Ciphertext, const TArra
     FMemory::Memcpy(Nonce.GetData(), &ConnectionId, 4);
     FMemory::Memcpy(Nonce.GetData() + 4, &Sequence, 8);
 
-    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Decrypt - Sequence: %llu"), Sequence);
-    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Decrypt - Nonce: %s"), *BytesToHexString(Nonce));
-    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Decrypt - RxKey: %s"), *BytesToHexString(TArray<uint8>(RxKey, 32)));
-    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Decrypt - AAD: %s"), *BytesToHexString(AAD));
-    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Decrypt - Ciphertext (%d bytes): %s"), Ciphertext.Num(), *BytesToHexString(Ciphertext));
+
 
     Plaintext.SetNumUninitialized(Ciphertext.Num() - crypto_aead_chacha20poly1305_ietf_ABYTES);
 
@@ -193,7 +285,6 @@ bool FSecureSession::DecryptPayload(const TArray<uint8>& Ciphertext, const TArra
     }
 
     Plaintext.SetNum(PlaintextLen);
-    UE_LOG(LogTemp, Log, TEXT("[CRYPTO] Decrypt - Plaintext (%llu bytes): %s"), PlaintextLen, *BytesToHexString(Plaintext));
 
     UpdateReplayWindow(Sequence);
     return true;

@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Utils/FileLogger.h"
 
 ASyncPlayer::ASyncPlayer()
 {
@@ -21,8 +22,8 @@ ASyncPlayer::ASyncPlayer()
     bUseControllerRotationYaw = false;
     bUseControllerRotationRoll = false;
 
-    GetCharacterMovement()->bOrientRotationToMovement = true; 
-    GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); 
+    GetCharacterMovement()->bOrientRotationToMovement = true;
+    GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
     GetCharacterMovement()->JumpZVelocity = 700.f;
     GetCharacterMovement()->AirControl = 0.35f;
@@ -33,21 +34,31 @@ ASyncPlayer::ASyncPlayer()
 
     CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
     CameraBoom->SetupAttachment(RootComponent);
-    CameraBoom->TargetArmLength = 400.0f; 	
-    CameraBoom->bUsePawnControlRotation = true; 
+    CameraBoom->TargetArmLength = 400.0f;
+    CameraBoom->bUsePawnControlRotation = true;
 
     FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-    FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); 
-    FollowCamera->bUsePawnControlRotation = false; 
+    FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+    FollowCamera->bUsePawnControlRotation = false;
 }
 
 void ASyncPlayer::BeginPlay()
 {
     Super::BeginPlay();
 
+            UE_LOG(LogTemp, Warning, TEXT("🎯 SyncPlayer::BeginPlay - NetSubsystem: %s"), NetSubsystem ? TEXT("FOUND") : TEXT("NULL"));
+    ClientFileLog(FString::Printf(TEXT("🎯 SyncPlayer::BeginPlay - NetSubsystem: %s"), NetSubsystem ? TEXT("FOUND") : TEXT("NULL")));
+
     if (NetSubsystem)
     {
         GetWorld()->GetTimerManager().SetTimer(NetSyncTimerHandle, this, &ASyncPlayer::SendSyncToServer, 0.1f, true);
+        UE_LOG(LogTemp, Warning, TEXT("🚀 SyncPlayer: Timer started for SendSyncToServer every 0.1s"));
+        ClientFileLog(TEXT("🚀 SyncPlayer: Timer started for SendSyncToServer every 0.1s"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ SyncPlayer: NetSubsystem is NULL! No sync packets will be sent!"));
+        ClientFileLog(TEXT("❌ SyncPlayer: NetSubsystem is NULL! No sync packets will be sent!"));
     }
 }
 
@@ -83,9 +94,9 @@ void ASyncPlayer::Move(const FInputActionValue& Value)
         const FRotator Rotation = Controller->GetControlRotation();
         const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-        const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X); 
+        const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
         const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
- 
+
         AddMovementInput(ForwardDirection, MovementVector.Y);
         AddMovementInput(RightDirection, MovementVector.X);
     }
@@ -104,7 +115,12 @@ void ASyncPlayer::Look(const FInputActionValue& Value)
 
 void ASyncPlayer::SendSyncToServer()
 {
-    if (!NetSubsystem) return;
+    if (!NetSubsystem)
+    {
+        UE_LOG(LogTemp, Error, TEXT("❌ SendSyncToServer: NetSubsystem is NULL!"));
+        ClientFileLog(TEXT("❌ SendSyncToServer: NetSubsystem is NULL!"));
+        return;
+    }
 
     FVector Position = GetActorLocation();
     FRotator Rotation = GetActorRotation();
@@ -121,9 +137,9 @@ void ASyncPlayer::SendSyncToServer()
 
     const int32 AnimID = AnimName == TEXT("None") ? 0 : UBase36::Base36ToInt(AnimName);
 
-    if (UCharacterMovementComponent* Movement = GetCharacterMovement())    
+    if (UCharacterMovementComponent* Movement = GetCharacterMovement())
 		IsFalling = Movement->IsFalling();
-    
+
     struct FSyncSnapshot
     {
         FVector Position;
@@ -136,10 +152,29 @@ void ASyncPlayer::SendSyncToServer()
     uint32 CurrentHash = FCRC32C::Compute(reinterpret_cast<const uint8*>(&Snapshot), sizeof(Snapshot));
 
     if (CurrentHash == LastSyncHash)
+    {
+        // Skip sending if nothing changed
         return;
+    }
 
     LastSyncHash = CurrentHash;
     const FVector Velocity = GetVelocity();
+
+                // Log first few sync packets
+    static int32 SyncCount = 0;
+    if (SyncCount < 5)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("📡 SendSyncToServer #%d: Pos=%s, Rot=%s, Vel=%s"),
+            SyncCount, *Position.ToString(), *Rotation.ToString(), *Velocity.ToString());
+        ClientFileLog(FString::Printf(TEXT("📡 SendSyncToServer #%d: Pos=%s, Rot=%s, Vel=%s"),
+            SyncCount, *Position.ToString(), *Rotation.ToString(), *Velocity.ToString()));
+        SyncCount++;
+    }
+
+    UE_LOG(LogTemp, VeryVerbose, TEXT("📤 Calling NetSubsystem->SendEntitySync..."));
+    ClientFileLog(TEXT("📤 Calling NetSubsystem->SendEntitySync..."));
     NetSubsystem->SendEntitySync(Position, Rotation, AnimID, Velocity, IsFalling);
+    UE_LOG(LogTemp, VeryVerbose, TEXT("✅ NetSubsystem->SendEntitySync completed"));
+    ClientFileLog(TEXT("✅ NetSubsystem->SendEntitySync completed"));
 }
 

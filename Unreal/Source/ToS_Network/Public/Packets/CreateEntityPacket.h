@@ -25,7 +25,7 @@ struct FCreateEntityPacket
     int32 Flags;
 
 
-    int32 GetSize() const { return 35; }
+    int32 GetSize() const { return 23; }
 
     void Deserialize(UFlatBuffer* Buffer)
     {

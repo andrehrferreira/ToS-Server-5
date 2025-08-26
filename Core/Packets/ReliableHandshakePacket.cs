@@ -2,23 +2,20 @@
 
 using System.Runtime.CompilerServices;
 
-public partial struct RekeyRequestPacket: INetworkPacket
+public partial struct ReliableHandshakePacket: INetworkPacket
 {
-    public int Size => 27;
+    public int Size => 3600;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Serialize(ref FlatBuffer buffer)
     {
-        buffer.Write(PacketType.Reliable);
-        buffer.Write((ushort)ServerPackets.RekeyRequest);
-        buffer.Write(CurrentSequence);
-        buffer.WriteBytes(NewSalt);
+        buffer.Write(PacketType.ReliableHandshake);
+        buffer.WriteUtf8String(Message);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deserialize(ref FlatBuffer buffer)
     {
-        CurrentSequence = buffer.Read<ulong>();
-        NewSalt = buffer.ReadBytes(16);
+        Message = buffer.ReadUtf8String();
     }
 }

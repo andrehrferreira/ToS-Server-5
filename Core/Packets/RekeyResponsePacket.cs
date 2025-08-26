@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 public partial struct RekeyResponsePacket: INetworkPacketRecive
 {
-    public int Size => 4;
+    public int Size => 12;
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

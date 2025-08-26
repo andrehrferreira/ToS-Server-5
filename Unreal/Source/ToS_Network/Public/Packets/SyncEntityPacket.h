@@ -28,7 +28,7 @@ struct FSyncEntityPacket
     bool IsFalling;
 
 
-    int32 GetSize() const { return 42; }
+    int32 GetSize() const { return 24; }
 
     void Serialize(UFlatBuffer* Buffer)
     {

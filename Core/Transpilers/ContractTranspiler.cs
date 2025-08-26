@@ -1,17 +1,17 @@
 /*
 * ContractTraspiler
-* 
+*
 * Author: Andre Ferreira
-* 
+*
 * Copyright (c) Uzmi Games. Licensed under the MIT License.
-*    
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -68,9 +68,9 @@ public class ContractTranspiler : AbstractTranspiler
                 {
                     writer.WriteLine("// This file was generated automatically, please do not change it.");
                     writer.WriteLine();
-                    writer.WriteLine("using System.Runtime.CompilerServices;");               
+                    writer.WriteLine("using System.Runtime.CompilerServices;");
                     writer.WriteLine();
-                    writer.WriteLine($"public partial struct {contractName}: INetworkPacket");                    
+                    writer.WriteLine($"public partial struct {contractName}: INetworkPacket");
                     writer.WriteLine("{");
 
                     GenerateSerialize(writer, contract, fields, attribute);
@@ -148,7 +148,7 @@ public class ContractTranspiler : AbstractTranspiler
                 string fieldType = fieldAttr != null ? fieldAttr.Type : field.FieldType.Name.ToLower();
                 if (string.IsNullOrEmpty(fieldType)) continue;
 
-                switch (fieldType)
+                switch (fieldType.ToLower()) // Convert to lowercase for case-insensitive matching
                 {
                     case "integer":
                     case "int":
@@ -169,10 +169,11 @@ public class ContractTranspiler : AbstractTranspiler
                     case "boolean":
                         totalBytes += 1; break;
                     case "long":
+                    case "ulong":
                         totalBytes += 8; break;
                     case "fvector":
                     case "frotator":
-                        totalBytes += 6; break; // quantized (assumed)
+                        totalBytes += 6; break; // quantized (6 bytes each)
                     case "byte[]":
                         totalBytes += fieldAttr?.ByteCount ?? 0; break;
                     default:
@@ -206,7 +207,7 @@ public class ContractTranspiler : AbstractTranspiler
                     var fieldAttr = field.GetCustomAttribute<ContractFieldAttribute>();
                     string fieldType = fieldAttr != null ? fieldAttr.Type : field.FieldType.Name.ToLower();
                     var fieldName = field.Name;
-                    switch (fieldType)
+                    switch (fieldType.ToLower()) // Convert to lowercase for case-insensitive matching
                     {
                         case "integer":
                         case "int":
@@ -217,6 +218,7 @@ public class ContractTranspiler : AbstractTranspiler
                         case "byte":
                         case "float":
                         case "long":
+                        case "ulong":
                         case "decimal":
                             writer.WriteLine($"        buffer.Write({fieldName});");
                             break;
@@ -230,6 +232,10 @@ public class ContractTranspiler : AbstractTranspiler
                             break;
                         case "id":
                             writer.WriteLine($"        buffer.Write(Base36.ToInt({fieldName}));");
+                            break;
+                        case "str":
+                        case "string":
+                            writer.WriteLine($"        buffer.WriteUtf8String({fieldName});");
                             break;
                         case "byte[]":
                             writer.WriteLine($"        buffer.WriteBytes({fieldName});");
@@ -252,7 +258,7 @@ public class ContractTranspiler : AbstractTranspiler
                 var fieldAttr = field.GetCustomAttribute<ContractFieldAttribute>();
                 string fieldType = fieldAttr != null ? fieldAttr.Type : field.FieldType.Name.ToLower();
                 var fieldName = field.Name;
-                switch (fieldType)
+                switch (fieldType.ToLower()) // Convert to lowercase for case-insensitive matching
                 {
                     case "integer":
                     case "int":
@@ -283,6 +289,9 @@ public class ContractTranspiler : AbstractTranspiler
                         writer.WriteLine($"        {fieldName} = buffer.ReadFRotator(0.1f);"); break;
                     case "id":
                         writer.WriteLine($"        {fieldName} = Base36.ToString(buffer.Read<int>());"); break;
+                    case "str":
+                    case "string":
+                        writer.WriteLine($"        {fieldName} = buffer.ReadUtf8String();"); break;
                     case "byte[]":
                         writer.WriteLine($"        {fieldName} = buffer.ReadBytes({fieldAttr?.ByteCount ?? 0});"); break;
                     default:

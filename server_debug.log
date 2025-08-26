@@ -1,0 +1,745 @@
+﻿=== SERVER SESSION STARTED: 2025-08-26 18:41:12 ===
+[18:41:12.198] === CRYPTO HANDSHAKE RECEIVED ===
+[18:41:12.199] [SERVER] 🔐 Received CryptoTest: 2712847316
+[18:41:12.199] [SERVER] 🔐 From: IP:127.0.0.1 Port:55995
+[18:41:12.199] [SERVER] 🔐 Session exists: YES
+[18:41:12.200] [SERVER] 🔐 Sending CryptoTestAck: 2712847316
+[18:41:12.200] [SERVER] 🔐 Buffer size: 5 bytes
+[18:41:12.204] === CRYPTO ACK RECEIVED ===
+[18:41:12.204] [SERVER] 🔐 Received CryptoTestAck: 439041101
+[18:41:12.204] [SERVER] 🔐 Expected: 439041101
+[18:41:12.205] [SERVER] 🔐 Match: YES
+[18:41:12.213] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:12.215] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:12.216] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 0
+[18:41:12.217] [DECRYPT] seq=0, SeqRx=0, HighestSeq=0
+[18:41:12.217] === DECRYPTING FIRST PACKET ===
+[18:41:12.217] [SERVER] ConnectionId: 1550974349
+[18:41:12.218] [SERVER] RxKey: 03356A53F7AEEE36BAB036DDC1009020CB3F92B189510CC9C6D0C65A212A7853
+[18:41:12.219] [SERVER] Nonce: 8DFD715C0000000000000000
+[18:41:12.219] [SERVER] AAD: 8DFD715C00030000000000000000
+[18:41:12.219] [SERVER] Ciphertext: D5A59996E22EBE1CB24835CAEC78EDB54566E04D43876B2C23A30A305B59689F3246DEC2076FE6EA
+[18:41:12.219] [SERVER] Ciphertext Length: 40 bytes
+[18:41:12.219] [SERVER] Starting decryption...
+[18:41:12.219] [SERVER] Input ciphertext array length: 40
+[18:41:12.220] [SERVER] Output plaintext array length: 160
+[18:41:12.228] [SERVER] ProcessBytes returned: 0 bytes
+[18:41:12.228] [SERVER] DoFinal returned: 24 bytes
+[18:41:12.229] [SERVER] Total plaintext length: 24 bytes
+[18:41:12.229] [SERVER] Raw decrypted data: 04000028235C2B7203000000000000000000000000FFFF00
+[18:41:12.229] [SERVER] ✅ DECRYPTION SUCCESS! Plaintext length: 24 bytes
+[18:41:12.230] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:12.230] [SERVER] Processing unreliable packet seq=0 immediately
+[18:41:12.230] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[18:41:12.230] [SERVER] Buffer position after RestorePosition(0): 0
+[18:41:12.231] [SERVER] Buffer capacity: 25
+[18:41:12.231] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[18:41:12.232] [SERVER] FlatBuffer[0] = 004 (0x04) -> PacketType: Unreliable
+[18:41:12.232] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[18:41:12.232] [SERVER] FlatBuffer[2] = 000 (0x00) -> ClientPacket high byte
+[18:41:12.232] [SERVER] FlatBuffer[3] = 040 (0x28) -> Data byte
+[18:41:12.233] [SERVER] FlatBuffer[4] = 035 (0x23) -> Data byte
+[18:41:12.233] [SERVER] FlatBuffer[5] = 092 (0x5C) -> Data byte
+[18:41:12.233] [SERVER] FlatBuffer[6] = 043 (0x2B) -> Data byte
+[18:41:12.233] [SERVER] FlatBuffer[7] = 114 (0x72) -> Data byte
+[18:41:12.234] [SERVER] FlatBuffer[8] = 003 (0x03) -> Data byte
+[18:41:12.234] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[18:41:12.234] [SERVER] Reading PacketType: Unreliable (raw value: 4)
+[18:41:12.235] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[18:41:12.235] [SERVER] Adding ClientPacket=SyncEntity seq=0 to UnreliableEventQueue
+[18:41:12.253] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:12.658] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:12.658] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:12.659] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 1
+[18:41:12.659] === RECEIVED Unknown Type 4 (seq=1) ===
+[18:41:12.659] [SERVER] Channel: Unreliable
+[18:41:12.659] [SERVER] Compressed: False
+[18:41:12.659] [SERVER] Decrypted Size: 24 bytes
+[18:41:12.659] [SERVER] RAW Decrypted Payload: 0400002B235C2B72030000FCFF0000B60000000000FFFF00
+[18:41:12.659] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[18:41:12.660] [SERVER] Payload[00] = 004 (0x04) (PacketType byte)
+[18:41:12.660] [SERVER] Payload[01] = 000 (0x00) (ClientPacket low byte)
+[18:41:12.660] [SERVER] Payload[02] = 000 (0x00) (ClientPacket high byte)
+[18:41:12.660] [SERVER] Payload[03] = 043 (0x2B) (Position data byte 1)
+[18:41:12.660] [SERVER] Payload[04] = 035 (0x23) (Position data byte 2)
+[18:41:12.661] [SERVER] Payload[05] = 092 (0x5C) (Position data byte 3)
+[18:41:12.661] [SERVER] Payload[06] = 043 (0x2B) (Position data byte 4)
+[18:41:12.661] [SERVER] Payload[07] = 114 (0x72) (Position data byte 5)
+[18:41:12.661] [SERVER] Payload[08] = 003 (0x03) (Position data byte 6)
+[18:41:12.661] [SERVER] Payload[09] = 000 (0x00) (Position data byte 7)
+[18:41:12.661] [SERVER] Payload[10] = 000 (0x00) (Position data byte 8)
+[18:41:12.661] [SERVER] Payload[11] = 252 (0xFC) (Position data byte 9)
+[18:41:12.662] [SERVER] Payload[12] = 255 (0xFF) (Position data byte 10)
+[18:41:12.662] [SERVER] Payload[13] = 000 (0x00) (Position data byte 11)
+[18:41:12.662] [SERVER] Payload[14] = 000 (0x00) (Position data byte 12)
+[18:41:12.662] [SERVER] Payload[15] = 182 (0xB6) (Rotation data byte 1)
+[18:41:12.662] [SERVER] Payload[16] = 000 (0x00) (Rotation data byte 2)
+[18:41:12.662] [SERVER] Payload[17] = 000 (0x00) (Rotation data byte 3)
+[18:41:12.663] [SERVER] Payload[18] = 000 (0x00) (Rotation data byte 4)
+[18:41:12.663] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 5)
+[18:41:12.663] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 6)
+[18:41:12.663] [SERVER] Payload[21] = 255 (0xFF) (Rotation data byte 7)
+[18:41:12.663] [SERVER] Payload[22] = 255 (0xFF) (Rotation data byte 8)
+[18:41:12.663] [SERVER] Payload[23] = 000 (0x00) (Rotation data byte 9)
+[18:41:12.663] [SERVER] PacketType: Unreliable (raw: 4)
+[18:41:12.664] [SERVER] ClientPacket: SyncEntity (raw: 0)
+[18:41:12.664] [SERVER] Expected: PacketType=Unreliable(4), ClientPacket=SyncEntity(0)
+[18:41:12.664] [SERVER] *** CORRECT SYNCENTITY PACKET STRUCTURE! ***
+[18:41:12.664] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:12.664] [SERVER] Processing unreliable packet seq=1 immediately
+[18:41:12.665] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[18:41:12.665] [SERVER] Buffer position after RestorePosition(0): 0
+[18:41:12.665] [SERVER] Buffer capacity: 25
+[18:41:12.665] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[18:41:12.665] [SERVER] FlatBuffer[0] = 004 (0x04) -> PacketType: Unreliable
+[18:41:12.665] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[18:41:12.666] [SERVER] FlatBuffer[2] = 000 (0x00) -> ClientPacket high byte
+[18:41:12.666] [SERVER] FlatBuffer[3] = 043 (0x2B) -> Data byte
+[18:41:12.666] [SERVER] FlatBuffer[4] = 035 (0x23) -> Data byte
+[18:41:12.666] [SERVER] FlatBuffer[5] = 092 (0x5C) -> Data byte
+[18:41:12.666] [SERVER] FlatBuffer[6] = 043 (0x2B) -> Data byte
+[18:41:12.666] [SERVER] FlatBuffer[7] = 114 (0x72) -> Data byte
+[18:41:12.666] [SERVER] FlatBuffer[8] = 003 (0x03) -> Data byte
+[18:41:12.667] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[18:41:12.667] [SERVER] Reading PacketType: Unreliable (raw value: 4)
+[18:41:12.667] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[18:41:12.667] [SERVER] Adding ClientPacket=SyncEntity seq=1 to UnreliableEventQueue
+[18:41:12.679] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:12.758] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:12.759] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:12.759] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 2
+[18:41:12.759] === RECEIVED Unknown Type 4 (seq=2) ===
+[18:41:12.759] [SERVER] Channel: Unreliable
+[18:41:12.759] [SERVER] Compressed: False
+[18:41:12.759] [SERVER] Decrypted Size: 24 bytes
+[18:41:12.760] [SERVER] RAW Decrypted Payload: 0400006C235A2B72030000E4FF0000B70386FF0000FFFF00
+[18:41:12.760] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[18:41:12.760] [SERVER] Payload[00] = 004 (0x04) (PacketType byte)
+[18:41:12.760] [SERVER] Payload[01] = 000 (0x00) (ClientPacket low byte)
+[18:41:12.760] [SERVER] Payload[02] = 000 (0x00) (ClientPacket high byte)
+[18:41:12.760] [SERVER] Payload[03] = 108 (0x6C) (Position data byte 1)
+[18:41:12.761] [SERVER] Payload[04] = 035 (0x23) (Position data byte 2)
+[18:41:12.761] [SERVER] Payload[05] = 090 (0x5A) (Position data byte 3)
+[18:41:12.761] [SERVER] Payload[06] = 043 (0x2B) (Position data byte 4)
+[18:41:12.761] [SERVER] Payload[07] = 114 (0x72) (Position data byte 5)
+[18:41:12.761] [SERVER] Payload[08] = 003 (0x03) (Position data byte 6)
+[18:41:12.762] [SERVER] Payload[09] = 000 (0x00) (Position data byte 7)
+[18:41:12.762] [SERVER] Payload[10] = 000 (0x00) (Position data byte 8)
+[18:41:12.762] [SERVER] Payload[11] = 228 (0xE4) (Position data byte 9)
+[18:41:12.762] [SERVER] Payload[12] = 255 (0xFF) (Position data byte 10)
+[18:41:12.762] [SERVER] Payload[13] = 000 (0x00) (Position data byte 11)
+[18:41:12.762] [SERVER] Payload[14] = 000 (0x00) (Position data byte 12)
+[18:41:12.763] [SERVER] Payload[15] = 183 (0xB7) (Rotation data byte 1)
+[18:41:12.763] [SERVER] Payload[16] = 003 (0x03) (Rotation data byte 2)
+[18:41:12.763] [SERVER] Payload[17] = 134 (0x86) (Rotation data byte 3)
+[18:41:12.763] [SERVER] Payload[18] = 255 (0xFF) (Rotation data byte 4)
+[18:41:12.763] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 5)
+[18:41:12.763] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 6)
+[18:41:12.764] [SERVER] Payload[21] = 255 (0xFF) (Rotation data byte 7)
+[18:41:12.764] [SERVER] Payload[22] = 255 (0xFF) (Rotation data byte 8)
+[18:41:12.764] [SERVER] Payload[23] = 000 (0x00) (Rotation data byte 9)
+[18:41:12.764] [SERVER] PacketType: Unreliable (raw: 4)
+[18:41:12.764] [SERVER] ClientPacket: SyncEntity (raw: 0)
+[18:41:12.765] [SERVER] Expected: PacketType=Unreliable(4), ClientPacket=SyncEntity(0)
+[18:41:12.765] [SERVER] *** CORRECT SYNCENTITY PACKET STRUCTURE! ***
+[18:41:12.765] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:12.765] [SERVER] Processing unreliable packet seq=2 immediately
+[18:41:12.765] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[18:41:12.765] [SERVER] Buffer position after RestorePosition(0): 0
+[18:41:12.766] [SERVER] Buffer capacity: 25
+[18:41:12.766] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[18:41:12.766] [SERVER] FlatBuffer[0] = 004 (0x04) -> PacketType: Unreliable
+[18:41:12.766] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[18:41:12.766] [SERVER] FlatBuffer[2] = 000 (0x00) -> ClientPacket high byte
+[18:41:12.767] [SERVER] FlatBuffer[3] = 108 (0x6C) -> Data byte
+[18:41:12.767] [SERVER] FlatBuffer[4] = 035 (0x23) -> Data byte
+[18:41:12.767] [SERVER] FlatBuffer[5] = 090 (0x5A) -> Data byte
+[18:41:12.767] [SERVER] FlatBuffer[6] = 043 (0x2B) -> Data byte
+[18:41:12.767] [SERVER] FlatBuffer[7] = 114 (0x72) -> Data byte
+[18:41:12.768] [SERVER] FlatBuffer[8] = 003 (0x03) -> Data byte
+[18:41:12.768] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[18:41:12.768] [SERVER] Reading PacketType: Unreliable (raw value: 4)
+[18:41:12.768] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[18:41:12.768] [SERVER] Adding ClientPacket=SyncEntity seq=2 to UnreliableEventQueue
+[18:41:12.770] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:12.863] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:12.863] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:12.863] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 3
+[18:41:12.864] === RECEIVED Unknown Type 4 (seq=3) ===
+[18:41:12.864] [SERVER] Channel: Unreliable
+[18:41:12.864] [SERVER] Compressed: False
+[18:41:12.864] [SERVER] Decrypted Size: 24 bytes
+[18:41:12.864] [SERVER] RAW Decrypted Payload: 040000E8231A2B72030000F0FF00005B0543FC0000FFFF00
+[18:41:12.864] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[18:41:12.864] [SERVER] Payload[00] = 004 (0x04) (PacketType byte)
+[18:41:12.865] [SERVER] Payload[01] = 000 (0x00) (ClientPacket low byte)
+[18:41:12.865] [SERVER] Payload[02] = 000 (0x00) (ClientPacket high byte)
+[18:41:12.865] [SERVER] Payload[03] = 232 (0xE8) (Position data byte 1)
+[18:41:12.865] [SERVER] Payload[04] = 035 (0x23) (Position data byte 2)
+[18:41:12.865] [SERVER] Payload[05] = 026 (0x1A) (Position data byte 3)
+[18:41:12.865] [SERVER] Payload[06] = 043 (0x2B) (Position data byte 4)
+[18:41:12.866] [SERVER] Payload[07] = 114 (0x72) (Position data byte 5)
+[18:41:12.866] [SERVER] Payload[08] = 003 (0x03) (Position data byte 6)
+[18:41:12.866] [SERVER] Payload[09] = 000 (0x00) (Position data byte 7)
+[18:41:12.866] [SERVER] Payload[10] = 000 (0x00) (Position data byte 8)
+[18:41:12.867] [SERVER] Payload[11] = 240 (0xF0) (Position data byte 9)
+[18:41:12.867] [SERVER] Payload[12] = 255 (0xFF) (Position data byte 10)
+[18:41:12.867] [SERVER] Payload[13] = 000 (0x00) (Position data byte 11)
+[18:41:12.867] [SERVER] Payload[14] = 000 (0x00) (Position data byte 12)
+[18:41:12.867] [SERVER] Payload[15] = 091 (0x5B) (Rotation data byte 1)
+[18:41:12.868] [SERVER] Payload[16] = 005 (0x05) (Rotation data byte 2)
+[18:41:12.868] [SERVER] Payload[17] = 067 (0x43) (Rotation data byte 3)
+[18:41:12.868] [SERVER] Payload[18] = 252 (0xFC) (Rotation data byte 4)
+[18:41:12.868] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 5)
+[18:41:12.869] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 6)
+[18:41:12.869] [SERVER] Payload[21] = 255 (0xFF) (Rotation data byte 7)
+[18:41:12.869] [SERVER] Payload[22] = 255 (0xFF) (Rotation data byte 8)
+[18:41:12.869] [SERVER] Payload[23] = 000 (0x00) (Rotation data byte 9)
+[18:41:12.869] [SERVER] PacketType: Unreliable (raw: 4)
+[18:41:12.869] [SERVER] ClientPacket: SyncEntity (raw: 0)
+[18:41:12.870] [SERVER] Expected: PacketType=Unreliable(4), ClientPacket=SyncEntity(0)
+[18:41:12.870] [SERVER] *** CORRECT SYNCENTITY PACKET STRUCTURE! ***
+[18:41:12.870] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:12.870] [SERVER] Processing unreliable packet seq=3 immediately
+[18:41:12.870] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[18:41:12.871] [SERVER] Buffer position after RestorePosition(0): 0
+[18:41:12.871] [SERVER] Buffer capacity: 25
+[18:41:12.871] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[18:41:12.871] [SERVER] FlatBuffer[0] = 004 (0x04) -> PacketType: Unreliable
+[18:41:12.871] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[18:41:12.871] [SERVER] FlatBuffer[2] = 000 (0x00) -> ClientPacket high byte
+[18:41:12.872] [SERVER] FlatBuffer[3] = 232 (0xE8) -> Data byte
+[18:41:12.872] [SERVER] FlatBuffer[4] = 035 (0x23) -> Data byte
+[18:41:12.872] [SERVER] FlatBuffer[5] = 026 (0x1A) -> Data byte
+[18:41:12.872] [SERVER] FlatBuffer[6] = 043 (0x2B) -> Data byte
+[18:41:12.872] [SERVER] FlatBuffer[7] = 114 (0x72) -> Data byte
+[18:41:12.872] [SERVER] FlatBuffer[8] = 003 (0x03) -> Data byte
+[18:41:12.873] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[18:41:12.873] [SERVER] Reading PacketType: Unreliable (raw value: 4)
+[18:41:12.873] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[18:41:12.873] [SERVER] Adding ClientPacket=SyncEntity seq=3 to UnreliableEventQueue
+[18:41:12.893] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:12.962] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:12.963] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:12.963] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 4
+[18:41:12.963] === RECEIVED Unknown Type 4 (seq=4) ===
+[18:41:12.963] [SERVER] Channel: Unreliable
+[18:41:12.963] [SERVER] Compressed: False
+[18:41:12.963] [SERVER] Decrypted Size: 24 bytes
+[18:41:12.964] [SERVER] RAW Decrypted Payload: 0400008A24952A72030000FBFF00002F07A6F90000FFFF00
+[18:41:12.964] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[18:41:12.964] [SERVER] Payload[00] = 004 (0x04) (PacketType byte)
+[18:41:12.964] [SERVER] Payload[01] = 000 (0x00) (ClientPacket low byte)
+[18:41:12.964] [SERVER] Payload[02] = 000 (0x00) (ClientPacket high byte)
+[18:41:12.964] [SERVER] Payload[03] = 138 (0x8A) (Position data byte 1)
+[18:41:12.965] [SERVER] Payload[04] = 036 (0x24) (Position data byte 2)
+[18:41:12.965] [SERVER] Payload[05] = 149 (0x95) (Position data byte 3)
+[18:41:12.965] [SERVER] Payload[06] = 042 (0x2A) (Position data byte 4)
+[18:41:12.965] [SERVER] Payload[07] = 114 (0x72) (Position data byte 5)
+[18:41:12.965] [SERVER] Payload[08] = 003 (0x03) (Position data byte 6)
+[18:41:12.965] [SERVER] Payload[09] = 000 (0x00) (Position data byte 7)
+[18:41:12.965] [SERVER] Payload[10] = 000 (0x00) (Position data byte 8)
+[18:41:12.966] [SERVER] Payload[11] = 251 (0xFB) (Position data byte 9)
+[18:41:12.966] [SERVER] Payload[12] = 255 (0xFF) (Position data byte 10)
+[18:41:12.966] [SERVER] Payload[13] = 000 (0x00) (Position data byte 11)
+[18:41:12.966] [SERVER] Payload[14] = 000 (0x00) (Position data byte 12)
+[18:41:12.966] [SERVER] Payload[15] = 047 (0x2F) (Rotation data byte 1)
+[18:41:12.967] [SERVER] Payload[16] = 007 (0x07) (Rotation data byte 2)
+[18:41:12.967] [SERVER] Payload[17] = 166 (0xA6) (Rotation data byte 3)
+[18:41:12.967] [SERVER] Payload[18] = 249 (0xF9) (Rotation data byte 4)
+[18:41:12.967] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 5)
+[18:41:12.967] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 6)
+[18:41:12.967] [SERVER] Payload[21] = 255 (0xFF) (Rotation data byte 7)
+[18:41:12.968] [SERVER] Payload[22] = 255 (0xFF) (Rotation data byte 8)
+[18:41:12.968] [SERVER] Payload[23] = 000 (0x00) (Rotation data byte 9)
+[18:41:12.968] [SERVER] PacketType: Unreliable (raw: 4)
+[18:41:12.968] [SERVER] ClientPacket: SyncEntity (raw: 0)
+[18:41:12.968] [SERVER] Expected: PacketType=Unreliable(4), ClientPacket=SyncEntity(0)
+[18:41:12.968] [SERVER] *** CORRECT SYNCENTITY PACKET STRUCTURE! ***
+[18:41:12.969] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:12.969] [SERVER] Processing unreliable packet seq=4 immediately
+[18:41:12.969] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[18:41:12.969] [SERVER] Buffer position after RestorePosition(0): 0
+[18:41:12.969] [SERVER] Buffer capacity: 25
+[18:41:12.969] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[18:41:12.970] [SERVER] FlatBuffer[0] = 004 (0x04) -> PacketType: Unreliable
+[18:41:12.970] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[18:41:12.970] [SERVER] FlatBuffer[2] = 000 (0x00) -> ClientPacket high byte
+[18:41:12.970] [SERVER] FlatBuffer[3] = 138 (0x8A) -> Data byte
+[18:41:12.970] [SERVER] FlatBuffer[4] = 036 (0x24) -> Data byte
+[18:41:12.970] [SERVER] FlatBuffer[5] = 149 (0x95) -> Data byte
+[18:41:12.971] [SERVER] FlatBuffer[6] = 042 (0x2A) -> Data byte
+[18:41:12.971] [SERVER] FlatBuffer[7] = 114 (0x72) -> Data byte
+[18:41:12.971] [SERVER] FlatBuffer[8] = 003 (0x03) -> Data byte
+[18:41:12.971] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[18:41:12.971] [SERVER] Reading PacketType: Unreliable (raw value: 4)
+[18:41:12.971] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[18:41:12.972] [SERVER] Adding ClientPacket=SyncEntity seq=4 to UnreliableEventQueue
+[18:41:12.984] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:13.062] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:13.063] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:13.063] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 5
+[18:41:13.063] === RECEIVED Unknown Type 4 (seq=5) ===
+[18:41:13.063] [SERVER] Channel: Unreliable
+[18:41:13.063] [SERVER] Compressed: False
+[18:41:13.063] [SERVER] Decrypted Size: 24 bytes
+[18:41:13.064] [SERVER] RAW Decrypted Payload: 0400006325CB2972030000FBFF000039092DF70000FFFF00
+[18:41:13.064] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[18:41:13.064] [SERVER] Payload[00] = 004 (0x04) (PacketType byte)
+[18:41:13.064] [SERVER] Payload[01] = 000 (0x00) (ClientPacket low byte)
+[18:41:13.064] [SERVER] Payload[02] = 000 (0x00) (ClientPacket high byte)
+[18:41:13.064] [SERVER] Payload[03] = 099 (0x63) (Position data byte 1)
+[18:41:13.065] [SERVER] Payload[04] = 037 (0x25) (Position data byte 2)
+[18:41:13.065] [SERVER] Payload[05] = 203 (0xCB) (Position data byte 3)
+[18:41:13.065] [SERVER] Payload[06] = 041 (0x29) (Position data byte 4)
+[18:41:13.065] [SERVER] Payload[07] = 114 (0x72) (Position data byte 5)
+[18:41:13.065] [SERVER] Payload[08] = 003 (0x03) (Position data byte 6)
+[18:41:13.065] [SERVER] Payload[09] = 000 (0x00) (Position data byte 7)
+[18:41:13.066] [SERVER] Payload[10] = 000 (0x00) (Position data byte 8)
+[18:41:13.066] [SERVER] Payload[11] = 251 (0xFB) (Position data byte 9)
+[18:41:13.066] [SERVER] Payload[12] = 255 (0xFF) (Position data byte 10)
+[18:41:13.066] [SERVER] Payload[13] = 000 (0x00) (Position data byte 11)
+[18:41:13.066] [SERVER] Payload[14] = 000 (0x00) (Position data byte 12)
+[18:41:13.066] [SERVER] Payload[15] = 057 (0x39) (Rotation data byte 1)
+[18:41:13.066] [SERVER] Payload[16] = 009 (0x09) (Rotation data byte 2)
+[18:41:13.067] [SERVER] Payload[17] = 045 (0x2D) (Rotation data byte 3)
+[18:41:13.067] [SERVER] Payload[18] = 247 (0xF7) (Rotation data byte 4)
+[18:41:13.067] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 5)
+[18:41:13.067] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 6)
+[18:41:13.067] [SERVER] Payload[21] = 255 (0xFF) (Rotation data byte 7)
+[18:41:13.067] [SERVER] Payload[22] = 255 (0xFF) (Rotation data byte 8)
+[18:41:13.067] [SERVER] Payload[23] = 000 (0x00) (Rotation data byte 9)
+[18:41:13.068] [SERVER] PacketType: Unreliable (raw: 4)
+[18:41:13.068] [SERVER] ClientPacket: SyncEntity (raw: 0)
+[18:41:13.068] [SERVER] Expected: PacketType=Unreliable(4), ClientPacket=SyncEntity(0)
+[18:41:13.068] [SERVER] *** CORRECT SYNCENTITY PACKET STRUCTURE! ***
+[18:41:13.068] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:13.069] [SERVER] Processing unreliable packet seq=5 immediately
+[18:41:13.069] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[18:41:13.069] [SERVER] Buffer position after RestorePosition(0): 0
+[18:41:13.069] [SERVER] Buffer capacity: 25
+[18:41:13.069] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[18:41:13.069] [SERVER] FlatBuffer[0] = 004 (0x04) -> PacketType: Unreliable
+[18:41:13.070] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[18:41:13.070] [SERVER] FlatBuffer[2] = 000 (0x00) -> ClientPacket high byte
+[18:41:13.070] [SERVER] FlatBuffer[3] = 099 (0x63) -> Data byte
+[18:41:13.070] [SERVER] FlatBuffer[4] = 037 (0x25) -> Data byte
+[18:41:13.070] [SERVER] FlatBuffer[5] = 203 (0xCB) -> Data byte
+[18:41:13.070] [SERVER] FlatBuffer[6] = 041 (0x29) -> Data byte
+[18:41:13.070] [SERVER] FlatBuffer[7] = 114 (0x72) -> Data byte
+[18:41:13.071] [SERVER] FlatBuffer[8] = 003 (0x03) -> Data byte
+[18:41:13.071] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[18:41:13.071] [SERVER] Reading PacketType: Unreliable (raw value: 4)
+[18:41:13.071] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[18:41:13.071] [SERVER] Adding ClientPacket=SyncEntity seq=5 to UnreliableEventQueue
+[18:41:13.075] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:13.157] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:13.157] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:13.158] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 6
+[18:41:13.158] === RECEIVED Unknown Type 4 (seq=6) ===
+[18:41:13.158] [SERVER] Channel: Unreliable
+[18:41:13.158] [SERVER] Compressed: False
+[18:41:13.158] [SERVER] Decrypted Size: 24 bytes
+[18:41:13.158] [SERVER] RAW Decrypted Payload: 0400005E26D62872030000FBFF0000310BF4F40000000000
+[18:41:13.158] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[18:41:13.159] [SERVER] Payload[00] = 004 (0x04) (PacketType byte)
+[18:41:13.159] [SERVER] Payload[01] = 000 (0x00) (ClientPacket low byte)
+[18:41:13.159] [SERVER] Payload[02] = 000 (0x00) (ClientPacket high byte)
+[18:41:13.159] [SERVER] Payload[03] = 094 (0x5E) (Position data byte 1)
+[18:41:13.159] [SERVER] Payload[04] = 038 (0x26) (Position data byte 2)
+[18:41:13.159] [SERVER] Payload[05] = 214 (0xD6) (Position data byte 3)
+[18:41:13.160] [SERVER] Payload[06] = 040 (0x28) (Position data byte 4)
+[18:41:13.160] [SERVER] Payload[07] = 114 (0x72) (Position data byte 5)
+[18:41:13.160] [SERVER] Payload[08] = 003 (0x03) (Position data byte 6)
+[18:41:13.160] [SERVER] Payload[09] = 000 (0x00) (Position data byte 7)
+[18:41:13.160] [SERVER] Payload[10] = 000 (0x00) (Position data byte 8)
+[18:41:13.160] [SERVER] Payload[11] = 251 (0xFB) (Position data byte 9)
+[18:41:13.161] [SERVER] Payload[12] = 255 (0xFF) (Position data byte 10)
+[18:41:13.161] [SERVER] Payload[13] = 000 (0x00) (Position data byte 11)
+[18:41:13.161] [SERVER] Payload[14] = 000 (0x00) (Position data byte 12)
+[18:41:13.161] [SERVER] Payload[15] = 049 (0x31) (Rotation data byte 1)
+[18:41:13.161] [SERVER] Payload[16] = 011 (0x0B) (Rotation data byte 2)
+[18:41:13.162] [SERVER] Payload[17] = 244 (0xF4) (Rotation data byte 3)
+[18:41:13.162] [SERVER] Payload[18] = 244 (0xF4) (Rotation data byte 4)
+[18:41:13.162] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 5)
+[18:41:13.162] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 6)
+[18:41:13.162] [SERVER] Payload[21] = 000 (0x00) (Rotation data byte 7)
+[18:41:13.162] [SERVER] Payload[22] = 000 (0x00) (Rotation data byte 8)
+[18:41:13.163] [SERVER] Payload[23] = 000 (0x00) (Rotation data byte 9)
+[18:41:13.163] [SERVER] PacketType: Unreliable (raw: 4)
+[18:41:13.163] [SERVER] ClientPacket: SyncEntity (raw: 0)
+[18:41:13.163] [SERVER] Expected: PacketType=Unreliable(4), ClientPacket=SyncEntity(0)
+[18:41:13.163] [SERVER] *** CORRECT SYNCENTITY PACKET STRUCTURE! ***
+[18:41:13.164] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:13.164] [SERVER] Processing unreliable packet seq=6 immediately
+[18:41:13.164] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[18:41:13.164] [SERVER] Buffer position after RestorePosition(0): 0
+[18:41:13.164] [SERVER] Buffer capacity: 25
+[18:41:13.165] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[18:41:13.165] [SERVER] FlatBuffer[0] = 004 (0x04) -> PacketType: Unreliable
+[18:41:13.165] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[18:41:13.165] [SERVER] FlatBuffer[2] = 000 (0x00) -> ClientPacket high byte
+[18:41:13.165] [SERVER] FlatBuffer[3] = 094 (0x5E) -> Data byte
+[18:41:13.165] [SERVER] FlatBuffer[4] = 038 (0x26) -> Data byte
+[18:41:13.165] [SERVER] FlatBuffer[5] = 214 (0xD6) -> Data byte
+[18:41:13.166] [SERVER] FlatBuffer[6] = 040 (0x28) -> Data byte
+[18:41:13.166] [SERVER] FlatBuffer[7] = 114 (0x72) -> Data byte
+[18:41:13.166] [SERVER] FlatBuffer[8] = 003 (0x03) -> Data byte
+[18:41:13.166] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[18:41:13.166] [SERVER] Reading PacketType: Unreliable (raw value: 4)
+[18:41:13.167] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[18:41:13.167] [SERVER] Adding ClientPacket=SyncEntity seq=6 to UnreliableEventQueue
+[18:41:13.167] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:13.262] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:13.262] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:13.262] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 7
+[18:41:13.262] === RECEIVED Unknown Type 4 (seq=7) ===
+[18:41:13.262] [SERVER] Channel: Unreliable
+[18:41:13.263] [SERVER] Compressed: False
+[18:41:13.263] [SERVER] Decrypted Size: 24 bytes
+[18:41:13.263] [SERVER] RAW Decrypted Payload: 040000D227F82772030000FBFF0000E20F74F90000000000
+[18:41:13.263] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[18:41:13.263] [SERVER] Payload[00] = 004 (0x04) (PacketType byte)
+[18:41:13.263] [SERVER] Payload[01] = 000 (0x00) (ClientPacket low byte)
+[18:41:13.264] [SERVER] Payload[02] = 000 (0x00) (ClientPacket high byte)
+[18:41:13.264] [SERVER] Payload[03] = 210 (0xD2) (Position data byte 1)
+[18:41:13.264] [SERVER] Payload[04] = 039 (0x27) (Position data byte 2)
+[18:41:13.264] [SERVER] Payload[05] = 248 (0xF8) (Position data byte 3)
+[18:41:13.264] [SERVER] Payload[06] = 039 (0x27) (Position data byte 4)
+[18:41:13.265] [SERVER] Payload[07] = 114 (0x72) (Position data byte 5)
+[18:41:13.265] [SERVER] Payload[08] = 003 (0x03) (Position data byte 6)
+[18:41:13.265] [SERVER] Payload[09] = 000 (0x00) (Position data byte 7)
+[18:41:13.265] [SERVER] Payload[10] = 000 (0x00) (Position data byte 8)
+[18:41:13.265] [SERVER] Payload[11] = 251 (0xFB) (Position data byte 9)
+[18:41:13.265] [SERVER] Payload[12] = 255 (0xFF) (Position data byte 10)
+[18:41:13.266] [SERVER] Payload[13] = 000 (0x00) (Position data byte 11)
+[18:41:13.266] [SERVER] Payload[14] = 000 (0x00) (Position data byte 12)
+[18:41:13.266] [SERVER] Payload[15] = 226 (0xE2) (Rotation data byte 1)
+[18:41:13.266] [SERVER] Payload[16] = 015 (0x0F) (Rotation data byte 2)
+[18:41:13.266] [SERVER] Payload[17] = 116 (0x74) (Rotation data byte 3)
+[18:41:13.266] [SERVER] Payload[18] = 249 (0xF9) (Rotation data byte 4)
+[18:41:13.267] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 5)
+[18:41:13.267] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 6)
+[18:41:13.267] [SERVER] Payload[21] = 000 (0x00) (Rotation data byte 7)
+[18:41:13.267] [SERVER] Payload[22] = 000 (0x00) (Rotation data byte 8)
+[18:41:13.267] [SERVER] Payload[23] = 000 (0x00) (Rotation data byte 9)
+[18:41:13.268] [SERVER] PacketType: Unreliable (raw: 4)
+[18:41:13.268] [SERVER] ClientPacket: SyncEntity (raw: 0)
+[18:41:13.268] [SERVER] Expected: PacketType=Unreliable(4), ClientPacket=SyncEntity(0)
+[18:41:13.268] [SERVER] *** CORRECT SYNCENTITY PACKET STRUCTURE! ***
+[18:41:13.268] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:13.268] [SERVER] Processing unreliable packet seq=7 immediately
+[18:41:13.268] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[18:41:13.269] [SERVER] Buffer position after RestorePosition(0): 0
+[18:41:13.269] [SERVER] Buffer capacity: 25
+[18:41:13.269] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[18:41:13.269] [SERVER] FlatBuffer[0] = 004 (0x04) -> PacketType: Unreliable
+[18:41:13.269] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[18:41:13.269] [SERVER] FlatBuffer[2] = 000 (0x00) -> ClientPacket high byte
+[18:41:13.270] [SERVER] FlatBuffer[3] = 210 (0xD2) -> Data byte
+[18:41:13.270] [SERVER] FlatBuffer[4] = 039 (0x27) -> Data byte
+[18:41:13.270] [SERVER] FlatBuffer[5] = 248 (0xF8) -> Data byte
+[18:41:13.270] [SERVER] FlatBuffer[6] = 039 (0x27) -> Data byte
+[18:41:13.270] [SERVER] FlatBuffer[7] = 114 (0x72) -> Data byte
+[18:41:13.270] [SERVER] FlatBuffer[8] = 003 (0x03) -> Data byte
+[18:41:13.271] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[18:41:13.271] [SERVER] Reading PacketType: Unreliable (raw value: 4)
+[18:41:13.271] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[18:41:13.271] [SERVER] Adding ClientPacket=SyncEntity seq=7 to UnreliableEventQueue
+[18:41:13.289] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:13.361] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:13.361] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:13.361] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 8
+[18:41:13.361] === RECEIVED Unknown Type 4 (seq=8) ===
+[18:41:13.361] [SERVER] Channel: Unreliable
+[18:41:13.362] [SERVER] Compressed: False
+[18:41:13.362] [SERVER] Decrypted Size: 24 bytes
+[18:41:13.362] [SERVER] RAW Decrypted Payload: 0400009329792772030000FBFF00001F1304FC0000000000
+[18:41:13.362] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[18:41:13.362] [SERVER] Payload[00] = 004 (0x04) (PacketType byte)
+[18:41:13.362] [SERVER] Payload[01] = 000 (0x00) (ClientPacket low byte)
+[18:41:13.363] [SERVER] Payload[02] = 000 (0x00) (ClientPacket high byte)
+[18:41:13.363] [SERVER] Payload[03] = 147 (0x93) (Position data byte 1)
+[18:41:13.363] [SERVER] Payload[04] = 041 (0x29) (Position data byte 2)
+[18:41:13.363] [SERVER] Payload[05] = 121 (0x79) (Position data byte 3)
+[18:41:13.363] [SERVER] Payload[06] = 039 (0x27) (Position data byte 4)
+[18:41:13.364] [SERVER] Payload[07] = 114 (0x72) (Position data byte 5)
+[18:41:13.364] [SERVER] Payload[08] = 003 (0x03) (Position data byte 6)
+[18:41:13.364] [SERVER] Payload[09] = 000 (0x00) (Position data byte 7)
+[18:41:13.364] [SERVER] Payload[10] = 000 (0x00) (Position data byte 8)
+[18:41:13.364] [SERVER] Payload[11] = 251 (0xFB) (Position data byte 9)
+[18:41:13.364] [SERVER] Payload[12] = 255 (0xFF) (Position data byte 10)
+[18:41:13.364] [SERVER] Payload[13] = 000 (0x00) (Position data byte 11)
+[18:41:13.365] [SERVER] Payload[14] = 000 (0x00) (Position data byte 12)
+[18:41:13.365] [SERVER] Payload[15] = 031 (0x1F) (Rotation data byte 1)
+[18:41:13.365] [SERVER] Payload[16] = 019 (0x13) (Rotation data byte 2)
+[18:41:13.365] [SERVER] Payload[17] = 004 (0x04) (Rotation data byte 3)
+[18:41:13.365] [SERVER] Payload[18] = 252 (0xFC) (Rotation data byte 4)
+[18:41:13.366] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 5)
+[18:41:13.366] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 6)
+[18:41:13.366] [SERVER] Payload[21] = 000 (0x00) (Rotation data byte 7)
+[18:41:13.366] [SERVER] Payload[22] = 000 (0x00) (Rotation data byte 8)
+[18:41:13.366] [SERVER] Payload[23] = 000 (0x00) (Rotation data byte 9)
+[18:41:13.366] [SERVER] PacketType: Unreliable (raw: 4)
+[18:41:13.366] [SERVER] ClientPacket: SyncEntity (raw: 0)
+[18:41:13.367] [SERVER] Expected: PacketType=Unreliable(4), ClientPacket=SyncEntity(0)
+[18:41:13.367] [SERVER] *** CORRECT SYNCENTITY PACKET STRUCTURE! ***
+[18:41:13.367] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:13.367] [SERVER] Processing unreliable packet seq=8 immediately
+[18:41:13.367] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[18:41:13.367] [SERVER] Buffer position after RestorePosition(0): 0
+[18:41:13.368] [SERVER] Buffer capacity: 25
+[18:41:13.368] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[18:41:13.368] [SERVER] FlatBuffer[0] = 004 (0x04) -> PacketType: Unreliable
+[18:41:13.368] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[18:41:13.368] [SERVER] FlatBuffer[2] = 000 (0x00) -> ClientPacket high byte
+[18:41:13.369] [SERVER] FlatBuffer[3] = 147 (0x93) -> Data byte
+[18:41:13.369] [SERVER] FlatBuffer[4] = 041 (0x29) -> Data byte
+[18:41:13.369] [SERVER] FlatBuffer[5] = 121 (0x79) -> Data byte
+[18:41:13.369] [SERVER] FlatBuffer[6] = 039 (0x27) -> Data byte
+[18:41:13.369] [SERVER] FlatBuffer[7] = 114 (0x72) -> Data byte
+[18:41:13.369] [SERVER] FlatBuffer[8] = 003 (0x03) -> Data byte
+[18:41:13.370] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[18:41:13.370] [SERVER] Reading PacketType: Unreliable (raw value: 4)
+[18:41:13.370] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[18:41:13.370] [SERVER] Adding ClientPacket=SyncEntity seq=8 to UnreliableEventQueue
+[18:41:13.380] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:13.463] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:13.463] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:13.463] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 9
+[18:41:13.464] === RECEIVED Unknown Type 4 (seq=9) ===
+[18:41:13.464] [SERVER] Channel: Unreliable
+[18:41:13.464] [SERVER] Compressed: False
+[18:41:13.464] [SERVER] Decrypted Size: 24 bytes
+[18:41:13.464] [SERVER] RAW Decrypted Payload: 040000862B9F2772030000FBFF0000B312FE040000000000
+[18:41:13.464] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[18:41:13.465] [SERVER] Payload[00] = 004 (0x04) (PacketType byte)
+[18:41:13.465] [SERVER] Payload[01] = 000 (0x00) (ClientPacket low byte)
+[18:41:13.465] [SERVER] Payload[02] = 000 (0x00) (ClientPacket high byte)
+[18:41:13.465] [SERVER] Payload[03] = 134 (0x86) (Position data byte 1)
+[18:41:13.465] [SERVER] Payload[04] = 043 (0x2B) (Position data byte 2)
+[18:41:13.465] [SERVER] Payload[05] = 159 (0x9F) (Position data byte 3)
+[18:41:13.466] [SERVER] Payload[06] = 039 (0x27) (Position data byte 4)
+[18:41:13.466] [SERVER] Payload[07] = 114 (0x72) (Position data byte 5)
+[18:41:13.466] [SERVER] Payload[08] = 003 (0x03) (Position data byte 6)
+[18:41:13.466] [SERVER] Payload[09] = 000 (0x00) (Position data byte 7)
+[18:41:13.466] [SERVER] Payload[10] = 000 (0x00) (Position data byte 8)
+[18:41:13.466] [SERVER] Payload[11] = 251 (0xFB) (Position data byte 9)
+[18:41:13.466] [SERVER] Payload[12] = 255 (0xFF) (Position data byte 10)
+[18:41:13.467] [SERVER] Payload[13] = 000 (0x00) (Position data byte 11)
+[18:41:13.467] [SERVER] Payload[14] = 000 (0x00) (Position data byte 12)
+[18:41:13.467] [SERVER] Payload[15] = 179 (0xB3) (Rotation data byte 1)
+[18:41:13.467] [SERVER] Payload[16] = 018 (0x12) (Rotation data byte 2)
+[18:41:13.467] [SERVER] Payload[17] = 254 (0xFE) (Rotation data byte 3)
+[18:41:13.467] [SERVER] Payload[18] = 004 (0x04) (Rotation data byte 4)
+[18:41:13.468] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 5)
+[18:41:13.468] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 6)
+[18:41:13.468] [SERVER] Payload[21] = 000 (0x00) (Rotation data byte 7)
+[18:41:13.468] [SERVER] Payload[22] = 000 (0x00) (Rotation data byte 8)
+[18:41:13.469] [SERVER] Payload[23] = 000 (0x00) (Rotation data byte 9)
+[18:41:13.469] [SERVER] PacketType: Unreliable (raw: 4)
+[18:41:13.469] [SERVER] ClientPacket: SyncEntity (raw: 0)
+[18:41:13.469] [SERVER] Expected: PacketType=Unreliable(4), ClientPacket=SyncEntity(0)
+[18:41:13.469] [SERVER] *** CORRECT SYNCENTITY PACKET STRUCTURE! ***
+[18:41:13.469] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:13.470] [SERVER] Processing unreliable packet seq=9 immediately
+[18:41:13.470] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[18:41:13.470] [SERVER] Buffer position after RestorePosition(0): 0
+[18:41:13.470] [SERVER] Buffer capacity: 25
+[18:41:13.470] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[18:41:13.470] [SERVER] FlatBuffer[0] = 004 (0x04) -> PacketType: Unreliable
+[18:41:13.471] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[18:41:13.471] [SERVER] FlatBuffer[2] = 000 (0x00) -> ClientPacket high byte
+[18:41:13.471] [SERVER] FlatBuffer[3] = 134 (0x86) -> Data byte
+[18:41:13.471] [SERVER] FlatBuffer[4] = 043 (0x2B) -> Data byte
+[18:41:13.471] [SERVER] FlatBuffer[5] = 159 (0x9F) -> Data byte
+[18:41:13.471] [SERVER] FlatBuffer[6] = 039 (0x27) -> Data byte
+[18:41:13.472] [SERVER] FlatBuffer[7] = 114 (0x72) -> Data byte
+[18:41:13.472] [SERVER] FlatBuffer[8] = 003 (0x03) -> Data byte
+[18:41:13.472] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[18:41:13.472] [SERVER] Reading PacketType: Unreliable (raw value: 4)
+[18:41:13.472] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[18:41:13.472] [SERVER] Adding ClientPacket=SyncEntity seq=9 to UnreliableEventQueue
+[18:41:13.502] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:13.561] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:13.561] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:13.561] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 10
+[18:41:13.561] === RECEIVED Unknown Type 4 (seq=10) ===
+[18:41:13.561] [SERVER] Channel: Unreliable
+[18:41:13.561] [SERVER] Compressed: False
+[18:41:13.561] [SERVER] Decrypted Size: 24 bytes
+[18:41:13.562] [SERVER] RAW Decrypted Payload: 040000EB2C8F2872030000FBFF0000680B740C0000000000
+[18:41:13.562] [SERVER] === DETAILED PAYLOAD ANALYSIS ===
+[18:41:13.562] [SERVER] Payload[00] = 004 (0x04) (PacketType byte)
+[18:41:13.562] [SERVER] Payload[01] = 000 (0x00) (ClientPacket low byte)
+[18:41:13.562] [SERVER] Payload[02] = 000 (0x00) (ClientPacket high byte)
+[18:41:13.562] [SERVER] Payload[03] = 235 (0xEB) (Position data byte 1)
+[18:41:13.563] [SERVER] Payload[04] = 044 (0x2C) (Position data byte 2)
+[18:41:13.563] [SERVER] Payload[05] = 143 (0x8F) (Position data byte 3)
+[18:41:13.563] [SERVER] Payload[06] = 040 (0x28) (Position data byte 4)
+[18:41:13.563] [SERVER] Payload[07] = 114 (0x72) (Position data byte 5)
+[18:41:13.563] [SERVER] Payload[08] = 003 (0x03) (Position data byte 6)
+[18:41:13.563] [SERVER] Payload[09] = 000 (0x00) (Position data byte 7)
+[18:41:13.564] [SERVER] Payload[10] = 000 (0x00) (Position data byte 8)
+[18:41:13.564] [SERVER] Payload[11] = 251 (0xFB) (Position data byte 9)
+[18:41:13.564] [SERVER] Payload[12] = 255 (0xFF) (Position data byte 10)
+[18:41:13.564] [SERVER] Payload[13] = 000 (0x00) (Position data byte 11)
+[18:41:13.564] [SERVER] Payload[14] = 000 (0x00) (Position data byte 12)
+[18:41:13.564] [SERVER] Payload[15] = 104 (0x68) (Rotation data byte 1)
+[18:41:13.564] [SERVER] Payload[16] = 011 (0x0B) (Rotation data byte 2)
+[18:41:13.565] [SERVER] Payload[17] = 116 (0x74) (Rotation data byte 3)
+[18:41:13.565] [SERVER] Payload[18] = 012 (0x0C) (Rotation data byte 4)
+[18:41:13.565] [SERVER] Payload[19] = 000 (0x00) (Rotation data byte 5)
+[18:41:13.565] [SERVER] Payload[20] = 000 (0x00) (Rotation data byte 6)
+[18:41:13.565] [SERVER] Payload[21] = 000 (0x00) (Rotation data byte 7)
+[18:41:13.566] [SERVER] Payload[22] = 000 (0x00) (Rotation data byte 8)
+[18:41:13.566] [SERVER] Payload[23] = 000 (0x00) (Rotation data byte 9)
+[18:41:13.566] [SERVER] PacketType: Unreliable (raw: 4)
+[18:41:13.566] [SERVER] ClientPacket: SyncEntity (raw: 0)
+[18:41:13.566] [SERVER] Expected: PacketType=Unreliable(4), ClientPacket=SyncEntity(0)
+[18:41:13.566] [SERVER] *** CORRECT SYNCENTITY PACKET STRUCTURE! ***
+[18:41:13.566] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:13.567] [SERVER] Processing unreliable packet seq=10 immediately
+[18:41:13.567] [SERVER] === BUFFER PROCESSING ANALYSIS ===
+[18:41:13.567] [SERVER] Buffer position after RestorePosition(0): 0
+[18:41:13.567] [SERVER] Buffer capacity: 25
+[18:41:13.567] [SERVER] === FLATBUFFER BYTE ANALYSIS ===
+[18:41:13.567] [SERVER] FlatBuffer[0] = 004 (0x04) -> PacketType: Unreliable
+[18:41:13.567] [SERVER] FlatBuffer[1] = 000 (0x00) -> ClientPacket low byte
+[18:41:13.568] [SERVER] FlatBuffer[2] = 000 (0x00) -> ClientPacket high byte
+[18:41:13.568] [SERVER] FlatBuffer[3] = 235 (0xEB) -> Data byte
+[18:41:13.568] [SERVER] FlatBuffer[4] = 044 (0x2C) -> Data byte
+[18:41:13.568] [SERVER] FlatBuffer[5] = 143 (0x8F) -> Data byte
+[18:41:13.568] [SERVER] FlatBuffer[6] = 040 (0x28) -> Data byte
+[18:41:13.568] [SERVER] FlatBuffer[7] = 114 (0x72) -> Data byte
+[18:41:13.568] [SERVER] FlatBuffer[8] = 003 (0x03) -> Data byte
+[18:41:13.569] [SERVER] FlatBuffer[9] = 000 (0x00) -> Data byte
+[18:41:13.569] [SERVER] Reading PacketType: Unreliable (raw value: 4)
+[18:41:13.569] [SERVER] Reading ClientPacket: SyncEntity (raw value: 0)
+[18:41:13.569] [SERVER] Adding ClientPacket=SyncEntity seq=10 to UnreliableEventQueue
+[18:41:13.593] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:13.656] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:13.656] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:13.657] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 11
+[18:41:13.657] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:13.683] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:13.754] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:13.754] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:13.754] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 12
+[18:41:13.754] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:13.774] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:13.854] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:13.854] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:13.854] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 13
+[18:41:13.854] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:13.865] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:13.954] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:13.954] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:13.954] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 14
+[18:41:13.955] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:13.955] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:14.058] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:14.059] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:14.059] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 15
+[18:41:14.059] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:14.078] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:14.153] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:14.154] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:14.154] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 16
+[18:41:14.154] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:14.170] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:14.258] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:14.258] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:14.259] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 17
+[18:41:14.259] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:14.261] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:14.353] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:14.353] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:14.353] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 18
+[18:41:14.353] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:14.355] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:14.457] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:14.458] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:14.458] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 19
+[18:41:14.458] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:14.478] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:14.558] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:14.558] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:14.559] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 20
+[18:41:14.559] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:14.570] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:14.651] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:14.651] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:14.652] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 21
+[18:41:14.652] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:14.661] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:14.751] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:14.751] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:14.751] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 22
+[18:41:14.752] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:14.782] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:14.851] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:14.851] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:14.851] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 23
+[18:41:14.852] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:14.873] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:14.952] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:14.953] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:14.953] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 24
+[18:41:14.953] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:14.966] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:15.057] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:15.058] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:15.058] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 25
+[18:41:15.058] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:15.089] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:15.158] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:15.158] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:15.158] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 26
+[18:41:15.159] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:15.180] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:15.252] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:15.252] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:15.253] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 27
+[18:41:15.253] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:15.271] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:15.350] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:15.350] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:15.350] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 28
+[18:41:15.351] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:15.363] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:15.457] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:15.457] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:15.457] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 29
+[18:41:15.458] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:15.486] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:15.549] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:15.549] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:15.550] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 30
+[18:41:15.550] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:15.578] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:15.657] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:15.658] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:15.658] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 31
+[18:41:15.658] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:15.668] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:15.759] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:15.759] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:15.760] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 32
+[18:41:15.760] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:15.790] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:15.856] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:15.856] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:15.856] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 33
+[18:41:15.857] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:15.881] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:15.957] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:15.957] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:15.957] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 34
+[18:41:15.957] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:15.972] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False
+[18:41:16.057] [SERVER] 🔄 Processing encrypted packet (58 bytes) using LEGACY header-based method
+[18:41:16.058] [SERVER] 🔓 LEGACY: Starting header-based decryption for 58 bytes
+[18:41:16.058] [SERVER] 🔓 LEGACY: Header parsed - ConnectionId: 1550974349, Sequence: 35
+[18:41:16.058] [SERVER] 🔓 Decrypted packet: 24 bytes, Channel: Unreliable
+[18:41:16.064] [SERVER] ProcessGamePacket: PacketType=Unreliable, IsReliable=False

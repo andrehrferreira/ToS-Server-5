@@ -37,6 +37,7 @@ public enum PacketType : byte
     Cookie,
     CryptoTest,
     CryptoTestAck,
+    ReliableHandshake,
     None = 255
 }
 

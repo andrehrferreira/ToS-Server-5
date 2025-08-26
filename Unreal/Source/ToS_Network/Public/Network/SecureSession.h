@@ -19,7 +19,9 @@ enum class EPacketHeaderFlags : uint8
     AEAD_ChaCha20Poly1305 = 1 << 1,
     Rekey = 1 << 2,
     Fragment = 1 << 3,
-    Compressed = 1 << 4
+    Compressed = 1 << 4,
+    Acknowledgment = 1 << 5,
+    ReliableHandshake = 1 << 6
 };
 ENUM_CLASS_FLAGS(EPacketHeaderFlags)
 
@@ -61,12 +63,17 @@ public:
 
     bool EncryptPayloadWithCompression(const TArray<uint8>& Plaintext, const TArray<uint8>& AAD, TArray<uint8>& Result, bool& bWasCompressed);
 
+    bool EncryptPayloadWithSequence(const TArray<uint8>& Plaintext, const TArray<uint8>& AAD, uint64 Sequence, TArray<uint8>& Result, bool& bWasCompressed);
+
+    bool EncryptPayloadWithSpecificSequence(const TArray<uint8>& Plaintext, const TArray<uint8>& AAD, uint64 Sequence, TArray<uint8>& Ciphertext);
+
     bool DecryptPayload(const TArray<uint8>& Ciphertext, const TArray<uint8>& AAD, uint64 Sequence, TArray<uint8>& Plaintext);
 
     bool DecryptPayloadWithDecompression(const TArray<uint8>& Data, const TArray<uint8>& AAD, uint64 Sequence, bool bIsCompressed, TArray<uint8>& Plaintext);
 
     uint32 GetConnectionId() const { return ConnectionId; }
     uint64 GetSeqTx() const { return SeqTx; }
+    const uint8* GetTxKey() const { return TxKey; }
 
 private:
     bool IsSequenceValid(uint64 Sequence) const;
