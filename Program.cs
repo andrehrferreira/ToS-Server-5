@@ -3,6 +3,7 @@
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
+using Core.Config;
 
 class Program
 {
@@ -22,7 +23,7 @@ class Program
             Console.ResetColor();
             e.SetObserved();
         };
-                
+
         string projectDirectory = GetProjectDirectory();
         string packageJsonPath = Path.Combine(projectDirectory, "package.json");
         string unrealPath = Path.Combine(projectDirectory, "Unreal");
@@ -33,7 +34,12 @@ class Program
 
         IntegritySystem.InitializeIntegrityTable(packageJsonPath, unrealPath);
 
-        int portArg = int.Parse(args.Length > 1 ? args[1] : "3565");
+        // Load server configuration
+        Console.WriteLine("[INIT] Loading server configuration...");
+        var config = ServerConfig.LoadConfig();
+
+        // Use port from configuration, but allow command line override
+        int portArg = int.Parse(args.Length > 1 ? args[1] : config.Network.Port.ToString());
         int port = portArg;
 
     #if DEBUG
@@ -64,19 +70,24 @@ class Program
 
         Guard(() =>
         {
+            // Initialize server with configuration
+            Console.WriteLine($"[INIT] Starting server on port {port}...");
             UDPServer.Init(port, (UDPSocket socket, string token) =>
             {
-                if (!string.IsNullOrEmpty(token))
+                // Check password protection if enabled
+                if (config.Server.EnablePasswordProtection)
                 {
-                    /*if (token == "valid-token")
+                    if (string.IsNullOrEmpty(token) || token != config.Server.Password)
                     {
-                        int entityId = UDPServer.GetWorld().SpawnEntity($"Player_{socket.Id}", new FVector(), new FRotator());
+                        Console.WriteLine($"[AUTH] ❌ Invalid password from {socket.RemoteAddress}");
+                        return false;
+                    }
+                    Console.WriteLine($"[AUTH] ✅ Valid password from {socket.RemoteAddress}");
+                }
 
-                        socket.EntityId = entityId;
-
-                        return true;
-                    }*/
-
+                if (!string.IsNullOrEmpty(token) && !config.Server.EnablePasswordProtection)
+                {
+                    // Token provided but no password protection - reject for security
                     return false;
                 }
 
@@ -92,15 +103,17 @@ class Program
 
                 map.AddPlayer(controller);
 
+                Console.WriteLine($"[PLAYER] ✅ Player {socket.Id} connected from {socket.RemoteAddress}");
                 return false;
             }, new UDPServerOptions()
             {
                 Version = VersionReader.ToUInt(currentVersion),
-                EnableWAF = false,
-                EnableIntegrityCheck = true,
-                MaxConnections = 15000,
-                ReceiveBufferSize = 512 * 1024,
-                SendBufferSize = 512 * 1024,
+                EnableWAF = config.Security.EnableWAF,
+                EnableIntegrityCheck = config.Security.EnableIntegrityCheck,
+                MaxConnections = (uint)config.Server.MaxPlayers,
+                ReceiveBufferSize = config.Network.ReceiveBufferSize,
+                SendBufferSize = config.Network.SendBufferSize,
+                SendThreadCount = config.Network.SendThreadCount,
             });
 
             //ServerMonitor.Start();

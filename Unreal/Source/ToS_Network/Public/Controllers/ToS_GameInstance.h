@@ -5,6 +5,7 @@
 #include "Network/ENetSubsystem.h"
 #include "Entities/SyncEntity.h"
 #include "Entities/SyncPlayer.h"
+#include "Config/ClientConfig.h"
 #include "Tos_GameInstance.generated.h"
 
 class ATOSPlayerController;
@@ -24,6 +25,7 @@ public:
     UFUNCTION(BlueprintImplementableEvent, Category = "GameInstance")
     void OnGameInstanceStarted();
 
+    // === NETWORK CONFIGURATION ===
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Network")
     bool ServerAutoConnect = true;
 
@@ -32,6 +34,48 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Network")
     int32 ServerPort = 3565;
+
+    // === SECURITY CONFIGURATION ===
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Security", meta = (DisplayName = "Enable End-to-End Encryption"))
+    bool bEnableEndToEndEncryption = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Security", meta = (DisplayName = "Enable Integrity Check"))
+    bool bEnableIntegrityCheck = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Security", meta = (DisplayName = "Enable LZ4 Compression"))
+    bool bEnableLZ4Compression = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Security", meta = (DisplayName = "Compression Threshold (bytes)"))
+    int32 CompressionThreshold = 512;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Security", meta = (DisplayName = "Server Password"))
+    FString ServerPassword = TEXT("");
+
+    // === PERFORMANCE CONFIGURATION ===
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Performance", meta = (DisplayName = "Send Rate (Hz)"))
+    int32 SendRateHz = 20;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Performance", meta = (DisplayName = "Max Packet Size (bytes)"))
+    int32 MaxPacketSize = 1200;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Performance", meta = (DisplayName = "Reliable Timeout (ms)"))
+    int32 ReliableTimeoutMs = 250;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Performance", meta = (DisplayName = "Max Retries"))
+    int32 MaxRetries = 10;
+
+    // === LOGGING CONFIGURATION ===
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Logging", meta = (DisplayName = "Enable Debug Logs"))
+    bool bEnableDebugLogs = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Logging", meta = (DisplayName = "Enable File Logging"))
+    bool bEnableFileLogging = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Logging", meta = (DisplayName = "Enable Crypto Logs"))
+    bool bEnableCryptoLogs = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Logging", meta = (DisplayName = "Enable Packet Logs"))
+    bool bEnablePacketLogs = false;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Entities")
     TSubclassOf<ASyncEntity> EntityClass;
@@ -54,5 +98,15 @@ private:
 
     UFUNCTION()
     void HandleDeltaUpdate(FDeltaUpdateData data);
+
+    // === CONFIGURATION METHODS ===
+    UFUNCTION(BlueprintCallable, Category = "Configuration")
+    void LoadDefaultConfiguration();
+
+    UFUNCTION(BlueprintCallable, Category = "Configuration")
+    void ApplyClientConfiguration(UClientConfig* Config);
+
+    UFUNCTION(BlueprintCallable, Category = "Configuration")
+    bool ValidateConfiguration() const;
 };
 

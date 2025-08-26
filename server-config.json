@@ -1,0 +1,40 @@
+{
+  "network": {
+    "port": 3565,
+    "maxPacketSize": 1200,
+    "enableLZ4Compression": true,
+    "compressionThreshold": 512,
+    "receiveBufferSize": 524288,
+    "sendBufferSize": 524288,
+    "sendThreadCount": 1
+  },
+  "security": {
+    "enableEndToEndEncryption": true,
+    "enableIntegrityCheck": true,
+    "enableWAF": true,
+    "enableHeartbeat": true,
+    "heartbeatIntervalMs": 5000,
+    "heartbeatTimeoutMs": 15000,
+    "enableAntiCheat": false,
+    "maxConnectionsPerIP": 3
+  },
+  "performance": {
+    "tickRate": 32,
+    "bundleTimeoutMs": 50,
+    "reliableTimeoutMs": 250,
+    "maxRetries": 10,
+    "enablePerformanceMetrics": true,
+    "metricsLogIntervalMs": 30000
+  },
+  "server": {
+    "name": "ToS Game Server",
+    "version": "1.0.0",
+    "maxPlayers": 1000,
+    "password": "",
+    "enablePasswordProtection": false,
+    "motd": "Welcome to ToS Game Server! 🎮",
+    "enableDebugLogs": false,
+    "logLevel": "Info",
+    "enableFileLogging": true
+  }
+}

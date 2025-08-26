@@ -63,9 +63,9 @@ namespace Packets.Handler
                         updateBuffer.Write(PacketType.Unreliable);                    // 1 byte
                         updateBuffer.Write((ushort)ServerPackets.UpdateEntity);      // 2 bytes
                         updateBuffer.Write(ctrl.EntityId);                           // 4 bytes (EntityId as uint32)
-                        updateBuffer.WriteFVector(syncEntityPacket.Positon);         // 12 bytes (FULL precision FVector)
-                        updateBuffer.WriteFRotator(syncEntityPacket.Rotator);        // 12 bytes (FULL precision FRotator)
-                        updateBuffer.WriteFVector(syncEntityPacket.Velocity);        // 12 bytes (FULL precision FVector)
+                        updateBuffer.Write(syncEntityPacket.Positon);         // 12 bytes (FULL precision FVector)
+                        updateBuffer.Write(syncEntityPacket.Rotator);        // 12 bytes (FULL precision FRotator)
+                        updateBuffer.Write(syncEntityPacket.Velocity);        // 12 bytes (FULL precision FVector)
                         updateBuffer.Write(syncEntityPacket.AnimationState);         // 2 bytes (uint16)
 
                         // Calculate flags (IsFalling)

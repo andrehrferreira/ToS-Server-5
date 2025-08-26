@@ -28,6 +28,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.Arm;
 using System.Threading.Channels;
+using Core.Config;
 
 public unsafe struct SendPacket
 {
@@ -107,7 +108,7 @@ public sealed class UDPServer
 
     private static AutoResetEvent SendEvent;
 
-    public static TimeSpan ReliableTimeout = TimeSpan.FromMilliseconds(250f);
+    public static TimeSpan ReliableTimeout { get; private set; } = TimeSpan.FromMilliseconds(250f);
 
     public delegate bool ConnectionHandler(UDPSocket socket, string token);
 
@@ -124,6 +125,30 @@ public sealed class UDPServer
     public static uint GetRandomId() =>
         (uint)BitConverter.ToInt32(Guid.NewGuid().ToByteArray(), 0) & 0x7FFFFFFF;
 
+    /// <summary>
+    /// Create UDPServerOptions from ServerConfig
+    /// </summary>
+    private static UDPServerOptions CreateOptionsFromConfig(ServerConfig config)
+    {
+        return new UDPServerOptions
+        {
+            Version = 1,
+            EnableWAF = config.Security.EnableWAF,
+            EnableIntegrityCheck = config.Security.EnableIntegrityCheck,
+            ReceiveTimeout = 10,
+            UseXOREncode = false,
+            XORKey = null,
+            UseEncryption = config.Security.EnableEndToEndEncryption,
+            EncryptionKey = null,
+            EncryptionIV = null,
+            MaxConnections = (uint)config.Server.MaxPlayers,
+            ReceiveBufferSize = config.Network.ReceiveBufferSize,
+            SendBufferSize = config.Network.SendBufferSize,
+            SendThreadCount = config.Network.SendThreadCount,
+            MTU = config.Network.MaxPacketSize
+        };
+    }
+
     public static int Mtu
     {
         get
@@ -138,8 +163,21 @@ public sealed class UDPServer
         UDPServerOptions options = null
     )
     {
-        _options = options ?? new UDPServerOptions();
+        // Load server configuration first
+        var config = ServerConfig.LoadConfig();
+
+        // Create options from configuration if not provided
+        if (options == null)
+        {
+            options = CreateOptionsFromConfig(config);
+        }
+
+                _options = options;
         _connectionHandler = connectionHandler;
+
+        // Apply configuration values
+        port = config.Network.Port;
+        ReliableTimeout = TimeSpan.FromMilliseconds(config.Performance.ReliableTimeoutMs);
 
         if (_options.UseXOREncode)
             _baseFlags = PacketFlagsUtils.AddFlag(_baseFlags, PacketFlags.XOR);
@@ -244,7 +282,11 @@ public sealed class UDPServer
                         ++packetCount;
                     }
 
-                    if (pingTimer.Elapsed >= TimeSpan.FromSeconds(5))
+                    var heartbeatInterval = ServerConfig.IsLoaded ?
+                        TimeSpan.FromMilliseconds(ServerConfig.Instance.Security.HeartbeatIntervalMs) :
+                        TimeSpan.FromSeconds(5);
+
+                    if (pingTimer.Elapsed >= heartbeatInterval && ServerConfig.Instance.Security.EnableHeartbeat)
                     {
                         if(Clients.Count > 0)
                         {
@@ -863,7 +905,8 @@ public sealed class UDPServer
 
     public static void RunMainLoop()
     {
-        const float deltaTime = 1.0f / 32.0f;
+        var config = ServerConfig.IsLoaded ? ServerConfig.Instance : ServerConfig.CreateDefaultConfig();
+        float deltaTime = 1.0f / config.Performance.TickRate;
         TimeSpan frameTime = TimeSpan.FromSeconds(deltaTime);
         TimeSpan targetTime = frameTime;
 
