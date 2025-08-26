@@ -2,6 +2,7 @@
 #include "Controllers/ToS_PlayerController.h"
 #include "Engine/World.h"
 #include "Async/Async.h"
+#include "Config/ClientConfig.h"
 
 static bool bENetInitialized = false;
 
@@ -13,6 +14,9 @@ void UTOSGameInstance::OnPlayerControllerReady(ATOSPlayerController* Controller)
 void UTOSGameInstance::Init()
 {
     Super::Init();
+
+    // Load default configuration first
+    LoadDefaultConfiguration();
 
     if (UENetSubsystem* Socket = GetSubsystem<UENetSubsystem>())
     {
@@ -113,4 +117,116 @@ void UTOSGameInstance::HandleDeltaUpdate(FDeltaUpdateData data)
             PlayerController->HandleDeltaUpdate(data);
         }
     });
+}
+
+void UTOSGameInstance::LoadDefaultConfiguration()
+{
+    UClientConfig* DefaultConfig = UClientConfig::GetDefaultConfig();
+    if (DefaultConfig)
+    {
+        ApplyClientConfiguration(DefaultConfig);
+        UE_LOG(LogTemp, Warning, TEXT("Default client configuration loaded"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to load default client configuration"));
+    }
+}
+
+void UTOSGameInstance::ApplyClientConfiguration(UClientConfig* Config)
+{
+    if (!Config)
+    {
+        UE_LOG(LogTemp, Error, TEXT("ClientConfig is null"));
+        return;
+    }
+
+    if (!Config->ValidateConfiguration())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Client configuration validation failed"));
+        return;
+    }
+
+    // Apply network settings
+    ServerIP = Config->Network.ServerIP;
+    ServerPort = Config->Network.ServerPort;
+    ServerAutoConnect = Config->Network.bAutoConnect;
+
+    // Apply security settings
+    bEnableEndToEndEncryption = Config->Security.bEnableEndToEndEncryption;
+    bEnableIntegrityCheck = Config->Security.bEnableIntegrityCheck;
+    bEnableLZ4Compression = Config->Security.bEnableLZ4Compression;
+    CompressionThreshold = Config->Security.CompressionThreshold;
+    ServerPassword = Config->Security.ServerPassword;
+
+    // Apply performance settings
+    SendRateHz = Config->Performance.SendRateHz;
+    MaxPacketSize = Config->Performance.MaxPacketSize;
+    ReliableTimeoutMs = Config->Performance.ReliableTimeoutMs;
+    MaxRetries = Config->Performance.MaxRetries;
+
+    // Apply logging settings
+    bEnableDebugLogs = Config->Logging.bEnableDebugLogs;
+    bEnableFileLogging = Config->Logging.bEnableFileLogging;
+    bEnableCryptoLogs = Config->Logging.bEnableCryptoLogs;
+    bEnablePacketLogs = Config->Logging.bEnablePacketLogs;
+
+    // Apply settings to ENetSubsystem if it exists
+    if (UENetSubsystem* NetSubsystem = GetSubsystem<UENetSubsystem>())
+    {
+        NetSubsystem->SetConnectTimeout(Config->Network.ConnectionTimeoutSeconds);
+        NetSubsystem->SetRetryInterval(Config->Network.RetryIntervalSeconds);
+        NetSubsystem->SetRetryEnabled(Config->Network.bEnableRetry);
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("Client configuration applied successfully"));
+    UE_LOG(LogTemp, Warning, TEXT("Network: %s:%d (AutoConnect: %s)"), *ServerIP, ServerPort, ServerAutoConnect ? TEXT("Yes") : TEXT("No"));
+    UE_LOG(LogTemp, Warning, TEXT("Security: Encryption=%s, Compression=%s, Integrity=%s"),
+        bEnableEndToEndEncryption ? TEXT("On") : TEXT("Off"),
+        bEnableLZ4Compression ? TEXT("On") : TEXT("Off"),
+        bEnableIntegrityCheck ? TEXT("On") : TEXT("Off"));
+    UE_LOG(LogTemp, Warning, TEXT("Performance: SendRate=%dHz, MaxPacket=%d bytes"), SendRateHz, MaxPacketSize);
+}
+
+bool UTOSGameInstance::ValidateConfiguration() const
+{
+    // Validate network settings
+    if (ServerPort <= 0 || ServerPort > 65535)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Invalid server port: %d"), ServerPort);
+        return false;
+    }
+
+    if (ServerIP.IsEmpty())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Server IP is empty"));
+        return false;
+    }
+
+    // Validate performance settings
+    if (SendRateHz <= 0 || SendRateHz > 120)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Invalid send rate: %d"), SendRateHz);
+        return false;
+    }
+
+    if (MaxPacketSize < 512 || MaxPacketSize > 8192)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Invalid max packet size: %d"), MaxPacketSize);
+        return false;
+    }
+
+    if (ReliableTimeoutMs < 50 || ReliableTimeoutMs > 5000)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Invalid reliable timeout: %d"), ReliableTimeoutMs);
+        return false;
+    }
+
+    if (MaxRetries <= 0 || MaxRetries > 50)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Invalid max retries: %d"), MaxRetries);
+        return false;
+    }
+
+    return true;
 }
