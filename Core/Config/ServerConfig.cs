@@ -42,6 +42,9 @@ namespace Core.Config
         [JsonPropertyName("worldOriginRebasing")]
         public WorldOriginRebasingConfig WorldOriginRebasing { get; set; } = new WorldOriginRebasingConfig();
 
+        [JsonPropertyName("areaOfInterest")]
+        public AreaOfInterestConfig AreaOfInterest { get; set; } = new AreaOfInterestConfig();
+
         #endregion
 
         #region Static Instance Management
@@ -394,11 +397,9 @@ namespace Core.Config
         /// </summary>
         public FVector GetQuadrantOrigin(int quadrantX, int quadrantY)
         {
-            float totalWorldSizeX = SectionSize.X * SectionPerComponent.X * NumberOfComponents.X;
-            float totalWorldSizeY = SectionSize.Y * SectionPerComponent.Y * NumberOfComponents.Y;
-
-            float originX = (quadrantX * totalWorldSizeX) / NumberOfComponents.X;
-            float originY = (quadrantY * totalWorldSizeY) / NumberOfComponents.Y;
+            // Simplificado para evitar problemas de NaN - quadrante * tamanho da seção
+            float originX = quadrantX * SectionSize.X;
+            float originY = quadrantY * SectionSize.Y;
 
             return new FVector { X = originX, Y = originY, Z = 0.0f };
         }
@@ -429,14 +430,59 @@ namespace Core.Config
         /// </summary>
         public FVector DequantizePosition(short quantX, short quantY, short quantZ, int quadrantX, int quadrantY)
         {
+            // Obter a origem do quadrante (simplificada)
             FVector quadrantOrigin = GetQuadrantOrigin(quadrantX, quadrantY);
 
+            // Garantir que Scale nunca seja zero
+            float scaleX = Scale.X > 0 ? Scale.X : 100.0f;
+            float scaleY = Scale.Y > 0 ? Scale.Y : 100.0f;
+            float scaleZ = Scale.Z > 0 ? Scale.Z : 100.0f;
+
+            // Calcular posição mundial
             return new FVector
             {
-                X = quadrantOrigin.X + (quantX * Scale.X),
-                Y = quadrantOrigin.Y + (quantY * Scale.Y),
-                Z = quantZ * Scale.Z
+                X = quadrantOrigin.X + (quantX * scaleX),
+                Y = quadrantOrigin.Y + (quantY * scaleY),
+                Z = quantZ * scaleZ
             };
+        }
+    }
+
+    /// <summary>
+    /// Area of Interest configuration for optimized entity replication
+    /// </summary>
+    public class AreaOfInterestConfig
+    {
+        [JsonPropertyName("enabled")]
+        public bool Enabled { get; set; } = true;
+
+        [JsonPropertyName("baseDistance")]
+        public float BaseDistance { get; set; } = 100000.0f; // 1km in cm (Unreal units)
+
+        [JsonPropertyName("entityDistances")]
+        public Dictionary<string, float> EntityDistances { get; set; } = new Dictionary<string, float>
+        {
+            ["Player"] = 100000.0f,     // 1km
+            ["NPC"] = 50000.0f,         // 500m
+            ["StaticBuild"] = 25000.0f, // 250m
+            ["Vehicle"] = 150000.0f,    // 1.5km
+            ["Projectile"] = 200000.0f, // 2km
+            ["Item"] = 10000.0f,        // 100m
+            ["Effect"] = 50000.0f       // 500m
+        };
+
+        public float GetDistanceForEntityType(string entityType)
+        {
+            return EntityDistances.TryGetValue(entityType, out var distance) ? distance : BaseDistance;
+        }
+
+        public bool IsWithinRange(FVector pos1, FVector pos2, string entityType1, string entityType2)
+        {
+            float distance1 = GetDistanceForEntityType(entityType1);
+            float distance2 = GetDistanceForEntityType(entityType2);
+            float maxDistance = Math.Max(distance1, distance2);
+            float actualDistance = FVector.Distance(pos1, pos2);
+            return actualDistance <= maxDistance;
         }
     }
 

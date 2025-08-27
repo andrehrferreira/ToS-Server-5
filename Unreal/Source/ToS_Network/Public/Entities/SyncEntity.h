@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "Network/ENetSubsystem.h"
 #include "TimerManager.h"
+#include "Enum/EntityState.h"
 #include "SyncEntity.generated.h"
 
 UCLASS()
@@ -30,6 +31,17 @@ public:
 
     UFUNCTION(BlueprintImplementableEvent, Category = "Network")
     void SetSpeed(float Speed);
+
+    // Método para definir flags da entidade
+    UFUNCTION(BlueprintCallable, Category = "Network")
+    void SetFlags(EEntityState Flags);
+
+    UPROPERTY(BlueprintReadWrite, Category = "Network")
+    EEntityState EntityFlags = EEntityState::None;
+
+    // Método para logging
+    UFUNCTION(BlueprintCallable, Category = "Debug")
+    void ClientFileLog(const FString& Message);
 
 	int32 AnimationState = 0;
 

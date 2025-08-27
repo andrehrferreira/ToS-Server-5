@@ -5,6 +5,52 @@ All notable changes to the Tales Of Shadowland MMO Server will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.7.1] - 2025-02-15 - Enhanced AOI System with Periodic Synchronization
+
+### 🔄 Added
+
+#### Periodic Synchronization System
+- **Stationary Entity Updates**: Automatic periodic updates for stationary players
+  - **Configurable Interval**: 5-second default interval for periodic updates
+  - **Smart Targeting**: Updates only sent to players within AOI range
+  - **Bandwidth Efficient**: Only sends updates when needed, not continuously
+  - **Immediate Visibility**: New players immediately see existing stationary players
+  - **Seamless Experience**: Prevents "invisible player" issues when joining a server
+
+### 🔧 Fixed
+- Fixed issue where stationary players were not visible to newly connected clients
+- Fixed inconsistent entity visibility when players remain stationary for extended periods
+
+## [5.7.0] - 2025-02-10 - Area of Interest System
+
+### 🔍 Added
+
+#### Area of Interest (AOI) System
+- **Complete AOI Implementation**: Efficient network replication based on entity proximity
+  - **Distance-Based Filtering**: Configurable visibility ranges for different entity types
+  - **Automatic Entity Management**: Automatic CreateEntity/RemoveEntity packets for AOI enter/exit events
+  - **Initial Synchronization**: New players receive all entities in their AOI upon connection
+  - **Bidirectional Notification**: Existing players are notified when new players enter their AOI
+  - **Bandwidth Optimization**: ~70-90% reduction in network traffic in crowded areas
+
+#### Configuration System
+- **AOI Configuration**: Complete AOI configuration in `server-config.json`
+  - **Entity-Type Distances**: Configurable AOI distances per entity type (NPC, static builds, vehicles, etc.)
+  - **Base Distance**: Default 1km AOI range for all entity types
+  - **Runtime Toggle**: Enable/disable AOI system without server restart
+
+#### Client-Side Improvements
+- **Entity Validation**: Robust validation to prevent entity duplication and invalid positions
+- **Position Validation**: Client-side checks to prevent sending invalid coordinates (0,0,0)
+- **Detailed Logging**: Comprehensive logging for AOI events and entity management
+- **Teleport Handling**: Smooth handling of large position changes
+
+### 🛠️ Fixed
+- Fixed NaN position issues with improved quadrant origin calculation
+- Fixed entity duplication issues with robust client-side validation
+- Fixed incorrect position synchronization with enhanced logging and validation
+- Fixed missing entity creation for players joining after others
+
 ## [5.6.0] - 2025-01-26 - World Origin Rebasing System
 
 ### 🌍 Added

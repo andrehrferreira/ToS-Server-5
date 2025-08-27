@@ -34,24 +34,61 @@ ASyncEntity* ATOSPlayerController::GetEntityById(int32 Id)
     return nullptr;
 }
 
-void ATOSPlayerController::HandleCreateEntity(int32 EntityId, FVector Positon, FRotator Rotator, int32 Flags)
+void ATOSPlayerController::HandleCreateEntity(int32 EntityId, FVector Position, FRotator Rotator, int32 Flags)
 {
-    if (!bIsReadyToSync) return;
+    static int32 CreateEntityCount = 0;
+    CreateEntityCount++;
 
-    if (!EntityClass) return;
+    if (!bIsReadyToSync)
+    {
+        ClientFileLog(FString::Printf(TEXT("[CREATE ENTITY] #%d ❌ Not ready to sync for EntityId: %d"),
+            CreateEntityCount, EntityId));
+        return;
+    }
+
+    // Verificar se a entidade já existe para evitar duplicação
+    if (SpawnedEntities.Contains(EntityId))
+    {
+        ClientFileLog(FString::Printf(TEXT("[CREATE ENTITY] #%d ⚠️ Entity %d already exists - skipping creation"),
+            CreateEntityCount, EntityId));
+        return;
+    }
 
     UWorld* World = GetWorld();
-    if (!World) return;
-
-    FActorSpawnParameters Params;
-    Params.Owner = nullptr;
-    Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-    ASyncEntity* NewEntity = World->SpawnActor<ASyncEntity>(EntityClass, Positon, Rotator, Params);
-
-    if (NewEntity)
+    if (!World || !EntityClass)
     {
-        NewEntity->EntityId = EntityId;
-        SpawnedEntities.Add(EntityId, NewEntity);
+        ClientFileLog(FString::Printf(TEXT("[CREATE ENTITY] #%d ❌ Invalid World or EntityClass for EntityId: %d"),
+            CreateEntityCount, EntityId));
+        return;
+    }
+
+    // Validar posição para evitar valores inválidos
+    if (FMath::IsNaN(Position.X) || FMath::IsNaN(Position.Y) || FMath::IsNaN(Position.Z))
+    {
+        ClientFileLog(FString::Printf(TEXT("[CREATE ENTITY] #%d ❌ Invalid position for EntityId: %d - Position: %s"),
+            CreateEntityCount, EntityId, *Position.ToString()));
+        return;
+    }
+
+    // Criar entidade
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+    ASyncEntity* Entity = World->SpawnActor<ASyncEntity>(EntityClass, Position, Rotator, SpawnParams);
+
+    if (Entity)
+    {
+        Entity->EntityId = EntityId;
+        Entity->SetFlags(static_cast<EEntityState>(Flags));
+        SpawnedEntities.Add(EntityId, Entity);
+
+        ClientFileLog(FString::Printf(TEXT("[CREATE ENTITY] #%d ✅ Successfully spawned Entity %d at %s"),
+            CreateEntityCount, EntityId, *Position.ToString()));
+    }
+    else
+    {
+        ClientFileLog(FString::Printf(TEXT("[CREATE ENTITY] #%d ❌ Failed to spawn Entity %d"),
+            CreateEntityCount, EntityId));
     }
 }
 
@@ -322,16 +359,32 @@ void ATOSPlayerController::ApplyDeltaData(ASyncEntity* Entity, const FDeltaUpdat
 
 void ATOSPlayerController::HandleRemoveEntity(int32 EntityId)
 {
-    if (!bIsReadyToSync) return;
+    static int32 RemoveEntityCount = 0;
+    RemoveEntityCount++;
+
+    if (!bIsReadyToSync)
+    {
+        ClientFileLog(FString::Printf(TEXT("[REMOVE ENTITY] #%d ❌ Not ready to sync for EntityId: %d"),
+            RemoveEntityCount, EntityId));
+        return;
+    }
 
     if (ASyncEntity* const* Found = SpawnedEntities.Find(EntityId))
     {
         ASyncEntity* Entity = *Found;
 
         if (Entity)
+        {
+            ClientFileLog(FString::Printf(TEXT("[REMOVE ENTITY] #%d ✅ Removing Entity %d at position %s"),
+                RemoveEntityCount, EntityId, *Entity->GetActorLocation().ToString()));
             Entity->Destroy();
+        }
 
         SpawnedEntities.Remove(EntityId);
     }
+    else
+    {
+        ClientFileLog(FString::Printf(TEXT("[REMOVE ENTITY] #%d ⚠️ Entity %d not found for removal"),
+            RemoveEntityCount, EntityId));
+    }
 }
-

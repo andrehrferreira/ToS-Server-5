@@ -50,7 +50,8 @@ public partial struct Entity
     public uint AnimState;
 
     public DateTime LastUpdate;
-    
+    public DateTime LastSyncTime;
+
     //AIO Control
     public uint WorldId;
     public (int, int, int) CurrentCell;
@@ -61,6 +62,7 @@ public partial struct Entity
         Id = id;
         Type = type;
         LastUpdate = DateTime.UtcNow;
+        LastSyncTime = DateTime.UtcNow;
     }
 
     public World World {

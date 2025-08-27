@@ -56,6 +56,24 @@ public struct FVector
         );
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float Distance(FVector a, FVector b)
+    {
+        float dx = a.X - b.X;
+        float dy = a.Y - b.Y;
+        float dz = a.Z - b.Z;
+        return MathF.Sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float DistanceSquared(FVector a, FVector b)
+    {
+        float dx = a.X - b.X;
+        float dy = a.Y - b.Y;
+        float dz = a.Z - b.Z;
+        return dx * dx + dy * dy + dz * dz;
+    }
+
     public override string ToString()
     {
         return $"X={X:0.00} Y={Y:0.00} Z={Z:0.00}";

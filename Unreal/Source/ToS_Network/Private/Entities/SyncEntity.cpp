@@ -137,3 +137,20 @@ void ASyncEntity::UpdateFromQuantizedNetwork(int16 QuantizedX, int16 QuantizedY,
         UE_LOG(LogTemp, Warning, TEXT("🎯 Yaw: %f"), Yaw);
     }
 }
+
+void ASyncEntity::SetFlags(EEntityState Flags)
+{
+    EntityFlags = Flags;
+
+    // Log para debug
+    ClientFileLog(FString::Printf(TEXT("[ENTITY] Setting flags for Entity %d: %d"), EntityId, static_cast<int32>(Flags)));
+}
+
+void ASyncEntity::ClientFileLog(const FString& Message)
+{
+    // Usar a classe UE_LOG para logging
+    UE_LOG(LogTemp, Log, TEXT("%s"), *Message);
+
+    // Usar a função global ClientFileLog
+    ::ClientFileLog(Message);
+}
