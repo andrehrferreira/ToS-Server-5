@@ -247,4 +247,139 @@ void UENetSubsystem::SendEntitySync(FVector Position, FRotator Rotation, int32 A
     }
 }
 
+void UENetSubsystem::SendEntitySyncQuantized(FVector Position, FRotator Rotation, int32 AnimID, FVector Velocity, bool IsFalling) const
+{
+    static int32 SyncCount = 0;
+    SyncCount++;
+
+    if (SyncCount <= 10)
+    {
+        ClientFileLog(FString::Printf(TEXT("=== SENDING SyncEntityQuantizedPacket #%d ==="), SyncCount));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 🚀 Original Position: %s"), *Position.ToString()));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 🚀 Original Rotation: %s"), *Rotation.ToString()));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 🚀 Original Velocity: %s"), *Velocity.ToString()));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 🚀 AnimID: %d, IsFalling: %s"), AnimID, IsFalling ? TEXT("true") : TEXT("false")));
+    }
+
+    // World Origin Rebasing quantization
+    const float QuadrantSize = 25600.0f * 4; // 102400 units per quadrant
+    int32 QuadrantX = FMath::FloorToInt(Position.X / QuadrantSize);
+    int32 QuadrantY = FMath::FloorToInt(Position.Y / QuadrantSize);
+
+    // Calculate relative position within quadrant
+    FVector RelativePosition = FVector(
+        Position.X - (QuadrantX * QuadrantSize),
+        Position.Y - (QuadrantY * QuadrantSize),
+        Position.Z
+    );
+
+    // Quantize position with scale factor
+    const float Scale = 100.0f;
+    int16 QuantizedX = FMath::Clamp(FMath::RoundToInt(RelativePosition.X / Scale), -32768, 32767);
+    int16 QuantizedY = FMath::Clamp(FMath::RoundToInt(RelativePosition.Y / Scale), -32768, 32767);
+    int16 QuantizedZ = FMath::Clamp(FMath::RoundToInt(RelativePosition.Z / Scale), -32768, 32767);
+
+    // Use only Yaw for rotation optimization
+    float Yaw = Rotation.Yaw;
+
+    if (SyncCount <= 10)
+    {
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 📦 Quadrant: X=%d Y=%d"), QuadrantX, QuadrantY));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 📦 Quantized: X=%d Y=%d Z=%d"), QuantizedX, QuantizedY, QuantizedZ));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 📦 Relative Position: %s"), *RelativePosition.ToString()));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 📦 Yaw Only: %f"), Yaw));
+    }
+
+    UFlatBuffer* syncBuffer = UFlatBuffer::CreateFlatBuffer(26); // Quantized SyncEntity packet size
+    FSyncEntityQuantizedPacket syncPacket = FSyncEntityQuantizedPacket();
+    syncPacket.QuantizedX = QuantizedX;
+    syncPacket.QuantizedY = QuantizedY;
+    syncPacket.QuantizedZ = QuantizedZ;
+    syncPacket.QuadrantX = static_cast<int16>(QuadrantX);
+    syncPacket.QuadrantY = static_cast<int16>(QuadrantY);
+    syncPacket.Yaw = Yaw;
+    syncPacket.Velocity = Velocity;
+    syncPacket.AnimationState = static_cast<uint16>(AnimID);
+    syncPacket.IsFalling = IsFalling;
+
+    if (SyncCount <= 10)
+    {
+        ClientFileLog(TEXT("=== CLIENT SERIALIZATION DEBUG ==="));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT STRUCT] QuantizedX: %d"), syncPacket.QuantizedX));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT STRUCT] QuantizedY: %d"), syncPacket.QuantizedY));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT STRUCT] QuantizedZ: %d"), syncPacket.QuantizedZ));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT STRUCT] QuadrantX: %d"), syncPacket.QuadrantX));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT STRUCT] QuadrantY: %d"), syncPacket.QuadrantY));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT STRUCT] Yaw: %f"), syncPacket.Yaw));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT STRUCT] Velocity: %s"), *syncPacket.Velocity.ToString()));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT STRUCT] AnimationState: %d"), syncPacket.AnimationState));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT STRUCT] IsFalling: %s"), syncPacket.IsFalling ? TEXT("true") : TEXT("false")));
+        ClientFileLog(TEXT("[CLIENT] About to serialize SyncEntityQuantizedPacket..."));
+    }
+
+    syncPacket.Serialize(syncBuffer);
+
+    if (SyncCount <= 10 && syncBuffer)
+    {
+        ClientFileLog(FString::Printf(TEXT("[CLIENT] ✅ Serialization complete - buffer length: %d"), syncBuffer->GetLength()));
+
+        if (syncBuffer->GetLength() > 0)
+        {
+            // Log all bytes in the buffer for detailed analysis
+            TArray<uint8> BufferData;
+            BufferData.SetNumUninitialized(FMath::Min(syncBuffer->GetLength(), 26)); // Full packet
+            FMemory::Memcpy(BufferData.GetData(), syncBuffer->GetRawBuffer(), BufferData.Num());
+
+            ClientFileLog(TEXT("=== SERIALIZED BUFFER ANALYSIS ==="));
+            for (int32 i = 0; i < BufferData.Num(); i++)
+            {
+                FString ByteDescription;
+                if (i == 0) ByteDescription = TEXT("PacketType");
+                else if (i == 1) ByteDescription = TEXT("ClientPacket Low");
+                else if (i == 2) ByteDescription = TEXT("ClientPacket High");
+                else if (i >= 3 && i <= 4) ByteDescription = FString::Printf(TEXT("QuantizedX[%d]"), i-3);
+                else if (i >= 5 && i <= 6) ByteDescription = FString::Printf(TEXT("QuantizedY[%d]"), i-5);
+                else if (i >= 7 && i <= 8) ByteDescription = FString::Printf(TEXT("QuantizedZ[%d]"), i-7);
+                else if (i >= 9 && i <= 10) ByteDescription = FString::Printf(TEXT("QuadrantX[%d]"), i-9);
+                else if (i >= 11 && i <= 12) ByteDescription = FString::Printf(TEXT("QuadrantY[%d]"), i-11);
+                else if (i >= 13 && i <= 16) ByteDescription = FString::Printf(TEXT("Yaw[%d]"), i-13);
+                else ByteDescription = FString::Printf(TEXT("Data[%d]"), i);
+
+                ClientFileLog(FString::Printf(TEXT("[CLIENT BUFFER] [%02d] = %3d (0x%02X) - %s"),
+                    i, BufferData[i], BufferData[i], *ByteDescription));
+            }
+
+            // Interpret specific fields from buffer (manual)
+            if (BufferData.Num() >= 10)
+            {
+                int16 SerializedQuantizedX = (int16)((BufferData[4] << 8) | BufferData[3]);
+                int16 SerializedQuantizedY = (int16)((BufferData[6] << 8) | BufferData[5]);
+                int16 SerializedQuantizedZ = (int16)((BufferData[8] << 8) | BufferData[7]);
+                int16 SerializedQuadrantX = (int16)((BufferData[10] << 8) | BufferData[9]);
+                int16 SerializedQuadrantY = (int16)((BufferData[12] << 8) | BufferData[11]);
+
+                ClientFileLog(TEXT("=== MANUAL BUFFER INTERPRETATION ==="));
+                ClientFileLog(FString::Printf(TEXT("[CLIENT MANUAL] QuantizedX: %d (from bytes %02X %02X)"), SerializedQuantizedX, BufferData[3], BufferData[4]));
+                ClientFileLog(FString::Printf(TEXT("[CLIENT MANUAL] QuantizedY: %d (from bytes %02X %02X)"), SerializedQuantizedY, BufferData[5], BufferData[6]));
+                ClientFileLog(FString::Printf(TEXT("[CLIENT MANUAL] QuantizedZ: %d (from bytes %02X %02X)"), SerializedQuantizedZ, BufferData[7], BufferData[8]));
+                ClientFileLog(FString::Printf(TEXT("[CLIENT MANUAL] QuadrantX: %d (from bytes %02X %02X)"), SerializedQuadrantX, BufferData[9], BufferData[10]));
+                ClientFileLog(FString::Printf(TEXT("[CLIENT MANUAL] QuadrantY: %d (from bytes %02X %02X)"), SerializedQuadrantY, BufferData[11], BufferData[12]));
+            }
+        }
+    }
+
+    if (UdpClient)
+    {
+        if (SyncCount <= 5)
+        {
+            ClientFileLog(TEXT("[CLIENT] Sending SyncEntityQuantizedPacket via UdpClient..."));
+        }
+        UdpClient->Send(syncBuffer);
+    }
+    else
+    {
+        ClientFileLog(TEXT("[CLIENT] ERROR: UdpClient is NULL!"));
+    }
+}
+
 //%FUNCTIONS%

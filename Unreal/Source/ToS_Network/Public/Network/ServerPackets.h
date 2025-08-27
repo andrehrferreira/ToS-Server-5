@@ -9,8 +9,9 @@ enum class EServerPackets : uint8
     CreateEntity = 1,
     UpdateEntity = 2,
     RemoveEntity = 3,
-    RekeyRequest = 4,
-    DeltaSync = 5,
+    UpdateEntityQuantized = 4,
+    RekeyRequest = 5,
+    DeltaSync = 6,
 };
 
 template<> TOS_NETWORK_API UEnum* StaticEnum<EServerPackets>();

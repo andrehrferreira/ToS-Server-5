@@ -6,8 +6,9 @@ UENUM(BlueprintType)
 enum class EClientPackets : uint8
 {
     SyncEntity = 0,
-    EnterToWorld = 1,
-    RekeyResponse = 2,
+    SyncEntityQuantized = 1,
+    EnterToWorld = 2,
+    RekeyResponse = 3,
 };
 
 template<> TOS_NETWORK_API UEnum* StaticEnum<EClientPackets>();

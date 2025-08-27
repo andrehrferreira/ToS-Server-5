@@ -37,6 +37,13 @@ namespace Core.Config
 
         #endregion
 
+        #region World Origin Rebasing Configuration
+
+        [JsonPropertyName("worldOriginRebasing")]
+        public WorldOriginRebasingConfig WorldOriginRebasing { get; set; } = new WorldOriginRebasingConfig();
+
+        #endregion
+
         #region Static Instance Management
 
         private static ServerConfig? _instance;
@@ -154,7 +161,8 @@ namespace Core.Config
                 Network = new NetworkConfig(),
                 Security = new SecurityConfig(),
                 Performance = new PerformanceConfig(),
-                Server = new ServerGeneralConfig()
+                Server = new ServerGeneralConfig(),
+                WorldOriginRebasing = new WorldOriginRebasingConfig()
             };
         }
 
@@ -314,6 +322,122 @@ namespace Core.Config
 
         [JsonPropertyName("enableFileLogging")]
         public bool EnableFileLogging { get; set; } = true;
+
+        [JsonPropertyName("defaultMapName")]
+        public string DefaultMapName { get; set; } = "SurvivalMap";
+    }
+
+    /// <summary>
+    /// World Origin Rebasing configuration
+    /// </summary>
+    public class WorldOriginRebasingConfig
+    {
+        [JsonPropertyName("enabled")]
+        public bool Enabled { get; set; } = false;
+
+        [JsonPropertyName("enableYawOnlyRotation")]
+        public bool EnableYawOnlyRotation { get; set; } = true;
+
+        [JsonPropertyName("maps")]
+        public Dictionary<string, MapSectionConfig> Maps { get; set; } = new Dictionary<string, MapSectionConfig>
+        {
+            {
+                "SurvivalMap",
+                new MapSectionConfig
+                {
+                    SectionSize = new FVector { X = 25600.0f, Y = 25600.0f, Z = 6400.0f },
+                    SectionPerComponent = new FVector { X = 4, Y = 4, Z = 1 },
+                    NumberOfComponents = new FVector { X = 8, Y = 8, Z = 4 },
+                    Scale = new FVector { X = 100.0f, Y = 100.0f, Z = 100.0f }
+                }
+            }
+        };
+    }
+
+    /// <summary>
+    /// Map section configuration for World Origin Rebasing
+    /// </summary>
+    public class MapSectionConfig
+    {
+        [JsonPropertyName("sectionSize")]
+        public FVector SectionSize { get; set; } = new FVector { X = 25600.0f, Y = 25600.0f, Z = 6400.0f };
+
+        [JsonPropertyName("sectionPerComponent")]
+        public FVector SectionPerComponent { get; set; } = new FVector { X = 4, Y = 4, Z = 1 };
+
+        [JsonPropertyName("numberOfComponents")]
+        public FVector NumberOfComponents { get; set; } = new FVector { X = 8, Y = 8, Z = 4 };
+
+        [JsonPropertyName("scale")]
+        public FVector Scale { get; set; } = new FVector { X = 100.0f, Y = 100.0f, Z = 100.0f };
+
+        /// <summary>
+        /// Calculate quadrant from world position
+        /// </summary>
+        public (int X, int Y) GetQuadrantFromPosition(FVector worldPosition)
+        {
+            float totalWorldSizeX = SectionSize.X * SectionPerComponent.X * NumberOfComponents.X;
+            float totalWorldSizeY = SectionSize.Y * SectionPerComponent.Y * NumberOfComponents.Y;
+
+            int quadrantX = (int)Math.Floor(worldPosition.X / totalWorldSizeX * NumberOfComponents.X);
+            int quadrantY = (int)Math.Floor(worldPosition.Y / totalWorldSizeY * NumberOfComponents.Y);
+
+            // Clamp to valid range
+            quadrantX = Math.Max(0, Math.Min((int)NumberOfComponents.X - 1, quadrantX));
+            quadrantY = Math.Max(0, Math.Min((int)NumberOfComponents.Y - 1, quadrantY));
+
+            return (quadrantX, quadrantY);
+        }
+
+        /// <summary>
+        /// Get quadrant origin position
+        /// </summary>
+        public FVector GetQuadrantOrigin(int quadrantX, int quadrantY)
+        {
+            float totalWorldSizeX = SectionSize.X * SectionPerComponent.X * NumberOfComponents.X;
+            float totalWorldSizeY = SectionSize.Y * SectionPerComponent.Y * NumberOfComponents.Y;
+
+            float originX = (quadrantX * totalWorldSizeX) / NumberOfComponents.X;
+            float originY = (quadrantY * totalWorldSizeY) / NumberOfComponents.Y;
+
+            return new FVector { X = originX, Y = originY, Z = 0.0f };
+        }
+
+        /// <summary>
+        /// Convert world position to quantized position relative to quadrant
+        /// </summary>
+        public (short X, short Y, short Z) QuantizePosition(FVector worldPosition, int quadrantX, int quadrantY)
+        {
+            FVector quadrantOrigin = GetQuadrantOrigin(quadrantX, quadrantY);
+            FVector relativePosition = new FVector
+            {
+                X = worldPosition.X - quadrantOrigin.X,
+                Y = worldPosition.Y - quadrantOrigin.Y,
+                Z = worldPosition.Z
+            };
+
+            // Quantize to int16 range
+            short quantX = (short)Math.Max(short.MinValue, Math.Min(short.MaxValue, relativePosition.X / Scale.X));
+            short quantY = (short)Math.Max(short.MinValue, Math.Min(short.MaxValue, relativePosition.Y / Scale.Y));
+            short quantZ = (short)Math.Max(short.MinValue, Math.Min(short.MaxValue, relativePosition.Z / Scale.Z));
+
+            return (quantX, quantY, quantZ);
+        }
+
+        /// <summary>
+        /// Convert quantized position back to world position
+        /// </summary>
+        public FVector DequantizePosition(short quantX, short quantY, short quantZ, int quadrantX, int quadrantY)
+        {
+            FVector quadrantOrigin = GetQuadrantOrigin(quadrantX, quadrantY);
+
+            return new FVector
+            {
+                X = quadrantOrigin.X + (quantX * Scale.X),
+                Y = quadrantOrigin.Y + (quantY * Scale.Y),
+                Z = quantZ * Scale.Z
+            };
+        }
     }
 
     #endregion

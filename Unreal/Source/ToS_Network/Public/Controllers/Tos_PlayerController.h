@@ -31,6 +31,9 @@ public:
     void HandleUpdateEntity(FUpdateEntityPacket data);
 
     UFUNCTION()
+    void HandleUpdateEntityQuantized(FUpdateEntityQuantizedPacket data);
+
+    UFUNCTION()
     void HandleDeltaUpdate(FDeltaUpdateData data);
 
     void ApplyDeltaData(ASyncEntity* Entity, const FDeltaUpdateData& Data);

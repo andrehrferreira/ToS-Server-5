@@ -35,6 +35,35 @@
     "motd": "Welcome to ToS Game Server! 🎮",
     "enableDebugLogs": false,
     "logLevel": "Info",
-    "enableFileLogging": true
+    "enableFileLogging": true,
+    "defaultMapName": "SurvivalMap"
+  },
+  "worldOriginRebasing": {
+    "enabled": true,
+    "enableYawOnlyRotation": true,
+    "maps": {
+      "SurvivalMap": {
+        "sectionSize": {
+          "x": 25600.0,
+          "y": 25600.0,
+          "z": 6400.0
+        },
+        "sectionPerComponent": {
+          "x": 4,
+          "y": 4,
+          "z": 1
+        },
+        "numberOfComponents": {
+          "x": 8,
+          "y": 8,
+          "z": 4
+        },
+        "scale": {
+          "x": 100.0,
+          "y": 100.0,
+          "z": 100.0
+        }
+      }
+    }
   }
 }

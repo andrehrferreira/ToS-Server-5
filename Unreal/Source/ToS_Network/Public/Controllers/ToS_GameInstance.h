@@ -77,6 +77,22 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Logging", meta = (DisplayName = "Enable Packet Logs"))
     bool bEnablePacketLogs = false;
 
+    // === WORLD ORIGIN REBASING CONFIGURATION ===
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "World Origin Rebasing", meta = (DisplayName = "Enable World Origin Rebasing"))
+    bool bEnableWorldOriginRebasing = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "World Origin Rebasing", meta = (DisplayName = "Enable Yaw Only Rotation"))
+    bool bEnableYawOnlyRotation = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "World Origin Rebasing", meta = (DisplayName = "Current Map Name"))
+    FString CurrentMapName = TEXT("SurvivalMap");
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "World Origin Rebasing", meta = (DisplayName = "Current Quadrant X"))
+    int32 CurrentQuadrantX = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "World Origin Rebasing", meta = (DisplayName = "Current Quadrant Y"))
+    int32 CurrentQuadrantY = 0;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Entities")
     TSubclassOf<ASyncEntity> EntityClass;
 
@@ -98,6 +114,9 @@ private:
 
     UFUNCTION()
     void HandleDeltaUpdate(FDeltaUpdateData data);
+
+    UFUNCTION()
+    void HandleUpdateEntityQuantized(FUpdateEntityQuantizedPacket data);
 
     // === CONFIGURATION METHODS ===
     UFUNCTION(BlueprintCallable, Category = "Configuration")

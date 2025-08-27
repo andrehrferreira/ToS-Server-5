@@ -61,3 +61,68 @@ public partial struct RemoveEntityPacket
     [ContractField("uint")]
     public uint EntityId;
 }
+
+[Contract("SyncEntityQuantized", PacketLayerType.Client)]
+public partial struct SyncEntityQuantizedPacket
+{
+    [ContractField("short")]
+    public short QuantizedX;
+
+    [ContractField("short")]
+    public short QuantizedY;
+
+    [ContractField("short")]
+    public short QuantizedZ;
+
+    [ContractField("short")]
+    public short QuadrantX;
+
+    [ContractField("short")]
+    public short QuadrantY;
+
+    [ContractField("float")]
+    public float Yaw;  // Only Yaw rotation for optimization
+
+    [ContractField("FVector")]
+    public FVector Velocity;
+
+    [ContractField("ushort")]
+    public ushort AnimationState;
+
+    [ContractField("bool")]
+    public bool IsFalling;
+}
+
+[Contract("UpdateEntityQuantized", PacketLayerType.Server, ContractPacketFlags.FromEntity)]
+public partial struct UpdateEntityQuantizedPacket
+{
+    [ContractField("uint")]
+    public uint EntityId;
+
+    [ContractField("short")]
+    public short QuantizedX;
+
+    [ContractField("short")]
+    public short QuantizedY;
+
+    [ContractField("short")]
+    public short QuantizedZ;
+
+    [ContractField("short")]
+    public short QuadrantX;
+
+    [ContractField("short")]
+    public short QuadrantY;
+
+    [ContractField("float")]
+    public float Yaw;  // Only Yaw rotation for optimization
+
+    [ContractField("FVector")]
+    public FVector Velocity;
+
+    [ContractField("ushort")]
+    public ushort AnimationState;
+
+    [ContractField("uint")]
+    public uint Flags;
+}

@@ -527,7 +527,38 @@ public class UnrealTranspiler : AbstractTranspiler
                 {
                     switchBuilder.AppendLine($"{ident}    F{packet}Packet f{packet} = F{packet}Packet();");
                     switchBuilder.AppendLine($"{ident}    f{packet}.Deserialize(Buffer);");
+
+                    // Add special logging for UpdateEntityQuantized
+                    if (packet == "UpdateEntityQuantized")
+                    {
+                        switchBuilder.AppendLine($"{ident}    static int32 QuantizedUpdateCount = 0;");
+                        switchBuilder.AppendLine($"{ident}    QuantizedUpdateCount++;");
+                        switchBuilder.AppendLine($"{ident}    ");
+                        switchBuilder.AppendLine($"{ident}    if (QuantizedUpdateCount <= 10)");
+                        switchBuilder.AppendLine($"{ident}    {{");
+                        switchBuilder.AppendLine($"{ident}        ClientFileLog(FString::Printf(TEXT(\"=== RECEIVED UpdateEntityQuantizedPacket #%d ===\"), QuantizedUpdateCount));");
+                        switchBuilder.AppendLine($"{ident}        ClientFileLog(FString::Printf(TEXT(\"[CLIENT] EntityId: %d\"), f{packet}.EntityId));");
+                        switchBuilder.AppendLine($"{ident}        ClientFileLog(FString::Printf(TEXT(\"[CLIENT] Quantized Position: (%d, %d, %d)\"), f{packet}.QuantizedX, f{packet}.QuantizedY, f{packet}.QuantizedZ));");
+                        switchBuilder.AppendLine($"{ident}        ClientFileLog(FString::Printf(TEXT(\"[CLIENT] Quadrant: (%d, %d)\"), f{packet}.QuadrantX, f{packet}.QuadrantY));");
+                        switchBuilder.AppendLine($"{ident}        ClientFileLog(FString::Printf(TEXT(\"[CLIENT] Yaw: %f\"), f{packet}.Yaw));");
+                        switchBuilder.AppendLine($"{ident}        ClientFileLog(FString::Printf(TEXT(\"[CLIENT] Velocity: %s\"), *f{packet}.Velocity.ToString()));");
+                        switchBuilder.AppendLine($"{ident}        ClientFileLog(FString::Printf(TEXT(\"[CLIENT] AnimationState: %d\"), f{packet}.AnimationState));");
+                        switchBuilder.AppendLine($"{ident}        ClientFileLog(FString::Printf(TEXT(\"[CLIENT] Flags: %d\"), f{packet}.Flags));");
+                        switchBuilder.AppendLine($"{ident}    }}");
+                        switchBuilder.AppendLine($"{ident}    ");
+                    }
+
                     switchBuilder.AppendLine($"{ident}    On{packet}.Broadcast(f{packet});");
+
+                    // Add broadcast confirmation log for UpdateEntityQuantized
+                    if (packet == "UpdateEntityQuantized")
+                    {
+                        switchBuilder.AppendLine($"{ident}    ");
+                        switchBuilder.AppendLine($"{ident}    if (QuantizedUpdateCount <= 10)");
+                        switchBuilder.AppendLine($"{ident}    {{");
+                        switchBuilder.AppendLine($"{ident}        ClientFileLog(TEXT(\"[CLIENT] UpdateEntityQuantized broadcasted to delegates\"));");
+                        switchBuilder.AppendLine($"{ident}    }}");
+                    }
                 }
 
                 switchBuilder.AppendLine(ident + "}");

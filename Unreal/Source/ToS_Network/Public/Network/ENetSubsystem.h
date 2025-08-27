@@ -37,9 +37,11 @@
 #include "Packets/CreateEntityPacket.h"
 #include "Packets/UpdateEntityPacket.h"
 #include "Packets/RemoveEntityPacket.h"
+#include "Packets/UpdateEntityQuantizedPacket.h"
 #include "Packets/RekeyRequestPacket.h"
 #include "Packets/DeltaSyncPacket.h"
 #include "Packets/SyncEntityPacket.h"
+#include "Packets/SyncEntityQuantizedPacket.h"
 #include "Packets/EnterToWorldPacket.h"
 #include "Packets/RekeyResponsePacket.h"
 
@@ -66,11 +68,12 @@ public:
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FCreateEntityHandler, int32, EntityId, FVector, Positon, FRotator, Rotator, int32, Flags);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUpdateEntityHandler, FUpdateEntityPacket, Data);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRemoveEntityHandler, int32, EntityId);
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUpdateEntityQuantizedHandler, FUpdateEntityQuantizedPacket, Data);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FRekeyRequestHandler, int64, CurrentSequence, TArray<uint8>, NewSalt);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FDeltaSyncHandler, int32, Index, uint8, EntitiesMask);
 
-    
-    
+
+
 	UPROPERTY(BlueprintAssignable, Category = "UDP")
 	FOnUDPConnectionError OnConnectionError;
 
@@ -120,6 +123,7 @@ public:
     bool IsRetryEnabled() const;
 
     void SendEntitySync(FVector Position, FRotator Rotation, int32 AnimID, FVector Velocity, bool IsFalling) const;
+    void SendEntitySyncQuantized(FVector Position, FRotator Rotation, int32 AnimID, FVector Velocity, bool IsFalling) const;
 
     UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnDeltaUpdate", Keywords = "Server Events"), Category = "UDP")
     FDeltaUpdateHandler OnDeltaUpdate;
@@ -135,6 +139,9 @@ public:
 
     UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnRemoveEntity", Keywords = "Server Events"), Category = "UDP")
     FRemoveEntityHandler OnRemoveEntity;
+
+    UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnUpdateEntityQuantized", Keywords = "Server Events"), Category = "UDP")
+    FUpdateEntityQuantizedHandler OnUpdateEntityQuantized;
 
     UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnRekeyRequest", Keywords = "Server Events"), Category = "UDP")
     FRekeyRequestHandler OnRekeyRequest;

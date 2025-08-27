@@ -104,7 +104,7 @@ class Program
                 map.AddPlayer(controller);
 
                 Console.WriteLine($"[PLAYER] ✅ Player {socket.Id} connected from {socket.RemoteAddress}");
-                return false;
+                return true;
             }, new UDPServerOptions()
             {
                 Version = VersionReader.ToUInt(currentVersion),

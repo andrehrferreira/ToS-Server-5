@@ -171,6 +171,24 @@ void ASyncPlayer::SendSyncToServer()
         SyncCount++;
     }
 
+    // Check if World Origin Rebasing is enabled
+    if (UWorld* World = GetWorld())
+    {
+        if (UTOSGameInstance* TosGameInstance = Cast<UTOSGameInstance>(World->GetGameInstance()))
+        {
+            if (TosGameInstance->bEnableWorldOriginRebasing)
+            {
+                UE_LOG(LogTemp, VeryVerbose, TEXT("📤 Calling NetSubsystem->SendEntitySyncQuantized..."));
+                ClientFileLog(TEXT("📤 Calling NetSubsystem->SendEntitySyncQuantized..."));
+                NetSubsystem->SendEntitySyncQuantized(Position, Rotation, AnimID, Velocity, IsFalling);
+                UE_LOG(LogTemp, VeryVerbose, TEXT("✅ NetSubsystem->SendEntitySyncQuantized completed"));
+                ClientFileLog(TEXT("✅ NetSubsystem->SendEntitySyncQuantized completed"));
+                return;
+            }
+        }
+    }
+
+    // Fallback to regular sync if World Origin Rebasing is disabled
     UE_LOG(LogTemp, VeryVerbose, TEXT("📤 Calling NetSubsystem->SendEntitySync..."));
     ClientFileLog(TEXT("📤 Calling NetSubsystem->SendEntitySync..."));
     NetSubsystem->SendEntitySync(Position, Rotation, AnimID, Velocity, IsFalling);

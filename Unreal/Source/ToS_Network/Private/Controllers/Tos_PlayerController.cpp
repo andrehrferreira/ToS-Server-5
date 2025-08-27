@@ -3,6 +3,7 @@
 #include "Enum/EntityState.h"
 #include "Enum/EntityDelta.h"
 #include "Engine/World.h"
+#include "Utils/FileLogger.h"
 
 void ATOSPlayerController::BeginPlay()
 {
@@ -97,6 +98,150 @@ void ATOSPlayerController::HandleUpdateEntity(FUpdateEntityPacket data)
     }
 }
 
+void ATOSPlayerController::HandleUpdateEntityQuantized(FUpdateEntityQuantizedPacket data)
+{
+    static int32 HandlerCallCount = 0;
+    HandlerCallCount++;
+
+    if (HandlerCallCount <= 15)
+    {
+        ClientFileLog(FString::Printf(TEXT("=== HandleUpdateEntityQuantized #%d ==="), HandlerCallCount));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] 📨 Received EntityId: %d"), data.EntityId));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] 📨 Raw Quantized: X=%d Y=%d Z=%d"), data.QuantizedX, data.QuantizedY, data.QuantizedZ));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] 📨 Raw Quadrant: X=%d Y=%d"), data.QuadrantX, data.QuadrantY));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] 📨 Raw Yaw: %f"), data.Yaw));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] 📨 Raw Velocity: %s"), *data.Velocity.ToString()));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] 📨 bIsReadyToSync: %s"), bIsReadyToSync ? TEXT("true") : TEXT("false")));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] 📨 SpawnedEntities count: %d"), SpawnedEntities.Num()));
+    }
+
+    if (!bIsReadyToSync)
+    {
+        if (HandlerCallCount <= 10)
+        {
+            ClientFileLog(TEXT("[HANDLER] ❌ Not ready to sync, returning"));
+        }
+        return;
+    }
+
+    if (ASyncEntity** Found = SpawnedEntities.Find(data.EntityId))
+    {
+        ASyncEntity* Entity = *Found;
+
+        if (!Entity)
+        {
+            if (HandlerCallCount <= 10)
+            {
+                ClientFileLog(TEXT("[HANDLER] ❌ Entity found but is NULL"));
+            }
+            return;
+        }
+
+        if (HandlerCallCount <= 10)
+        {
+            ClientFileLog(FString::Printf(TEXT("[HANDLER] ✅ Found existing entity %d, updating..."), data.EntityId));
+        }
+
+        // Calculate final world position before updating (for comparison)
+        if (HandlerCallCount <= 15)
+        {
+            const float Scale = 100.0f;
+            const float QuadrantSize = 25600.0f * 4;
+            float WorldX = (data.QuadrantX * QuadrantSize) + (data.QuantizedX * Scale);
+            float WorldY = (data.QuadrantY * QuadrantSize) + (data.QuantizedY * Scale);
+            float WorldZ = data.QuantizedZ * Scale;
+            FVector CalculatedWorldPos = FVector(WorldX, WorldY, WorldZ);
+
+            ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] 🧮 Calculated World Position: %s"), *CalculatedWorldPos.ToString()));
+            ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] 🧮 Entity Current Position: %s"), *Entity->GetActorLocation().ToString()));
+        }
+
+        // Use the new quantized update method
+        bool IsFalling = (data.Flags & 1) != 0; // Assume bit 0 is IsFalling flag
+        Entity->UpdateFromQuantizedNetwork(
+            data.QuantizedX, data.QuantizedY, data.QuantizedZ,
+            data.QuadrantX, data.QuadrantY, data.Yaw,
+            data.Velocity, static_cast<uint32>(data.AnimationState), IsFalling
+        );
+
+        if (HandlerCallCount <= 15)
+        {
+            ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] ✅ Entity Updated - New Position: %s"), *Entity->GetActorLocation().ToString()));
+        }
+    }
+    else if (EntityClass)
+    {
+        if (HandlerCallCount <= 10)
+        {
+            ClientFileLog(FString::Printf(TEXT("[HANDLER] 🆕 Spawning new entity %d..."), data.EntityId));
+        }
+
+        UWorld* World = GetWorld();
+
+        if (!World)
+        {
+            if (HandlerCallCount <= 10)
+            {
+                ClientFileLog(TEXT("[HANDLER] ❌ World is NULL"));
+            }
+            return;
+        }
+
+        // Convert quantized position back to world position for spawning
+        const float Scale = 100.0f; // Match server scale
+        const float QuadrantSize = 25600.0f * 4; // Section size * sections per component
+
+        float WorldX = (data.QuadrantX * QuadrantSize) + (data.QuantizedX * Scale);
+        float WorldY = (data.QuadrantY * QuadrantSize) + (data.QuantizedY * Scale);
+        float WorldZ = data.QuantizedZ * Scale;
+
+        FVector SpawnPosition = FVector(WorldX, WorldY, WorldZ);
+        FRotator SpawnRotation = FRotator(0.0f, data.Yaw, 0.0f);
+
+        if (HandlerCallCount <= 10)
+        {
+            ClientFileLog(FString::Printf(TEXT("[HANDLER] Spawning at world position: %s"), *SpawnPosition.ToString()));
+            ClientFileLog(FString::Printf(TEXT("[HANDLER] Spawning with rotation: %s"), *SpawnRotation.ToString()));
+        }
+
+        FActorSpawnParameters Params;
+        Params.Owner = nullptr;
+        Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        auto NewEntity = World->SpawnActor<ASyncEntity>(EntityClass, SpawnPosition, SpawnRotation, Params);
+
+        if (NewEntity)
+        {
+            NewEntity->EntityId = data.EntityId;
+            bool IsFalling = (data.Flags & 1) != 0; // Assume bit 0 is IsFalling flag
+            NewEntity->UpdateFromQuantizedNetwork(
+                data.QuantizedX, data.QuantizedY, data.QuantizedZ,
+                data.QuadrantX, data.QuadrantY, data.Yaw,
+                data.Velocity, static_cast<uint32>(data.AnimationState), IsFalling
+            );
+            SpawnedEntities.Add(data.EntityId, NewEntity);
+
+            if (HandlerCallCount <= 10)
+            {
+                ClientFileLog(FString::Printf(TEXT("[HANDLER] ✅ Entity %d spawned and added to SpawnedEntities"), data.EntityId));
+            }
+        }
+        else
+        {
+            if (HandlerCallCount <= 10)
+            {
+                ClientFileLog(TEXT("[HANDLER] ❌ Failed to spawn entity"));
+            }
+        }
+    }
+    else
+    {
+        if (HandlerCallCount <= 10)
+        {
+            ClientFileLog(TEXT("[HANDLER] ❌ EntityClass is NULL, cannot spawn"));
+        }
+    }
+}
+
 void ATOSPlayerController::HandleDeltaUpdate(FDeltaUpdateData data)
 {
     if (!bIsReadyToSync) return;
@@ -130,8 +275,8 @@ void ATOSPlayerController::HandleDeltaUpdate(FDeltaUpdateData data)
 
 void ATOSPlayerController::ApplyDeltaData(ASyncEntity* Entity, const FDeltaUpdateData& Data)
 {
-    constexpr float MaxTeleportDistance = 100.0f; 
-    constexpr float MaxTeleportAngle = 30.0f;     
+    constexpr float MaxTeleportDistance = 100.0f;
+    constexpr float MaxTeleportAngle = 30.0f;
 
     if (EnumHasAnyFlags(Data.EntitiesMask, EEntityDelta::Position))
     {
