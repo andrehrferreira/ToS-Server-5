@@ -371,40 +371,64 @@ public class World : IDisposable
             float distance = FVector.Distance(entity.Position, otherEntity.Position);
             if (distance <= aoiDistance)
             {
-                                                // Criar pacote de atualização quantizada
-                var updatePacket = new UpdateEntityQuantizedPacket();
+                                                                // Verificar se o buffer do socket está quase cheio
+                // Tamanho estimado de um pacote UpdateEntityQuantized
+                const int estimatedPacketSize = 40; // bytes
+                const int safetyMargin = 100; // bytes
+                int safetyLimit = UDPServer.Mtu - estimatedPacketSize - safetyMargin;
 
-                                // Calcular posição quantizada
-                var worldConfig = ServerConfig.Instance.WorldOriginRebasing;
-                var defaultMapName = ServerConfig.Instance.Server.DefaultMapName;
-
-                // Verificar se o mapa existe na configuração
-                if (!worldConfig.Maps.TryGetValue(defaultMapName, out var mapConfig))
+                if (otherPlayer.Socket.UnreliableBuffer.Position > safetyLimit)
                 {
-                    // Usar o primeiro mapa disponível se o mapa padrão não for encontrado
-                    mapConfig = worldConfig.Maps.Values.FirstOrDefault() ?? new MapSectionConfig();
+                    // Enviar o buffer atual antes de adicionar mais dados
+                    otherPlayer.Socket.Send(ref otherPlayer.Socket.UnreliableBuffer);
+                    // O buffer é redefinido após o envio
                 }
 
-                var quadrantInfo = mapConfig.GetQuadrantFromPosition(entity.Position);
-                var quadrantX = (short)quadrantInfo.X;
-                var quadrantY = (short)quadrantInfo.Y;
+                try
+                {
+                    // Criar pacote de atualização quantizada
+                    var updatePacket = new UpdateEntityQuantizedPacket();
 
-                var quantizedPos = mapConfig.QuantizePosition(entity.Position, quadrantX, quadrantY);
+                    // Calcular posição quantizada
+                    var worldConfig = ServerConfig.Instance.WorldOriginRebasing;
+                    var defaultMapName = ServerConfig.Instance.Server.DefaultMapName;
 
-                updatePacket.EntityId = entityId;
-                updatePacket.QuadrantX = quadrantX;
-                updatePacket.QuadrantY = quadrantY;
-                updatePacket.QuantizedX = quantizedPos.X;
-                updatePacket.QuantizedY = quantizedPos.Y;
-                updatePacket.QuantizedZ = quantizedPos.Z;
-                updatePacket.Yaw = entity.Rotation.Yaw;
-                updatePacket.Velocity = entity.Velocity;
-                updatePacket.AnimationState = (ushort)entity.AnimState;
-                updatePacket.Flags = (uint)entity.Flags;
+                    // Verificar se o mapa existe na configuração
+                    if (!worldConfig.Maps.TryGetValue(defaultMapName, out var mapConfig))
+                    {
+                        // Usar o primeiro mapa disponível se o mapa padrão não for encontrado
+                        mapConfig = worldConfig.Maps.Values.FirstOrDefault() ?? new MapSectionConfig();
+                    }
 
-                var buffer = new FlatBuffer(updatePacket.Size);
-                updatePacket.Serialize(ref buffer);
-                otherPlayer.Socket.Send(ref buffer, true);
+                    var quadrantInfo = mapConfig.GetQuadrantFromPosition(entity.Position);
+                    var quadrantX = (short)quadrantInfo.X;
+                    var quadrantY = (short)quadrantInfo.Y;
+
+                    var quantizedPos = mapConfig.QuantizePosition(entity.Position, quadrantX, quadrantY);
+
+                    updatePacket.EntityId = entityId;
+                    updatePacket.QuadrantX = quadrantX;
+                    updatePacket.QuadrantY = quadrantY;
+                    updatePacket.QuantizedX = quantizedPos.X;
+                    updatePacket.QuantizedY = quantizedPos.Y;
+                    updatePacket.QuantizedZ = quantizedPos.Z;
+                    updatePacket.Yaw = entity.Rotation.Yaw;
+                    updatePacket.Velocity = entity.Velocity;
+                    updatePacket.AnimationState = (ushort)entity.AnimState;
+                    updatePacket.Flags = (uint)entity.Flags;
+
+                    // Serializar diretamente para o buffer do socket em vez de criar um novo buffer
+                    updatePacket.Serialize(ref otherPlayer.Socket.UnreliableBuffer);
+
+                    // Não enviamos o buffer aqui - ele será enviado automaticamente no próximo tick
+                    // ou quando estiver quase cheio
+                }
+                catch (IndexOutOfRangeException ex)
+                {
+                    // Log do erro e envio do buffer para evitar problemas futuros
+                    FileLogger.Log($"[PERIODIC SYNC] ⚠️ Buffer overflow ao enviar update para player {otherPlayer.EntityId}: {ex.Message}");
+                    otherPlayer.Socket.Send(ref otherPlayer.Socket.UnreliableBuffer);
+                }
 
                 updateCount++;
             }

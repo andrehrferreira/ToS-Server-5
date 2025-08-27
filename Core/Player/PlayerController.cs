@@ -85,10 +85,39 @@ public partial class PlayerController
 
         var packet = new DeltaSyncPacket();
 
+        // Tamanho estimado de um pacote DeltaSync completo (com todas as flags)
+        const int estimatedPacketSize = 50; // bytes
+
+        // Margem de segurança para evitar overflow
+        const int safetyMargin = 100; // bytes
+
+        // Limite de segurança para enviar o buffer
+        int safetyLimit = UDPServer.Mtu - estimatedPacketSize - safetyMargin;
+
         foreach (var other in neighbours)
         {
             if (EntitySocketMap.TryGet(other.Id, out var socket))
-                packet.Delta(entity, ref socket.UnreliableBuffer);
+            {
+                // Verificar se o buffer está quase cheio
+                if (socket.UnreliableBuffer.Position > safetyLimit)
+                {
+                    // Enviar o buffer atual antes de adicionar mais dados
+                    socket.Send(ref socket.UnreliableBuffer);
+
+                    // O buffer é redefinido após o envio, então podemos continuar adicionando dados
+                }
+
+                try
+                {
+                    packet.Delta(entity, ref socket.UnreliableBuffer);
+                }
+                catch (IndexOutOfRangeException ex)
+                {
+                    // Log do erro e envio do buffer para evitar problemas futuros
+                    FileLogger.Log($"[BUFFER OVERFLOW] ⚠️ Buffer overflow ao tentar enviar DeltaSync para {other.Id}: {ex.Message}");
+                    socket.Send(ref socket.UnreliableBuffer);
+                }
+            }
         }
     }
 
