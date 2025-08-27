@@ -70,13 +70,13 @@
     "enabled": true,
     "baseDistance": 100000.0,
     "entityDistances": {
-      "Player": 100000.0,
-      "NPC": 50000.0,
-      "StaticBuild": 25000.0,
-      "Vehicle": 150000.0,
-      "Projectile": 200000.0,
-      "Item": 10000.0,
-      "Effect": 50000.0
+        "Player": 100000.0,
+        "NPC": 50000.0,
+        "StaticBuild": 100000.0,
+        "Vehicle": 150000.0,
+        "Projectile": 200000.0,
+        "Item": 10000.0,
+        "Effect": 50000.0
     },
     "adaptiveSync": {
       "serverTickRate": 60,
