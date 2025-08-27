@@ -8,11 +8,20 @@ namespace Packets.Handler
 
         public override void Consume(PlayerController ctrl, ref FlatBuffer buffer)
         {
-                        // Debug: Log values AFTER deserialization to check data integrity
+            // Debug: Log values AFTER deserialization to check data integrity
             if (syncCounter < 5)
             {
                 FileLogger.Log($"[QUANTIZED HANDLER] === DESERIALIZATION ANALYSIS #{syncCounter + 1} ===");
                 FileLogger.Log($"[QUANTIZED HANDLER] Buffer Position: {buffer.Position}, Capacity: {buffer.Capacity}");
+            }
+
+            // Skip packet header: PacketType (1 byte) + ClientPacket (2 bytes) = 3 bytes
+            buffer.Read<byte>();    // Skip PacketType
+            buffer.Read<ushort>();  // Skip ClientPacket
+
+            if (syncCounter < 5)
+            {
+                FileLogger.Log($"[QUANTIZED HANDLER] Buffer Position after header skip: {buffer.Position}");
             }
 
             SyncEntityQuantizedPacket syncPacket = new SyncEntityQuantizedPacket();
