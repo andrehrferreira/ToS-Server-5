@@ -1,1377 +1,1175 @@
-=== CLIENT SESSION STARTED: 2025-08-27 16:29:33 ===
-[16:29:33.896] [WRENCH] SyncEntity: NetSubsystem found: YES
-[16:29:33.897] [TARGET] SyncPlayer::BeginPlay - NetSubsystem: FOUND
-[16:29:33.897] [ROCKET] SyncPlayer: Timer started for SendSyncToServer every 0.1s
-[16:29:33.908] === CRYPTO HANDSHAKE START ===
-[16:29:33.908] [CLIENT] 🔐 Sending CryptoTest: 2712847316
-[16:29:33.908] [CLIENT] 🔐 Buffer size: 5 bytes
-[16:29:33.911] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
-[16:29:33.911] [CLIENT] 🔐 Server crypto confirmed: NO
-[16:29:33.912] === RELIABLE HANDSHAKE START ===
-[16:29:33.912] [CLIENT] 🤝 Crypto ready: YES
-[16:29:33.912] [CLIENT] 🤝 Sending ReliableHandshake packet (2 bytes)
-[16:29:33.913] [CLIENT] 🤝 Buffer: [0x10, 0x01]
-[16:29:33.913] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
-[16:29:33.913] [CLIENT] 🔐 Server crypto confirmed: YES
-[16:29:33.914] === ENCRYPTING RELIABLE HANDSHAKE PACKET ===
-[16:29:33.914] [CLIENT] ConnectionId: 1455176152
-[16:29:33.914] [CLIENT] Sequence: 0
-[16:29:33.914] [CLIENT] Channel: 0
-[16:29:33.914] [CLIENT] Flags: 3
-[16:29:33.914] [CLIENT] AAD: D839BC5600030000000000000000
-[16:29:33.914] [CLIENT] Payload: 0F4D3C2B1A
-[16:29:33.915] [CLIENT] Nonce: D839BC560000000000000000
-[16:29:33.915] [CLIENT] TxKey: 699305D285F3B8D230872296FF4A57F48ABAC44B3E8F3B2B0A22FAE37D4D4D50
-[16:29:33.915] [CLIENT] Compression: false
-[16:29:33.915] [CLIENT] Ciphertext: B6334C6FEAA138CC412F17FF9B5B00EF9525960540
-[16:29:33.915] [CLIENT] Ciphertext Length: 21 bytes
-[16:29:33.915] [CLIENT] TxKey: 699305D285F3B8D230872296FF4A57F48ABAC44B3E8F3B2B0A22FAE37D4D4D50
-[16:29:33.916] [CLIENT] Final Packet Size: 39 bytes (Header: 14 + Ciphertext: 21 + CRC32: 4)
-[16:29:33.916] [CLIENT] CRC32 Signature: A731D585
-[16:29:33.916] [CLIENT] Complete Packet: D839BC5600030000000000000000B6334C6FEAA138CC412F17FF9B5B00EF952596054085D531A7
-[16:29:33.932] [SATELLITE] SendSyncToServer #0: Pos=X=900.000 Y=1110.000 Z=92.013, Rot=P=0.000000 Y=0.000000 R=0.000000, Vel=X=0.000 Y=0.000 Z=0.000
-[16:29:33.932] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:33.932] === SENDING SyncEntityQuantizedPacket #1 ===
-[16:29:33.932] [CLIENT SEND] [ROCKET] Original Position: X=900.000 Y=1110.000 Z=92.013
-[16:29:33.932] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=0.000000 R=0.000000
-[16:29:33.933] [CLIENT SEND] [ROCKET] Original Velocity: X=0.000 Y=0.000 Z=0.000
-[16:29:33.933] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
-[16:29:33.933] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
-[16:29:33.933] [CLIENT SEND] [PACKAGE] Quantized: X=9 Y=11 Z=1
-[16:29:33.933] [CLIENT SEND] [PACKAGE] Relative Position: X=900.000 Y=1110.000 Z=92.013
-[16:29:33.933] [CLIENT SEND] [PACKAGE] Yaw Only: 0.000000
-[16:29:33.934] === CLIENT SERIALIZATION DEBUG ===
-[16:29:33.934] [CLIENT STRUCT] QuantizedX: 9
-[16:29:33.934] [CLIENT STRUCT] QuantizedY: 11
-[16:29:33.934] [CLIENT STRUCT] QuantizedZ: 1
-[16:29:33.934] [CLIENT STRUCT] QuadrantX: 0
-[16:29:33.935] [CLIENT STRUCT] QuadrantY: 0
-[16:29:33.935] [CLIENT STRUCT] Yaw: 0.000000
-[16:29:33.935] [CLIENT STRUCT] Velocity: X=0.000 Y=0.000 Z=0.000
-[16:29:33.935] [CLIENT STRUCT] AnimationState: 0
-[16:29:33.935] [CLIENT STRUCT] IsFalling: false
-[16:29:33.935] [CLIENT] About to serialize SyncEntityQuantizedPacket...
-[16:29:33.936] [CLIENT] [CHECK] Serialization complete - buffer length: 26
-[16:29:33.936] === SERIALIZED BUFFER ANALYSIS ===
-[16:29:33.936] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
-[16:29:33.936] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
-[16:29:33.936] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
-[16:29:33.936] [CLIENT BUFFER] [03] =   9 (0x09) - QuantizedX[0]
-[16:29:33.937] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
-[16:29:33.937] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
-[16:29:33.937] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
-[16:29:33.937] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
-[16:29:33.937] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
-[16:29:33.937] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
-[16:29:33.937] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
-[16:29:33.938] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
-[16:29:33.938] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
-[16:29:33.938] [CLIENT BUFFER] [13] =   0 (0x00) - Yaw[0]
-[16:29:33.938] [CLIENT BUFFER] [14] =   0 (0x00) - Yaw[1]
-[16:29:33.938] [CLIENT BUFFER] [15] =   0 (0x00) - Yaw[2]
-[16:29:33.938] [CLIENT BUFFER] [16] =   0 (0x00) - Yaw[3]
-[16:29:33.938] [CLIENT BUFFER] [17] =   0 (0x00) - Data[17]
-[16:29:33.939] [CLIENT BUFFER] [18] =   0 (0x00) - Data[18]
-[16:29:33.939] [CLIENT BUFFER] [19] =   0 (0x00) - Data[19]
-[16:29:33.939] [CLIENT BUFFER] [20] =   0 (0x00) - Data[20]
-[16:29:33.939] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
-[16:29:33.939] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
-[16:29:33.939] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
-[16:29:33.939] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
-[16:29:33.940] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
-[16:29:33.940] === MANUAL BUFFER INTERPRETATION ===
-[16:29:33.940] [CLIENT MANUAL] QuantizedX: 9 (from bytes 09 00)
-[16:29:33.940] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
-[16:29:33.940] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
-[16:29:33.940] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
-[16:29:33.940] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
-[16:29:33.940] [CLIENT] Sending SyncEntityQuantizedPacket via UdpClient...
-[16:29:33.940] === SENDING Unknown Type 4 (seq=1) ===
-[16:29:33.940] [CLIENT] Channel: Unreliable
-[16:29:33.940] [CLIENT] Payload Size: 26 bytes
-[16:29:33.942] [CLIENT] RAW Payload: 04010009000B0001000000000000000000000000000000000000
-[16:29:33.942] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[16:29:33.942] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
-[16:29:33.942] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
-[16:29:33.942] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
-[16:29:33.942] [CLIENT] Payload[03] =   9 (0x09) (Position data byte 1)
-[16:29:33.943] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
-[16:29:33.943] [CLIENT] Payload[05] =  11 (0x0B) (Position data byte 3)
-[16:29:33.943] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
-[16:29:33.943] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
-[16:29:33.943] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[16:29:33.943] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[16:29:33.944] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
-[16:29:33.944] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
-[16:29:33.944] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[16:29:33.944] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
-[16:29:33.944] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
-[16:29:33.945] [CLIENT] Payload[15] =   0 (0x00) (Rotation data byte 1)
-[16:29:33.945] [CLIENT] Payload[16] =   0 (0x00) (Rotation data byte 2)
-[16:29:33.945] [CLIENT] Payload[17] =   0 (0x00) (Rotation data byte 3)
-[16:29:33.945] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
-[16:29:33.945] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
-[16:29:33.945] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
-[16:29:33.945] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[16:29:33.946] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[16:29:33.946] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
-[16:29:33.946] [CLIENT] ClientPacket interpreted as uint16: 1
-[16:29:33.946] [CLIENT] Should be 0 for SyncEntity: NO
-[16:29:33.946] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:33.976] [WRENCH] SyncEntity: NetSubsystem found: YES
-[16:29:34.096] === RECEIVED UpdateEntityQuantizedPacket #1 ===
-[16:29:34.096] [CLIENT] EntityId: 1185853251
-[16:29:34.096] [CLIENT] Quantized Position: (9, 12, 1)
-[16:29:34.096] [CLIENT] Quadrant: (0, 0)
-[16:29:34.096] [CLIENT] Yaw: 0.000000
-[16:29:34.096] [CLIENT] Velocity: X=0.000 Y=0.000 Z=0.000
-[16:29:34.097] [CLIENT] AnimationState: 0
-[16:29:34.097] [CLIENT] Flags: 0
-[16:29:34.097] [CLIENT] UpdateEntityQuantized broadcasted to delegates
-[16:29:34.098] === HandleUpdateEntityQuantized #1 ===
-[16:29:34.098] [CLIENT RECV] 📨 Received EntityId: 1185853251
-[16:29:34.098] [CLIENT RECV] 📨 Raw Quantized: X=9 Y=12 Z=1
-[16:29:34.098] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
-[16:29:34.098] [CLIENT RECV] 📨 Raw Yaw: 0.000000
-[16:29:34.098] [CLIENT RECV] 📨 Raw Velocity: X=0.000 Y=0.000 Z=0.000
-[16:29:34.099] [CLIENT RECV] 📨 bIsReadyToSync: true
-[16:29:34.099] [CLIENT RECV] 📨 SpawnedEntities count: 1
-[16:29:34.099] [HANDLER] [CHECK] Found existing entity 1185853251, updating...
-[16:29:34.099] [CLIENT RECV] 🧮 Calculated World Position: X=900.000 Y=1200.000 Z=100.000
-[16:29:34.099] [CLIENT RECV] 🧮 Entity Current Position: X=0.000 Y=0.000 Z=0.000
-[16:29:34.100] === UpdateFromQuantizedNetwork #1 ===
-[16:29:34.100] [ENTITY] EntityId: 1185853251
-[16:29:34.100] [ENTITY] Quantized: (9, 12, 1)
-[16:29:34.101] [ENTITY] Quadrant: (0, 0)
-[16:29:34.101] [ENTITY] Yaw: 0.000000
-[16:29:34.101] [ENTITY] Velocity: X=0.000 Y=0.000 Z=0.000
-[16:29:34.102] [ENTITY] Animation: 0, IsFalling: false
-[16:29:34.102] [ENTITY] Calculated world position: X=900.000 Y=1200.000 Z=100.000
-[16:29:34.102] [ENTITY] Previous TargetLocation: X=900.000 Y=1200.000 Z=100.000
-[16:29:34.103] [ENTITY] Setting new TargetLocation and TargetRotation
-[16:29:34.103] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1185853251
-[16:29:34.105] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=0.000 Y=0.000 Z=0.000
-[16:29:34.540] [SATELLITE] SendSyncToServer #1: Pos=X=900.312 Y=1110.013 Z=92.013, Rot=P=0.000000 Y=2.975000 R=0.000000, Vel=X=24.975 Y=1.120 Z=0.000
-[16:29:34.541] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:34.541] === SENDING SyncEntityQuantizedPacket #2 ===
-[16:29:34.541] [CLIENT SEND] [ROCKET] Original Position: X=900.312 Y=1110.013 Z=92.013
-[16:29:34.541] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=2.975000 R=0.000000
-[16:29:34.541] [CLIENT SEND] [ROCKET] Original Velocity: X=24.975 Y=1.120 Z=0.000
-[16:29:34.541] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
-[16:29:34.541] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
-[16:29:34.541] [CLIENT SEND] [PACKAGE] Quantized: X=9 Y=11 Z=1
-[16:29:34.541] [CLIENT SEND] [PACKAGE] Relative Position: X=900.312 Y=1110.013 Z=92.013
-[16:29:34.542] [CLIENT SEND] [PACKAGE] Yaw Only: 2.975000
-[16:29:34.542] === CLIENT SERIALIZATION DEBUG ===
-[16:29:34.542] [CLIENT STRUCT] QuantizedX: 9
-[16:29:34.542] [CLIENT STRUCT] QuantizedY: 11
-[16:29:34.542] [CLIENT STRUCT] QuantizedZ: 1
-[16:29:34.542] [CLIENT STRUCT] QuadrantX: 0
-[16:29:34.542] [CLIENT STRUCT] QuadrantY: 0
-[16:29:34.542] [CLIENT STRUCT] Yaw: 2.975000
-[16:29:34.543] [CLIENT STRUCT] Velocity: X=24.975 Y=1.120 Z=0.000
-[16:29:34.543] [CLIENT STRUCT] AnimationState: 0
-[16:29:34.543] [CLIENT STRUCT] IsFalling: false
-[16:29:34.543] [CLIENT] About to serialize SyncEntityQuantizedPacket...
-[16:29:34.543] [CLIENT] [CHECK] Serialization complete - buffer length: 26
-[16:29:34.543] === SERIALIZED BUFFER ANALYSIS ===
-[16:29:34.543] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
-[16:29:34.544] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
-[16:29:34.544] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
-[16:29:34.544] [CLIENT BUFFER] [03] =   9 (0x09) - QuantizedX[0]
-[16:29:34.544] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
-[16:29:34.544] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
-[16:29:34.544] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
-[16:29:34.544] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
-[16:29:34.544] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
-[16:29:34.544] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
-[16:29:34.545] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
-[16:29:34.545] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
-[16:29:34.545] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
-[16:29:34.545] [CLIENT BUFFER] [13] = 103 (0x67) - Yaw[0]
-[16:29:34.545] [CLIENT BUFFER] [14] = 102 (0x66) - Yaw[1]
-[16:29:34.545] [CLIENT BUFFER] [15] =  62 (0x3E) - Yaw[2]
-[16:29:34.545] [CLIENT BUFFER] [16] =  64 (0x40) - Yaw[3]
-[16:29:34.546] [CLIENT BUFFER] [17] = 250 (0xFA) - Data[17]
-[16:29:34.546] [CLIENT BUFFER] [18] =   0 (0x00) - Data[18]
-[16:29:34.546] [CLIENT BUFFER] [19] =  11 (0x0B) - Data[19]
-[16:29:34.546] [CLIENT BUFFER] [20] =   0 (0x00) - Data[20]
-[16:29:34.546] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
-[16:29:34.546] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
-[16:29:34.546] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
-[16:29:34.547] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
-[16:29:34.547] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
-[16:29:34.547] === MANUAL BUFFER INTERPRETATION ===
-[16:29:34.547] [CLIENT MANUAL] QuantizedX: 9 (from bytes 09 00)
-[16:29:34.547] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
-[16:29:34.547] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
-[16:29:34.547] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
-[16:29:34.547] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
-[16:29:34.548] [CLIENT] Sending SyncEntityQuantizedPacket via UdpClient...
-[16:29:34.548] === SENDING Unknown Type 4 (seq=2) ===
-[16:29:34.548] [CLIENT] Channel: Unreliable
-[16:29:34.548] [CLIENT] Payload Size: 26 bytes
-[16:29:34.548] [CLIENT] RAW Payload: 04010009000B0001000000000067663E40FA000B000000000000
-[16:29:34.548] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[16:29:34.548] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
-[16:29:34.548] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
-[16:29:34.548] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
-[16:29:34.548] [CLIENT] Payload[03] =   9 (0x09) (Position data byte 1)
-[16:29:34.548] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
-[16:29:34.550] [CLIENT] Payload[05] =  11 (0x0B) (Position data byte 3)
-[16:29:34.550] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
-[16:29:34.550] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
-[16:29:34.550] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[16:29:34.550] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[16:29:34.550] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
-[16:29:34.550] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
-[16:29:34.551] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[16:29:34.551] [CLIENT] Payload[13] = 103 (0x67) (Position data byte 11)
-[16:29:34.551] [CLIENT] Payload[14] = 102 (0x66) (Position data byte 12)
-[16:29:34.551] [CLIENT] Payload[15] =  62 (0x3E) (Rotation data byte 1)
-[16:29:34.551] [CLIENT] Payload[16] =  64 (0x40) (Rotation data byte 2)
-[16:29:34.551] [CLIENT] Payload[17] = 250 (0xFA) (Rotation data byte 3)
-[16:29:34.551] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
-[16:29:34.551] [CLIENT] Payload[19] =  11 (0x0B) (Rotation data byte 5)
-[16:29:34.551] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
-[16:29:34.551] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[16:29:34.551] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[16:29:34.551] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
-[16:29:34.552] [CLIENT] ClientPacket interpreted as uint16: 1
-[16:29:34.552] [CLIENT] Should be 0 for SyncEntity: NO
-[16:29:34.552] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:34.640] [SATELLITE] SendSyncToServer #2: Pos=X=910.960 Y=1111.712 Z=92.013, Rot=P=0.000000 Y=24.675001 R=0.000000, Vel=X=167.474 Y=43.967 Z=0.000
-[16:29:34.640] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:34.640] === SENDING SyncEntityQuantizedPacket #3 ===
-[16:29:34.640] [CLIENT SEND] [ROCKET] Original Position: X=910.960 Y=1111.712 Z=92.013
-[16:29:34.641] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=24.675001 R=0.000000
-[16:29:34.641] [CLIENT SEND] [ROCKET] Original Velocity: X=167.474 Y=43.967 Z=0.000
-[16:29:34.641] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
-[16:29:34.641] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
-[16:29:34.641] [CLIENT SEND] [PACKAGE] Quantized: X=9 Y=11 Z=1
-[16:29:34.641] [CLIENT SEND] [PACKAGE] Relative Position: X=910.960 Y=1111.712 Z=92.013
-[16:29:34.642] [CLIENT SEND] [PACKAGE] Yaw Only: 24.675001
-[16:29:34.642] === CLIENT SERIALIZATION DEBUG ===
-[16:29:34.642] [CLIENT STRUCT] QuantizedX: 9
-[16:29:34.642] [CLIENT STRUCT] QuantizedY: 11
-[16:29:34.642] [CLIENT STRUCT] QuantizedZ: 1
-[16:29:34.642] [CLIENT STRUCT] QuadrantX: 0
-[16:29:34.642] [CLIENT STRUCT] QuadrantY: 0
-[16:29:34.643] [CLIENT STRUCT] Yaw: 24.675001
-[16:29:34.643] [CLIENT STRUCT] Velocity: X=167.474 Y=43.967 Z=0.000
-[16:29:34.643] [CLIENT STRUCT] AnimationState: 0
-[16:29:34.643] [CLIENT STRUCT] IsFalling: false
-[16:29:34.643] [CLIENT] About to serialize SyncEntityQuantizedPacket...
-[16:29:34.644] [CLIENT] [CHECK] Serialization complete - buffer length: 26
-[16:29:34.644] === SERIALIZED BUFFER ANALYSIS ===
-[16:29:34.644] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
-[16:29:34.644] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
-[16:29:34.644] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
-[16:29:34.644] [CLIENT BUFFER] [03] =   9 (0x09) - QuantizedX[0]
-[16:29:34.644] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
-[16:29:34.644] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
-[16:29:34.644] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
-[16:29:34.644] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
-[16:29:34.644] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
-[16:29:34.645] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
-[16:29:34.645] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
-[16:29:34.645] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
-[16:29:34.645] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
-[16:29:34.646] [CLIENT BUFFER] [13] = 103 (0x67) - Yaw[0]
-[16:29:34.646] [CLIENT BUFFER] [14] = 102 (0x66) - Yaw[1]
-[16:29:34.646] [CLIENT BUFFER] [15] = 197 (0xC5) - Yaw[2]
-[16:29:34.646] [CLIENT BUFFER] [16] =  65 (0x41) - Yaw[3]
-[16:29:34.646] [CLIENT BUFFER] [17] = 139 (0x8B) - Data[17]
-[16:29:34.646] [CLIENT BUFFER] [18] =   6 (0x06) - Data[18]
-[16:29:34.646] [CLIENT BUFFER] [19] = 184 (0xB8) - Data[19]
-[16:29:34.646] [CLIENT BUFFER] [20] =   1 (0x01) - Data[20]
-[16:29:34.647] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
-[16:29:34.647] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
-[16:29:34.647] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
-[16:29:34.647] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
-[16:29:34.647] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
-[16:29:34.647] === MANUAL BUFFER INTERPRETATION ===
-[16:29:34.647] [CLIENT MANUAL] QuantizedX: 9 (from bytes 09 00)
-[16:29:34.647] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
-[16:29:34.648] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
-[16:29:34.648] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
-[16:29:34.648] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
-[16:29:34.648] [CLIENT] Sending SyncEntityQuantizedPacket via UdpClient...
-[16:29:34.648] === SENDING Unknown Type 4 (seq=3) ===
-[16:29:34.648] [CLIENT] Channel: Unreliable
-[16:29:34.648] [CLIENT] Payload Size: 26 bytes
-[16:29:34.649] [CLIENT] RAW Payload: 04010009000B000100000000006766C5418B06B8010000000000
-[16:29:34.649] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[16:29:34.649] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
-[16:29:34.649] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
-[16:29:34.649] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
-[16:29:34.649] [CLIENT] Payload[03] =   9 (0x09) (Position data byte 1)
-[16:29:34.649] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
-[16:29:34.650] [CLIENT] Payload[05] =  11 (0x0B) (Position data byte 3)
-[16:29:34.650] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
-[16:29:34.650] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
-[16:29:34.650] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[16:29:34.650] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[16:29:34.650] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
-[16:29:34.650] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
-[16:29:34.651] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[16:29:34.651] [CLIENT] Payload[13] = 103 (0x67) (Position data byte 11)
-[16:29:34.651] [CLIENT] Payload[14] = 102 (0x66) (Position data byte 12)
-[16:29:34.651] [CLIENT] Payload[15] = 197 (0xC5) (Rotation data byte 1)
-[16:29:34.651] [CLIENT] Payload[16] =  65 (0x41) (Rotation data byte 2)
-[16:29:34.651] [CLIENT] Payload[17] = 139 (0x8B) (Rotation data byte 3)
-[16:29:34.652] [CLIENT] Payload[18] =   6 (0x06) (Rotation data byte 4)
-[16:29:34.652] [CLIENT] Payload[19] = 184 (0xB8) (Rotation data byte 5)
-[16:29:34.652] [CLIENT] Payload[20] =   1 (0x01) (Rotation data byte 6)
-[16:29:34.652] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[16:29:34.652] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[16:29:34.652] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
-[16:29:34.653] [CLIENT] ClientPacket interpreted as uint16: 1
-[16:29:34.653] [CLIENT] Should be 0 for SyncEntity: NO
-[16:29:34.653] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:34.737] [SATELLITE] SendSyncToServer #3: Pos=X=933.612 Y=1121.440 Z=92.013, Rot=P=0.000000 Y=31.675001 R=0.000000, Vel=X=281.503 Y=143.882 Z=0.000
-[16:29:34.738] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:34.738] === SENDING SyncEntityQuantizedPacket #4 ===
-[16:29:34.738] [CLIENT SEND] [ROCKET] Original Position: X=933.612 Y=1121.440 Z=92.013
-[16:29:34.738] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=31.675001 R=0.000000
-[16:29:34.738] [CLIENT SEND] [ROCKET] Original Velocity: X=281.503 Y=143.882 Z=0.000
-[16:29:34.738] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
-[16:29:34.739] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
-[16:29:34.739] [CLIENT SEND] [PACKAGE] Quantized: X=9 Y=11 Z=1
-[16:29:34.739] [CLIENT SEND] [PACKAGE] Relative Position: X=933.612 Y=1121.440 Z=92.013
-[16:29:34.739] [CLIENT SEND] [PACKAGE] Yaw Only: 31.675001
-[16:29:34.739] === CLIENT SERIALIZATION DEBUG ===
-[16:29:34.739] [CLIENT STRUCT] QuantizedX: 9
-[16:29:34.739] [CLIENT STRUCT] QuantizedY: 11
-[16:29:34.739] [CLIENT STRUCT] QuantizedZ: 1
-[16:29:34.739] [CLIENT STRUCT] QuadrantX: 0
-[16:29:34.740] [CLIENT STRUCT] QuadrantY: 0
-[16:29:34.740] [CLIENT STRUCT] Yaw: 31.675001
-[16:29:34.740] [CLIENT STRUCT] Velocity: X=281.503 Y=143.882 Z=0.000
-[16:29:34.740] [CLIENT STRUCT] AnimationState: 0
-[16:29:34.740] [CLIENT STRUCT] IsFalling: false
-[16:29:34.740] [CLIENT] About to serialize SyncEntityQuantizedPacket...
-[16:29:34.740] [CLIENT] [CHECK] Serialization complete - buffer length: 26
-[16:29:34.741] === SERIALIZED BUFFER ANALYSIS ===
-[16:29:34.741] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
-[16:29:34.741] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
-[16:29:34.741] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
-[16:29:34.741] [CLIENT BUFFER] [03] =   9 (0x09) - QuantizedX[0]
-[16:29:34.741] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
-[16:29:34.741] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
-[16:29:34.741] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
-[16:29:34.742] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
-[16:29:34.742] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
-[16:29:34.742] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
-[16:29:34.742] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
-[16:29:34.742] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
-[16:29:34.742] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
-[16:29:34.742] [CLIENT BUFFER] [13] = 103 (0x67) - Yaw[0]
-[16:29:34.743] [CLIENT BUFFER] [14] = 102 (0x66) - Yaw[1]
-[16:29:34.743] [CLIENT BUFFER] [15] = 253 (0xFD) - Yaw[2]
-[16:29:34.743] [CLIENT BUFFER] [16] =  65 (0x41) - Yaw[3]
-[16:29:34.743] [CLIENT BUFFER] [17] = 255 (0xFF) - Data[17]
-[16:29:34.743] [CLIENT BUFFER] [18] =  10 (0x0A) - Data[18]
-[16:29:34.743] [CLIENT BUFFER] [19] = 159 (0x9F) - Data[19]
-[16:29:34.743] [CLIENT BUFFER] [20] =   5 (0x05) - Data[20]
-[16:29:34.743] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
-[16:29:34.744] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
-[16:29:34.744] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
-[16:29:34.744] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
-[16:29:34.744] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
-[16:29:34.744] === MANUAL BUFFER INTERPRETATION ===
-[16:29:34.744] [CLIENT MANUAL] QuantizedX: 9 (from bytes 09 00)
-[16:29:34.744] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
-[16:29:34.744] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
-[16:29:34.745] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
-[16:29:34.745] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
-[16:29:34.745] [CLIENT] Sending SyncEntityQuantizedPacket via UdpClient...
-[16:29:34.745] === SENDING Unknown Type 4 (seq=4) ===
-[16:29:34.745] [CLIENT] Channel: Unreliable
-[16:29:34.746] [CLIENT] Payload Size: 26 bytes
-[16:29:34.746] [CLIENT] RAW Payload: 04010009000B000100000000006766FD41FF0A9F050000000000
-[16:29:34.746] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[16:29:34.746] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
-[16:29:34.746] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
-[16:29:34.746] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
-[16:29:34.746] [CLIENT] Payload[03] =   9 (0x09) (Position data byte 1)
-[16:29:34.747] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
-[16:29:34.747] [CLIENT] Payload[05] =  11 (0x0B) (Position data byte 3)
-[16:29:34.747] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
-[16:29:34.747] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
-[16:29:34.747] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[16:29:34.747] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[16:29:34.747] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
-[16:29:34.748] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
-[16:29:34.748] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[16:29:34.748] [CLIENT] Payload[13] = 103 (0x67) (Position data byte 11)
-[16:29:34.748] [CLIENT] Payload[14] = 102 (0x66) (Position data byte 12)
-[16:29:34.748] [CLIENT] Payload[15] = 253 (0xFD) (Rotation data byte 1)
-[16:29:34.748] [CLIENT] Payload[16] =  65 (0x41) (Rotation data byte 2)
-[16:29:34.748] [CLIENT] Payload[17] = 255 (0xFF) (Rotation data byte 3)
-[16:29:34.749] [CLIENT] Payload[18] =  10 (0x0A) (Rotation data byte 4)
-[16:29:34.749] [CLIENT] Payload[19] = 159 (0x9F) (Rotation data byte 5)
-[16:29:34.749] [CLIENT] Payload[20] =   5 (0x05) (Rotation data byte 6)
-[16:29:34.749] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[16:29:34.749] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[16:29:34.749] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
-[16:29:34.749] [CLIENT] ClientPacket interpreted as uint16: 1
-[16:29:34.749] [CLIENT] Should be 0 for SyncEntity: NO
-[16:29:34.750] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:34.838] [SATELLITE] SendSyncToServer #4: Pos=X=969.247 Y=1134.453 Z=92.013, Rot=P=0.000000 Y=1.179301 R=0.000000, Vel=X=422.387 Y=55.888 Z=0.000
-[16:29:34.838] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:34.838] === SENDING SyncEntityQuantizedPacket #5 ===
-[16:29:34.838] [CLIENT SEND] [ROCKET] Original Position: X=969.247 Y=1134.453 Z=92.013
-[16:29:34.839] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=1.179301 R=0.000000
-[16:29:34.839] [CLIENT SEND] [ROCKET] Original Velocity: X=422.387 Y=55.888 Z=0.000
-[16:29:34.839] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
-[16:29:34.839] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
-[16:29:34.839] [CLIENT SEND] [PACKAGE] Quantized: X=10 Y=11 Z=1
-[16:29:34.839] [CLIENT SEND] [PACKAGE] Relative Position: X=969.247 Y=1134.453 Z=92.013
-[16:29:34.839] [CLIENT SEND] [PACKAGE] Yaw Only: 1.179301
-[16:29:34.839] === CLIENT SERIALIZATION DEBUG ===
-[16:29:34.840] [CLIENT STRUCT] QuantizedX: 10
-[16:29:34.840] [CLIENT STRUCT] QuantizedY: 11
-[16:29:34.840] [CLIENT STRUCT] QuantizedZ: 1
-[16:29:34.840] [CLIENT STRUCT] QuadrantX: 0
-[16:29:34.840] [CLIENT STRUCT] QuadrantY: 0
-[16:29:34.840] [CLIENT STRUCT] Yaw: 1.179301
-[16:29:34.840] [CLIENT STRUCT] Velocity: X=422.387 Y=55.888 Z=0.000
-[16:29:34.841] [CLIENT STRUCT] AnimationState: 0
-[16:29:34.841] [CLIENT STRUCT] IsFalling: false
-[16:29:34.841] [CLIENT] About to serialize SyncEntityQuantizedPacket...
-[16:29:34.841] [CLIENT] [CHECK] Serialization complete - buffer length: 26
-[16:29:34.841] === SERIALIZED BUFFER ANALYSIS ===
-[16:29:34.841] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
-[16:29:34.841] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
-[16:29:34.841] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
-[16:29:34.842] [CLIENT BUFFER] [03] =  10 (0x0A) - QuantizedX[0]
-[16:29:34.842] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
-[16:29:34.842] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
-[16:29:34.842] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
-[16:29:34.842] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
-[16:29:34.842] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
-[16:29:34.842] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
-[16:29:34.842] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
-[16:29:34.843] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
-[16:29:34.843] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
-[16:29:34.843] [CLIENT BUFFER] [13] =  88 (0x58) - Yaw[0]
-[16:29:34.843] [CLIENT BUFFER] [14] = 243 (0xF3) - Yaw[1]
-[16:29:34.843] [CLIENT BUFFER] [15] = 150 (0x96) - Yaw[2]
-[16:29:34.843] [CLIENT BUFFER] [16] =  63 (0x3F) - Yaw[3]
-[16:29:34.843] [CLIENT BUFFER] [17] = 128 (0x80) - Data[17]
-[16:29:34.844] [CLIENT BUFFER] [18] =  16 (0x10) - Data[18]
-[16:29:34.844] [CLIENT BUFFER] [19] =  47 (0x2F) - Data[19]
-[16:29:34.844] [CLIENT BUFFER] [20] =   2 (0x02) - Data[20]
-[16:29:34.844] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
-[16:29:34.844] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
-[16:29:34.844] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
-[16:29:34.844] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
-[16:29:34.844] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
-[16:29:34.845] === MANUAL BUFFER INTERPRETATION ===
-[16:29:34.845] [CLIENT MANUAL] QuantizedX: 10 (from bytes 0A 00)
-[16:29:34.845] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
-[16:29:34.845] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
-[16:29:34.845] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
-[16:29:34.845] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
-[16:29:34.845] [CLIENT] Sending SyncEntityQuantizedPacket via UdpClient...
-[16:29:34.846] === SENDING Unknown Type 4 (seq=5) ===
-[16:29:34.846] [CLIENT] Channel: Unreliable
-[16:29:34.846] [CLIENT] Payload Size: 26 bytes
-[16:29:34.846] [CLIENT] RAW Payload: 0401000A000B0001000000000058F3963F80102F020000000000
-[16:29:34.846] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[16:29:34.846] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
-[16:29:34.846] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
-[16:29:34.846] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
-[16:29:34.846] [CLIENT] Payload[03] =  10 (0x0A) (Position data byte 1)
-[16:29:34.846] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
-[16:29:34.846] [CLIENT] Payload[05] =  11 (0x0B) (Position data byte 3)
-[16:29:34.846] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
-[16:29:34.847] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
-[16:29:34.847] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[16:29:34.847] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[16:29:34.847] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
-[16:29:34.847] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
-[16:29:34.847] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[16:29:34.847] [CLIENT] Payload[13] =  88 (0x58) (Position data byte 11)
-[16:29:34.848] [CLIENT] Payload[14] = 243 (0xF3) (Position data byte 12)
-[16:29:34.848] [CLIENT] Payload[15] = 150 (0x96) (Rotation data byte 1)
-[16:29:34.848] [CLIENT] Payload[16] =  63 (0x3F) (Rotation data byte 2)
-[16:29:34.848] [CLIENT] Payload[17] = 128 (0x80) (Rotation data byte 3)
-[16:29:34.848] [CLIENT] Payload[18] =  16 (0x10) (Rotation data byte 4)
-[16:29:34.848] [CLIENT] Payload[19] =  47 (0x2F) (Rotation data byte 5)
-[16:29:34.848] [CLIENT] Payload[20] =   2 (0x02) (Rotation data byte 6)
-[16:29:34.849] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[16:29:34.849] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[16:29:34.849] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
-[16:29:34.849] [CLIENT] ClientPacket interpreted as uint16: 1
-[16:29:34.849] [CLIENT] Should be 0 for SyncEntity: NO
-[16:29:34.849] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:34.934] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:34.935] === SENDING SyncEntityQuantizedPacket #6 ===
-[16:29:34.935] [CLIENT SEND] [ROCKET] Original Position: X=1015.557 Y=1133.141 Z=92.013
-[16:29:34.935] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=-12.799988 R=0.000000
-[16:29:34.935] [CLIENT SEND] [ROCKET] Original Velocity: X=497.186 Y=-52.976 Z=0.000
-[16:29:34.935] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
-[16:29:34.936] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
-[16:29:34.936] [CLIENT SEND] [PACKAGE] Quantized: X=10 Y=11 Z=1
-[16:29:34.936] [CLIENT SEND] [PACKAGE] Relative Position: X=1015.557 Y=1133.141 Z=92.013
-[16:29:34.936] [CLIENT SEND] [PACKAGE] Yaw Only: -12.799988
-[16:29:34.936] === CLIENT SERIALIZATION DEBUG ===
-[16:29:34.936] [CLIENT STRUCT] QuantizedX: 10
-[16:29:34.936] [CLIENT STRUCT] QuantizedY: 11
-[16:29:34.936] [CLIENT STRUCT] QuantizedZ: 1
-[16:29:34.936] [CLIENT STRUCT] QuadrantX: 0
-[16:29:34.937] [CLIENT STRUCT] QuadrantY: 0
-[16:29:34.937] [CLIENT STRUCT] Yaw: -12.799988
-[16:29:34.937] [CLIENT STRUCT] Velocity: X=497.186 Y=-52.976 Z=0.000
-[16:29:34.937] [CLIENT STRUCT] AnimationState: 0
-[16:29:34.937] [CLIENT STRUCT] IsFalling: false
-[16:29:34.937] [CLIENT] About to serialize SyncEntityQuantizedPacket...
-[16:29:34.937] [CLIENT] [CHECK] Serialization complete - buffer length: 26
-[16:29:34.938] === SERIALIZED BUFFER ANALYSIS ===
-[16:29:34.938] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
-[16:29:34.938] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
-[16:29:34.938] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
-[16:29:34.938] [CLIENT BUFFER] [03] =  10 (0x0A) - QuantizedX[0]
-[16:29:34.938] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
-[16:29:34.939] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
-[16:29:34.939] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
-[16:29:34.939] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
-[16:29:34.939] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
-[16:29:34.939] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
-[16:29:34.939] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
-[16:29:34.940] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
-[16:29:34.940] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
-[16:29:34.940] [CLIENT BUFFER] [13] = 192 (0xC0) - Yaw[0]
-[16:29:34.940] [CLIENT BUFFER] [14] = 204 (0xCC) - Yaw[1]
-[16:29:34.940] [CLIENT BUFFER] [15] =  76 (0x4C) - Yaw[2]
-[16:29:34.940] [CLIENT BUFFER] [16] = 193 (0xC1) - Yaw[3]
-[16:29:34.940] [CLIENT BUFFER] [17] = 108 (0x6C) - Data[17]
-[16:29:34.941] [CLIENT BUFFER] [18] =  19 (0x13) - Data[18]
-[16:29:34.941] [CLIENT BUFFER] [19] = 238 (0xEE) - Data[19]
-[16:29:34.941] [CLIENT BUFFER] [20] = 253 (0xFD) - Data[20]
-[16:29:34.941] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
-[16:29:34.941] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
-[16:29:34.941] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
-[16:29:34.941] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
-[16:29:34.941] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
-[16:29:34.941] === MANUAL BUFFER INTERPRETATION ===
-[16:29:34.941] [CLIENT MANUAL] QuantizedX: 10 (from bytes 0A 00)
-[16:29:34.941] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
-[16:29:34.942] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
-[16:29:34.942] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
-[16:29:34.942] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
-[16:29:34.942] === SENDING Unknown Type 4 (seq=6) ===
-[16:29:34.942] [CLIENT] Channel: Unreliable
-[16:29:34.942] [CLIENT] Payload Size: 26 bytes
-[16:29:34.942] [CLIENT] RAW Payload: 0401000A000B00010000000000C0CC4CC16C13EEFD0000000000
-[16:29:34.943] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[16:29:34.943] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
-[16:29:34.943] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
-[16:29:34.943] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
-[16:29:34.943] [CLIENT] Payload[03] =  10 (0x0A) (Position data byte 1)
-[16:29:34.943] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
-[16:29:34.943] [CLIENT] Payload[05] =  11 (0x0B) (Position data byte 3)
-[16:29:34.944] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
-[16:29:34.944] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
-[16:29:34.944] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[16:29:34.944] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[16:29:34.945] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
-[16:29:34.945] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
-[16:29:34.945] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[16:29:34.945] [CLIENT] Payload[13] = 192 (0xC0) (Position data byte 11)
-[16:29:34.945] [CLIENT] Payload[14] = 204 (0xCC) (Position data byte 12)
-[16:29:34.945] [CLIENT] Payload[15] =  76 (0x4C) (Rotation data byte 1)
-[16:29:34.946] [CLIENT] Payload[16] = 193 (0xC1) (Rotation data byte 2)
-[16:29:34.946] [CLIENT] Payload[17] = 108 (0x6C) (Rotation data byte 3)
-[16:29:34.946] [CLIENT] Payload[18] =  19 (0x13) (Rotation data byte 4)
-[16:29:34.947] [CLIENT] Payload[19] = 238 (0xEE) (Rotation data byte 5)
-[16:29:34.947] [CLIENT] Payload[20] = 253 (0xFD) (Rotation data byte 6)
-[16:29:34.947] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[16:29:34.947] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[16:29:34.947] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
-[16:29:34.947] [CLIENT] ClientPacket interpreted as uint16: 1
-[16:29:34.947] [CLIENT] Should be 0 for SyncEntity: NO
-[16:29:34.948] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:35.040] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:35.040] === SENDING SyncEntityQuantizedPacket #7 ===
-[16:29:35.040] [CLIENT SEND] [ROCKET] Original Position: X=1068.163 Y=1124.763 Z=92.013
-[16:29:35.041] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=-11.049988 R=0.000000
-[16:29:35.041] [CLIENT SEND] [ROCKET] Original Velocity: X=492.015 Y=-89.001 Z=0.000
-[16:29:35.041] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
-[16:29:35.041] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
-[16:29:35.041] [CLIENT SEND] [PACKAGE] Quantized: X=11 Y=11 Z=1
-[16:29:35.041] [CLIENT SEND] [PACKAGE] Relative Position: X=1068.163 Y=1124.763 Z=92.013
-[16:29:35.041] [CLIENT SEND] [PACKAGE] Yaw Only: -11.049988
-[16:29:35.042] === CLIENT SERIALIZATION DEBUG ===
-[16:29:35.042] [CLIENT STRUCT] QuantizedX: 11
-[16:29:35.042] [CLIENT STRUCT] QuantizedY: 11
-[16:29:35.042] [CLIENT STRUCT] QuantizedZ: 1
-[16:29:35.042] [CLIENT STRUCT] QuadrantX: 0
-[16:29:35.042] [CLIENT STRUCT] QuadrantY: 0
-[16:29:35.042] [CLIENT STRUCT] Yaw: -11.049988
-[16:29:35.042] [CLIENT STRUCT] Velocity: X=492.015 Y=-89.001 Z=0.000
-[16:29:35.043] [CLIENT STRUCT] AnimationState: 0
-[16:29:35.043] [CLIENT STRUCT] IsFalling: false
-[16:29:35.043] [CLIENT] About to serialize SyncEntityQuantizedPacket...
-[16:29:35.043] [CLIENT] [CHECK] Serialization complete - buffer length: 26
-[16:29:35.043] === SERIALIZED BUFFER ANALYSIS ===
-[16:29:35.044] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
-[16:29:35.044] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
-[16:29:35.044] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
-[16:29:35.044] [CLIENT BUFFER] [03] =  11 (0x0B) - QuantizedX[0]
-[16:29:35.044] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
-[16:29:35.044] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
-[16:29:35.044] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
-[16:29:35.044] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
-[16:29:35.044] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
-[16:29:35.044] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
-[16:29:35.044] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
-[16:29:35.045] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
-[16:29:35.045] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
-[16:29:35.045] [CLIENT BUFFER] [13] = 192 (0xC0) - Yaw[0]
-[16:29:35.045] [CLIENT BUFFER] [14] = 204 (0xCC) - Yaw[1]
-[16:29:35.045] [CLIENT BUFFER] [15] =  48 (0x30) - Yaw[2]
-[16:29:35.045] [CLIENT BUFFER] [16] = 193 (0xC1) - Yaw[3]
-[16:29:35.046] [CLIENT BUFFER] [17] =  56 (0x38) - Data[17]
-[16:29:35.046] [CLIENT BUFFER] [18] =  19 (0x13) - Data[18]
-[16:29:35.046] [CLIENT BUFFER] [19] = 134 (0x86) - Data[19]
-[16:29:35.049] [CLIENT] ClientPacket interpreted as uint16: 1
-[16:29:35.049] [CLIENT] Should be 0 for SyncEntity: NO
-[16:29:35.049] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:35.134] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:35.135] === SENDING SyncEntityQuantizedPacket #8 ===
-[16:29:35.135] [CLIENT SEND] [ROCKET] Original Position: X=1114.564 Y=1116.470 Z=92.013
-[16:29:35.135] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=-9.299988 R=0.000000
-[16:29:35.135] [CLIENT SEND] [ROCKET] Original Velocity: X=492.644 Y=-85.452 Z=0.000
-[16:29:35.135] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
-[16:29:35.136] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
-[16:29:35.136] [CLIENT SEND] [PACKAGE] Quantized: X=11 Y=11 Z=1
-[16:29:35.136] [CLIENT SEND] [PACKAGE] Relative Position: X=1114.564 Y=1116.470 Z=92.013
-[16:29:35.136] [CLIENT SEND] [PACKAGE] Yaw Only: -9.299988
-[16:29:35.136] === CLIENT SERIALIZATION DEBUG ===
-[16:29:35.136] [CLIENT STRUCT] QuantizedX: 11
-[16:29:35.136] [CLIENT STRUCT] QuantizedY: 11
-[16:29:35.137] [CLIENT STRUCT] QuantizedZ: 1
-[16:29:35.137] [CLIENT STRUCT] QuadrantX: 0
-[16:29:35.137] [CLIENT STRUCT] QuadrantY: 0
-[16:29:35.137] [CLIENT STRUCT] Yaw: -9.299988
-[16:29:35.137] [CLIENT STRUCT] Velocity: X=492.644 Y=-85.452 Z=0.000
-[16:29:35.137] [CLIENT STRUCT] AnimationState: 0
-[16:29:35.137] [CLIENT STRUCT] IsFalling: false
-[16:29:35.137] [CLIENT] About to serialize SyncEntityQuantizedPacket...
-[16:29:35.138] [CLIENT] [CHECK] Serialization complete - buffer length: 26
-[16:29:35.138] === SERIALIZED BUFFER ANALYSIS ===
-[16:29:35.138] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
-[16:29:35.138] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
-[16:29:35.138] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
-[16:29:35.138] [CLIENT BUFFER] [03] =  11 (0x0B) - QuantizedX[0]
-[16:29:35.138] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
-[16:29:35.139] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
-[16:29:35.139] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
-[16:29:35.139] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
-[16:29:35.139] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
-[16:29:35.139] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
-[16:29:35.139] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
-[16:29:35.139] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
-[16:29:35.140] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
-[16:29:35.140] [CLIENT BUFFER] [13] = 192 (0xC0) - Yaw[0]
-[16:29:35.140] [CLIENT BUFFER] [14] = 204 (0xCC) - Yaw[1]
-[16:29:35.140] [CLIENT BUFFER] [15] =  20 (0x14) - Yaw[2]
-[16:29:35.140] [CLIENT BUFFER] [16] = 193 (0xC1) - Yaw[3]
-[16:29:35.140] [CLIENT BUFFER] [17] =  62 (0x3E) - Data[17]
-[16:29:35.140] [CLIENT BUFFER] [18] =  19 (0x13) - Data[18]
-[16:29:35.140] [CLIENT BUFFER] [19] = 169 (0xA9) - Data[19]
-[16:29:35.141] [CLIENT BUFFER] [20] = 252 (0xFC) - Data[20]
-[16:29:35.141] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
-[16:29:35.141] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
-[16:29:35.141] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
-[16:29:35.141] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
-[16:29:35.141] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
-[16:29:35.141] === MANUAL BUFFER INTERPRETATION ===
-[16:29:35.142] [CLIENT MANUAL] QuantizedX: 11 (from bytes 0B 00)
-[16:29:35.142] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
-[16:29:35.142] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
-[16:29:35.142] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
-[16:29:35.142] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
-[16:29:35.142] === SENDING Unknown Type 4 (seq=8) ===
-[16:29:35.142] [CLIENT] Channel: Unreliable
-[16:29:35.142] [CLIENT] Payload Size: 26 bytes
-[16:29:35.143] [CLIENT] RAW Payload: 0401000B000B00010000000000C0CC14C13E13A9FC0000000000
-[16:29:35.143] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[16:29:35.143] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
-[16:29:35.143] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
-[16:29:35.143] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
-[16:29:35.143] [CLIENT] Payload[03] =  11 (0x0B) (Position data byte 1)
-[16:29:35.143] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
-[16:29:35.143] [CLIENT] Payload[05] =  11 (0x0B) (Position data byte 3)
-[16:29:35.144] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
-[16:29:35.144] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
-[16:29:35.144] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[16:29:35.144] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[16:29:35.144] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
-[16:29:35.144] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
-[16:29:35.144] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[16:29:35.144] [CLIENT] Payload[13] = 192 (0xC0) (Position data byte 11)
-[16:29:35.145] [CLIENT] Payload[14] = 204 (0xCC) (Position data byte 12)
-[16:29:35.145] [CLIENT] Payload[15] =  20 (0x14) (Rotation data byte 1)
-[16:29:35.145] [CLIENT] Payload[16] = 193 (0xC1) (Rotation data byte 2)
-[16:29:35.145] [CLIENT] Payload[17] =  62 (0x3E) (Rotation data byte 3)
-[16:29:35.145] [CLIENT] Payload[18] =  19 (0x13) (Rotation data byte 4)
-[16:29:35.145] [CLIENT] Payload[19] = 169 (0xA9) (Rotation data byte 5)
-[16:29:35.145] [CLIENT] Payload[20] = 252 (0xFC) (Rotation data byte 6)
-[16:29:35.145] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[16:29:35.146] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[16:29:35.146] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
-[16:29:35.146] [CLIENT] ClientPacket interpreted as uint16: 1
-[16:29:35.146] [CLIENT] Should be 0 for SyncEntity: NO
-[16:29:35.146] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:35.240] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:35.240] === SENDING SyncEntityQuantizedPacket #9 ===
-[16:29:35.240] [CLIENT SEND] [ROCKET] Original Position: X=1166.053 Y=1119.663 Z=92.013
-[16:29:35.240] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=32.367123 R=0.000000
-[16:29:35.240] [CLIENT SEND] [ROCKET] Original Velocity: X=477.432 Y=148.523 Z=0.000
-[16:29:35.240] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
-[16:29:35.240] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
-[16:29:35.241] [CLIENT SEND] [PACKAGE] Quantized: X=12 Y=11 Z=1
-[16:29:35.241] [CLIENT SEND] [PACKAGE] Relative Position: X=1166.053 Y=1119.663 Z=92.013
-[16:29:35.241] [CLIENT SEND] [PACKAGE] Yaw Only: 32.367123
-[16:29:35.241] === CLIENT SERIALIZATION DEBUG ===
-[16:29:35.241] [CLIENT STRUCT] QuantizedX: 12
-[16:29:35.241] [CLIENT STRUCT] QuantizedY: 11
-[16:29:35.241] [CLIENT STRUCT] QuantizedZ: 1
-[16:29:35.241] [CLIENT STRUCT] QuadrantX: 0
-[16:29:35.242] [CLIENT STRUCT] QuadrantY: 0
-[16:29:35.242] [CLIENT STRUCT] Yaw: 32.367123
-[16:29:35.242] [CLIENT STRUCT] Velocity: X=477.432 Y=148.523 Z=0.000
-[16:29:35.242] [CLIENT STRUCT] AnimationState: 0
-[16:29:35.242] [CLIENT STRUCT] IsFalling: false
-[16:29:35.242] [CLIENT] About to serialize SyncEntityQuantizedPacket...
-[16:29:35.242] [CLIENT] [CHECK] Serialization complete - buffer length: 26
-[16:29:35.243] === SERIALIZED BUFFER ANALYSIS ===
-[16:29:35.243] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
-[16:29:35.243] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
-[16:29:35.243] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
-[16:29:35.243] [CLIENT BUFFER] [03] =  12 (0x0C) - QuantizedX[0]
-[16:29:35.243] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
-[16:29:35.243] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
-[16:29:35.243] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
-[16:29:35.244] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
-[16:29:35.244] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
-[16:29:35.244] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
-[16:29:35.244] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
-[16:29:35.244] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
-[16:29:35.244] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
-[16:29:35.244] [CLIENT BUFFER] [13] = 239 (0xEF) - Yaw[0]
-[16:29:35.244] [CLIENT BUFFER] [14] = 119 (0x77) - Yaw[1]
-[16:29:35.245] [CLIENT BUFFER] [15] =   1 (0x01) - Yaw[2]
-[16:29:35.245] [CLIENT BUFFER] [16] =  66 (0x42) - Yaw[3]
-[16:29:35.245] [CLIENT BUFFER] [17] = 166 (0xA6) - Data[17]
-[16:29:35.245] [CLIENT BUFFER] [18] =  18 (0x12) - Data[18]
-[16:29:35.245] [CLIENT BUFFER] [19] = 205 (0xCD) - Data[19]
-[16:29:35.245] [CLIENT BUFFER] [20] =   5 (0x05) - Data[20]
-[16:29:35.245] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
-[16:29:35.246] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
-[16:29:35.246] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
-[16:29:35.246] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
-[16:29:35.246] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
-[16:29:35.246] === MANUAL BUFFER INTERPRETATION ===
-[16:29:35.246] [CLIENT MANUAL] QuantizedX: 12 (from bytes 0C 00)
-[16:29:35.246] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
-[16:29:35.246] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
-[16:29:35.247] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
-[16:29:35.247] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
-[16:29:35.247] === SENDING Unknown Type 4 (seq=9) ===
-[16:29:35.247] [CLIENT] Channel: Unreliable
-[16:29:35.247] [CLIENT] Payload Size: 26 bytes
-[16:29:35.247] [CLIENT] RAW Payload: 0401000C000B00010000000000EF770142A612CD050000000000
-[16:29:35.247] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[16:29:35.248] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
-[16:29:35.248] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
-[16:29:35.248] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
-[16:29:35.248] [CLIENT] Payload[03] =  12 (0x0C) (Position data byte 1)
-[16:29:35.249] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
-[16:29:35.249] [CLIENT] Payload[05] =  11 (0x0B) (Position data byte 3)
-[16:29:35.249] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
-[16:29:35.249] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
-[16:29:35.249] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[16:29:35.249] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[16:29:35.249] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
-[16:29:35.249] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
-[16:29:35.250] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[16:29:35.250] [CLIENT] Payload[13] = 239 (0xEF) (Position data byte 11)
-[16:29:35.250] [CLIENT] Payload[14] = 119 (0x77) (Position data byte 12)
-[16:29:35.250] [CLIENT] Payload[15] =   1 (0x01) (Rotation data byte 1)
-[16:29:35.250] [CLIENT] Payload[16] =  66 (0x42) (Rotation data byte 2)
-[16:29:35.250] [CLIENT] Payload[17] = 166 (0xA6) (Rotation data byte 3)
-[16:29:35.250] [CLIENT] Payload[18] =  18 (0x12) (Rotation data byte 4)
-[16:29:35.251] [CLIENT] Payload[19] = 205 (0xCD) (Rotation data byte 5)
-[16:29:35.251] [CLIENT] Payload[20] =   5 (0x05) (Rotation data byte 6)
-[16:29:35.251] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[16:29:35.251] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[16:29:35.251] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
-[16:29:35.251] [CLIENT] ClientPacket interpreted as uint16: 1
-[16:29:35.252] [CLIENT] Should be 0 for SyncEntity: NO
-[16:29:35.252] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:35.336] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:35.336] === SENDING SyncEntityQuantizedPacket #10 ===
-[16:29:35.336] [CLIENT SEND] [ROCKET] Original Position: X=1207.481 Y=1143.083 Z=92.013
-[16:29:35.336] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=56.708599 R=0.000000
-[16:29:35.337] [CLIENT SEND] [ROCKET] Original Velocity: X=350.030 Y=350.982 Z=0.000
-[16:29:35.337] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
-[16:29:35.337] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
-[16:29:35.337] [CLIENT SEND] [PACKAGE] Quantized: X=12 Y=11 Z=1
-[16:29:35.337] [CLIENT SEND] [PACKAGE] Relative Position: X=1207.481 Y=1143.083 Z=92.013
-[16:29:35.337] [CLIENT SEND] [PACKAGE] Yaw Only: 56.708599
-[16:29:35.338] === CLIENT SERIALIZATION DEBUG ===
-[16:29:35.338] [CLIENT STRUCT] QuantizedX: 12
-[16:29:35.338] [CLIENT STRUCT] QuantizedY: 11
-[16:29:35.338] [CLIENT STRUCT] QuantizedZ: 1
-[16:29:35.338] [CLIENT STRUCT] QuadrantX: 0
-[16:29:35.338] [CLIENT STRUCT] QuadrantY: 0
-[16:29:35.338] [CLIENT STRUCT] Yaw: 56.708599
-[16:29:35.338] [CLIENT STRUCT] Velocity: X=350.030 Y=350.982 Z=0.000
-[16:29:35.338] [CLIENT STRUCT] AnimationState: 0
-[16:29:35.339] [CLIENT STRUCT] IsFalling: false
-[16:29:35.339] [CLIENT] About to serialize SyncEntityQuantizedPacket...
-[16:29:35.339] [CLIENT] [CHECK] Serialization complete - buffer length: 26
-[16:29:35.339] === SERIALIZED BUFFER ANALYSIS ===
-[16:29:35.339] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
-[16:29:35.339] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
-[16:29:35.339] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
-[16:29:35.339] [CLIENT BUFFER] [03] =  12 (0x0C) - QuantizedX[0]
-[16:29:35.340] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
-[16:29:35.340] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
-[16:29:35.340] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
-[16:29:35.340] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
-[16:29:35.340] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
-[16:29:35.340] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
-[16:29:35.340] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
-[16:29:35.341] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
-[16:29:35.341] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
-[16:29:35.341] [CLIENT BUFFER] [13] = 155 (0x9B) - Yaw[0]
-[16:29:35.341] [CLIENT BUFFER] [14] = 213 (0xD5) - Yaw[1]
-[16:29:35.341] [CLIENT BUFFER] [15] =  98 (0x62) - Yaw[2]
-[16:29:35.341] [CLIENT BUFFER] [16] =  66 (0x42) - Yaw[3]
-[16:29:35.341] [CLIENT BUFFER] [17] = 172 (0xAC) - Data[17]
-[16:29:35.342] [CLIENT BUFFER] [18] =  13 (0x0D) - Data[18]
-[16:29:35.342] [CLIENT BUFFER] [19] = 182 (0xB6) - Data[19]
-[16:29:35.342] [CLIENT BUFFER] [20] =  13 (0x0D) - Data[20]
-[16:29:35.342] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
-[16:29:35.342] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
-[16:29:35.342] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
-[16:29:35.342] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
-[16:29:35.342] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
-[16:29:35.343] === MANUAL BUFFER INTERPRETATION ===
-[16:29:35.343] [CLIENT MANUAL] QuantizedX: 12 (from bytes 0C 00)
-[16:29:35.343] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
-[16:29:35.343] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
-[16:29:35.343] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
-[16:29:35.343] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
-[16:29:35.343] === SENDING Unknown Type 4 (seq=10) ===
-[16:29:35.343] [CLIENT] Channel: Unreliable
-[16:29:35.344] [CLIENT] Payload Size: 26 bytes
-[16:29:35.344] [CLIENT] RAW Payload: 0401000C000B000100000000009BD56242AC0DB60D0000000000
-[16:29:35.344] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
-[16:29:35.344] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
-[16:29:35.344] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
-[16:29:35.344] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
-[16:29:35.345] [CLIENT] Payload[03] =  12 (0x0C) (Position data byte 1)
-[16:29:35.345] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
-[16:29:35.345] [CLIENT] Payload[05] =  11 (0x0B) (Position data byte 3)
-[16:29:35.345] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
-[16:29:35.345] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
-[16:29:35.345] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
-[16:29:35.345] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
-[16:29:35.345] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
-[16:29:35.346] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
-[16:29:35.346] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
-[16:29:35.346] [CLIENT] Payload[13] = 155 (0x9B) (Position data byte 11)
-[16:29:35.346] [CLIENT] Payload[14] = 213 (0xD5) (Position data byte 12)
-[16:29:35.346] [CLIENT] Payload[15] =  98 (0x62) (Rotation data byte 1)
-[16:29:35.346] [CLIENT] Payload[16] =  66 (0x42) (Rotation data byte 2)
-[16:29:35.346] [CLIENT] Payload[17] = 172 (0xAC) (Rotation data byte 3)
-[16:29:35.347] [CLIENT] Payload[18] =  13 (0x0D) (Rotation data byte 4)
-[16:29:35.347] [CLIENT] Payload[19] = 182 (0xB6) (Rotation data byte 5)
-[16:29:35.347] [CLIENT] Payload[20] =  13 (0x0D) (Rotation data byte 6)
-[16:29:35.347] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
-[16:29:35.347] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
-[16:29:35.347] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
-[16:29:35.347] [CLIENT] ClientPacket interpreted as uint16: 1
-[16:29:35.347] [CLIENT] Should be 0 for SyncEntity: NO
-[16:29:35.348] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:35.433] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:35.433] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:35.534] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:35.535] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:35.637] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:35.638] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:35.735] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:35.736] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:35.836] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:35.837] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:35.936] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:35.937] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:36.038] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:36.038] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:36.234] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:36.235] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:36.335] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:36.336] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:36.435] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:36.435] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:29:36.535] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:29:36.536] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:30:42.383] === RECEIVED UpdateEntityQuantizedPacket #2 ===
-[16:30:42.383] [CLIENT] EntityId: 1185853251
-[16:30:42.383] [CLIENT] Quantized Position: (9, 12, 1)
-[16:30:42.383] [CLIENT] Quadrant: (0, 0)
-[16:30:42.383] [CLIENT] Yaw: -15.450012
-[16:30:42.384] [CLIENT] Velocity: X=85.700 Y=-21.400 Z=0.000
-[16:30:42.384] [CLIENT] AnimationState: 0
-[16:30:42.384] [CLIENT] Flags: 0
-[16:30:42.384] [CLIENT] UpdateEntityQuantized broadcasted to delegates
-[16:30:42.474] === RECEIVED UpdateEntityQuantizedPacket #3 ===
-[16:30:42.474] [CLIENT] EntityId: 1185853251
-[16:30:42.474] [CLIENT] Quantized Position: (9, 12, 1)
-[16:30:42.474] [CLIENT] Quadrant: (0, 0)
-[16:30:42.474] [CLIENT] Yaw: -7.975189
-[16:30:42.474] [CLIENT] Velocity: X=226.100 Y=-27.700 Z=0.000
-[16:30:42.475] [CLIENT] AnimationState: 0
-[16:30:42.475] [CLIENT] Flags: 0
-[16:30:42.475] [CLIENT] UpdateEntityQuantized broadcasted to delegates
-[16:30:42.598] === RECEIVED UpdateEntityQuantizedPacket #4 ===
-[16:30:42.598] [CLIENT] EntityId: 1185853251
-[16:30:42.598] [CLIENT] Quantized Position: (10, 12, 1)
-[16:30:42.598] [CLIENT] Quadrant: (0, 0)
-[16:30:42.598] [CLIENT] Yaw: -18.225006
-[16:30:42.598] [CLIENT] Velocity: X=373.200 Y=-80.600 Z=0.000
-[16:30:42.598] [CLIENT] AnimationState: 0
-[16:30:42.599] [CLIENT] Flags: 0
-[16:30:42.599] [CLIENT] UpdateEntityQuantized broadcasted to delegates
-[16:30:42.599] === RECEIVED UpdateEntityQuantizedPacket #5 ===
-[16:30:42.599] [CLIENT] EntityId: 1185853251
-[16:30:42.599] [CLIENT] Quantized Position: (10, 12, 1)
-[16:30:42.599] [CLIENT] Quadrant: (0, 0)
-[16:30:42.600] [CLIENT] Yaw: -18.225006
-[16:30:42.600] [CLIENT] Velocity: X=373.200 Y=-80.600 Z=0.000
-[16:30:42.600] [CLIENT] AnimationState: 0
-[16:30:42.600] [CLIENT] Flags: 0
-[16:30:42.600] [CLIENT] UpdateEntityQuantized broadcasted to delegates
-[16:30:42.600] === RECEIVED UpdateEntityQuantizedPacket #6 ===
-[16:30:42.601] [CLIENT] EntityId: 1185853251
-[16:30:42.601] [CLIENT] Quantized Position: (10, 12, 1)
-[16:30:42.601] [CLIENT] Quadrant: (0, 0)
-[16:30:42.601] [CLIENT] Yaw: -18.225006
-[16:30:42.601] [CLIENT] Velocity: X=373.200 Y=-80.600 Z=0.000
-[16:30:42.601] [CLIENT] AnimationState: 0
-[16:30:42.602] [CLIENT] Flags: 0
-[16:30:42.602] [CLIENT] UpdateEntityQuantized broadcasted to delegates
-[16:30:42.602] === RECEIVED UpdateEntityQuantizedPacket #7 ===
-[16:30:42.602] [CLIENT] EntityId: 1185853251
-[16:30:42.602] [CLIENT] Quantized Position: (10, 12, 1)
-[16:30:42.603] [CLIENT] Quadrant: (0, 0)
-[16:30:42.603] [CLIENT] Yaw: -18.225006
-[16:30:42.603] [CLIENT] Velocity: X=373.200 Y=-80.600 Z=0.000
-[16:30:42.603] [CLIENT] AnimationState: 0
-[16:30:42.603] [CLIENT] Flags: 0
-[16:30:42.603] [CLIENT] UpdateEntityQuantized broadcasted to delegates
-[16:30:42.643] === HandleUpdateEntityQuantized #2 ===
-[16:30:42.643] [CLIENT RECV] 📨 Received EntityId: 1185853251
-[16:30:42.644] [CLIENT RECV] 📨 Raw Quantized: X=9 Y=12 Z=1
-[16:30:42.644] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
-[16:30:42.644] [CLIENT RECV] 📨 Raw Yaw: -15.450012
-[16:30:42.644] [CLIENT RECV] 📨 Raw Velocity: X=85.700 Y=-21.400 Z=0.000
-[16:30:42.644] [CLIENT RECV] 📨 bIsReadyToSync: true
-[16:30:42.644] [CLIENT RECV] 📨 SpawnedEntities count: 1
-[16:30:42.644] [HANDLER] [CHECK] Found existing entity 1185853251, updating...
-[16:30:42.645] [CLIENT RECV] 🧮 Calculated World Position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.645] [CLIENT RECV] 🧮 Entity Current Position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.645] === UpdateFromQuantizedNetwork #2 ===
-[16:30:42.645] [ENTITY] EntityId: 1185853251
-[16:30:42.646] [ENTITY] Quantized: (9, 12, 1)
-[16:30:42.646] [ENTITY] Quadrant: (0, 0)
-[16:30:42.646] [ENTITY] Yaw: -15.450012
-[16:30:42.646] [ENTITY] Velocity: X=85.700 Y=-21.400 Z=0.000
-[16:30:42.646] [ENTITY] Animation: 0, IsFalling: false
-[16:30:42.647] [ENTITY] Calculated world position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.647] [ENTITY] Previous TargetLocation: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.647] [ENTITY] Setting new TargetLocation and TargetRotation
-[16:30:42.648] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1185853251
-[16:30:42.648] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.649] === HandleUpdateEntityQuantized #3 ===
-[16:30:42.649] [CLIENT RECV] 📨 Received EntityId: 1185853251
-[16:30:42.649] [CLIENT RECV] 📨 Raw Quantized: X=9 Y=12 Z=1
-[16:30:42.649] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
-[16:30:42.650] [CLIENT RECV] 📨 Raw Yaw: -7.975189
-[16:30:42.650] [CLIENT RECV] 📨 Raw Velocity: X=226.100 Y=-27.700 Z=0.000
-[16:30:42.650] [CLIENT RECV] 📨 bIsReadyToSync: true
-[16:30:42.651] [CLIENT RECV] 📨 SpawnedEntities count: 1
-[16:30:42.651] [HANDLER] [CHECK] Found existing entity 1185853251, updating...
-[16:30:42.651] [CLIENT RECV] 🧮 Calculated World Position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.651] [CLIENT RECV] 🧮 Entity Current Position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.651] === UpdateFromQuantizedNetwork #3 ===
-[16:30:42.651] [ENTITY] EntityId: 1185853251
-[16:30:42.651] [ENTITY] Quantized: (9, 12, 1)
-[16:30:42.652] [ENTITY] Quadrant: (0, 0)
-[16:30:42.652] [ENTITY] Yaw: -7.975189
-[16:30:42.652] [ENTITY] Velocity: X=226.100 Y=-27.700 Z=0.000
-[16:30:42.652] [ENTITY] Animation: 0, IsFalling: false
-[16:30:42.653] [ENTITY] Calculated world position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.653] [ENTITY] Previous TargetLocation: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.653] [ENTITY] Setting new TargetLocation and TargetRotation
-[16:30:42.654] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1185853251
-[16:30:42.654] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.655] === HandleUpdateEntityQuantized #4 ===
-[16:30:42.655] [CLIENT RECV] 📨 Received EntityId: 1185853251
-[16:30:42.655] [CLIENT RECV] 📨 Raw Quantized: X=10 Y=12 Z=1
-[16:30:42.655] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
-[16:30:42.655] [CLIENT RECV] 📨 Raw Yaw: -18.225006
-[16:30:42.655] [CLIENT RECV] 📨 Raw Velocity: X=373.200 Y=-80.600 Z=0.000
-[16:30:42.655] [CLIENT RECV] 📨 bIsReadyToSync: true
-[16:30:42.656] [CLIENT RECV] 📨 SpawnedEntities count: 1
-[16:30:42.656] [HANDLER] [CHECK] Found existing entity 1185853251, updating...
-[16:30:42.656] [CLIENT RECV] 🧮 Calculated World Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.656] [CLIENT RECV] 🧮 Entity Current Position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.656] === UpdateFromQuantizedNetwork #4 ===
-[16:30:42.657] [ENTITY] EntityId: 1185853251
-[16:30:42.657] [ENTITY] Quantized: (10, 12, 1)
-[16:30:42.657] [ENTITY] Quadrant: (0, 0)
-[16:30:42.657] [ENTITY] Yaw: -18.225006
-[16:30:42.658] [ENTITY] Velocity: X=373.200 Y=-80.600 Z=0.000
-[16:30:42.658] [ENTITY] Animation: 0, IsFalling: false
-[16:30:42.658] [ENTITY] Calculated world position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.658] [ENTITY] Previous TargetLocation: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.659] [ENTITY] Setting new TargetLocation and TargetRotation
-[16:30:42.659] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1185853251
-[16:30:42.660] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.660] === HandleUpdateEntityQuantized #5 ===
-[16:30:42.660] [CLIENT RECV] 📨 Received EntityId: 1185853251
-[16:30:42.660] [CLIENT RECV] 📨 Raw Quantized: X=10 Y=12 Z=1
-[16:30:42.660] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
-[16:30:42.661] [CLIENT RECV] 📨 Raw Yaw: -18.225006
-[16:30:42.661] [CLIENT RECV] 📨 Raw Velocity: X=373.200 Y=-80.600 Z=0.000
-[16:30:42.661] [CLIENT RECV] 📨 bIsReadyToSync: true
-[16:30:42.661] [CLIENT RECV] 📨 SpawnedEntities count: 1
-[16:30:42.661] [HANDLER] [CHECK] Found existing entity 1185853251, updating...
-[16:30:42.661] [CLIENT RECV] 🧮 Calculated World Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.662] [CLIENT RECV] 🧮 Entity Current Position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.662] === UpdateFromQuantizedNetwork #5 ===
-[16:30:42.662] [ENTITY] EntityId: 1185853251
-[16:30:42.663] [ENTITY] Quantized: (10, 12, 1)
-[16:30:42.663] [ENTITY] Quadrant: (0, 0)
-[16:30:42.663] [ENTITY] Yaw: -18.225006
-[16:30:42.664] [ENTITY] Velocity: X=373.200 Y=-80.600 Z=0.000
-[16:30:42.664] [ENTITY] Animation: 0, IsFalling: false
-[16:30:42.664] [ENTITY] Calculated world position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.664] [ENTITY] Previous TargetLocation: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.665] [ENTITY] Setting new TargetLocation and TargetRotation
-[16:30:42.665] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1185853251
-[16:30:42.666] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.666] === HandleUpdateEntityQuantized #6 ===
-[16:30:42.666] [CLIENT RECV] 📨 Received EntityId: 1185853251
-[16:30:42.666] [CLIENT RECV] 📨 Raw Quantized: X=10 Y=12 Z=1
-[16:30:42.666] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
-[16:30:42.667] [CLIENT RECV] 📨 Raw Yaw: -18.225006
-[16:30:42.667] [CLIENT RECV] 📨 Raw Velocity: X=373.200 Y=-80.600 Z=0.000
-[16:30:42.667] [CLIENT RECV] 📨 bIsReadyToSync: true
-[16:30:42.667] [CLIENT RECV] 📨 SpawnedEntities count: 1
-[16:30:42.667] [HANDLER] [CHECK] Found existing entity 1185853251, updating...
-[16:30:42.668] [CLIENT RECV] 🧮 Calculated World Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.668] [CLIENT RECV] 🧮 Entity Current Position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.668] === UpdateFromQuantizedNetwork #6 ===
-[16:30:42.668] [ENTITY] EntityId: 1185853251
-[16:30:42.668] [ENTITY] Quantized: (10, 12, 1)
-[16:30:42.669] [ENTITY] Quadrant: (0, 0)
-[16:30:42.669] [ENTITY] Yaw: -18.225006
-[16:30:42.669] [ENTITY] Velocity: X=373.200 Y=-80.600 Z=0.000
-[16:30:42.670] [ENTITY] Animation: 0, IsFalling: false
-[16:30:42.670] [ENTITY] Calculated world position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.670] [ENTITY] Previous TargetLocation: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.670] [ENTITY] Setting new TargetLocation and TargetRotation
-[16:30:42.671] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1185853251
-[16:30:42.671] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.671] === HandleUpdateEntityQuantized #7 ===
-[16:30:42.672] [CLIENT RECV] 📨 Received EntityId: 1185853251
-[16:30:42.672] [CLIENT RECV] 📨 Raw Quantized: X=10 Y=12 Z=1
-[16:30:42.672] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
-[16:30:42.672] [CLIENT RECV] 📨 Raw Yaw: -18.225006
-[16:30:42.672] [CLIENT RECV] 📨 Raw Velocity: X=373.200 Y=-80.600 Z=0.000
-[16:30:42.672] [CLIENT RECV] 📨 bIsReadyToSync: true
-[16:30:42.673] [CLIENT RECV] 📨 SpawnedEntities count: 1
-[16:30:42.673] [HANDLER] [CHECK] Found existing entity 1185853251, updating...
-[16:30:42.673] [CLIENT RECV] 🧮 Calculated World Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.673] [CLIENT RECV] 🧮 Entity Current Position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.673] === UpdateFromQuantizedNetwork #7 ===
-[16:30:42.674] [ENTITY] EntityId: 1185853251
-[16:30:42.674] [ENTITY] Quantized: (10, 12, 1)
-[16:30:42.674] [ENTITY] Quadrant: (0, 0)
-[16:30:42.674] [ENTITY] Yaw: -18.225006
-[16:30:42.674] [ENTITY] Velocity: X=373.200 Y=-80.600 Z=0.000
-[16:30:42.675] [ENTITY] Animation: 0, IsFalling: false
-[16:30:42.675] [ENTITY] Calculated world position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.675] [ENTITY] Previous TargetLocation: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.676] [ENTITY] Setting new TargetLocation and TargetRotation
-[16:30:42.676] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1185853251
-[16:30:42.676] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=900.000 Y=1200.000 Z=100.000
-[16:30:42.689] === RECEIVED UpdateEntityQuantizedPacket #8 ===
-[16:30:42.689] [CLIENT] EntityId: 1185853251
-[16:30:42.689] [CLIENT] Quantized Position: (10, 11, 1)
-[16:30:42.689] [CLIENT] Quadrant: (0, 0)
-[16:30:42.689] [CLIENT] Yaw: -18.575012
-[16:30:42.689] [CLIENT] Velocity: X=479.300 Y=-142.300 Z=0.000
-[16:30:42.689] [CLIENT] AnimationState: 0
-[16:30:42.690] [CLIENT] Flags: 0
-[16:30:42.690] [CLIENT] UpdateEntityQuantized broadcasted to delegates
-[16:30:42.780] === RECEIVED UpdateEntityQuantizedPacket #9 ===
-[16:30:42.780] [CLIENT] EntityId: 1185853251
-[16:30:42.780] [CLIENT] Quantized Position: (10, 11, 1)
-[16:30:42.780] [CLIENT] Quadrant: (0, 0)
-[16:30:42.780] [CLIENT] Yaw: 10.620283
-[16:30:42.780] [CLIENT] Velocity: X=499.400 Y=24.800 Z=0.000
-[16:30:42.780] [CLIENT] AnimationState: 0
-[16:30:42.781] [CLIENT] Flags: 0
-[16:30:42.781] [CLIENT] UpdateEntityQuantized broadcasted to delegates
-[16:30:42.781] === RECEIVED UpdateEntityQuantizedPacket #10 ===
-[16:30:42.781] [CLIENT] EntityId: 1185853251
-[16:30:42.781] [CLIENT] Quantized Position: (10, 11, 1)
-[16:30:42.781] [CLIENT] Quadrant: (0, 0)
-[16:30:42.782] [CLIENT] Yaw: 10.620283
-[16:30:42.782] [CLIENT] Velocity: X=499.400 Y=24.800 Z=0.000
-[16:30:42.782] [CLIENT] AnimationState: 0
-[16:30:42.782] [CLIENT] Flags: 0
-[16:30:42.782] [CLIENT] UpdateEntityQuantized broadcasted to delegates
-[16:30:42.977] === HandleUpdateEntityQuantized #8 ===
-[16:30:42.977] [CLIENT RECV] 📨 Received EntityId: 1185853251
-[16:30:42.977] [CLIENT RECV] 📨 Raw Quantized: X=10 Y=11 Z=1
-[16:30:42.977] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
-[16:30:42.977] [CLIENT RECV] 📨 Raw Yaw: -18.575012
-[16:30:42.977] [CLIENT RECV] 📨 Raw Velocity: X=479.300 Y=-142.300 Z=0.000
-[16:30:42.978] [CLIENT RECV] 📨 bIsReadyToSync: true
-[16:30:42.978] [CLIENT RECV] 📨 SpawnedEntities count: 1
-[16:30:42.978] [HANDLER] [CHECK] Found existing entity 1185853251, updating...
-[16:30:42.978] [CLIENT RECV] 🧮 Calculated World Position: X=1000.000 Y=1100.000 Z=100.000
-[16:30:42.978] [CLIENT RECV] 🧮 Entity Current Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.979] === UpdateFromQuantizedNetwork #8 ===
-[16:30:42.979] [ENTITY] EntityId: 1185853251
-[16:30:42.979] [ENTITY] Quantized: (10, 11, 1)
-[16:30:42.979] [ENTITY] Quadrant: (0, 0)
-[16:30:42.980] [ENTITY] Yaw: -18.575012
-[16:30:42.980] [ENTITY] Velocity: X=479.300 Y=-142.300 Z=0.000
-[16:30:42.980] [ENTITY] Animation: 0, IsFalling: false
-[16:30:42.980] [ENTITY] Calculated world position: X=1000.000 Y=1100.000 Z=100.000
-[16:30:42.981] [ENTITY] Previous TargetLocation: X=1000.000 Y=1100.000 Z=100.000
-[16:30:42.981] [ENTITY] Setting new TargetLocation and TargetRotation
-[16:30:42.981] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1185853251
-[16:30:42.982] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.982] === HandleUpdateEntityQuantized #9 ===
-[16:30:42.982] [CLIENT RECV] 📨 Received EntityId: 1185853251
-[16:30:42.982] [CLIENT RECV] 📨 Raw Quantized: X=10 Y=11 Z=1
-[16:30:42.982] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
-[16:30:42.982] [CLIENT RECV] 📨 Raw Yaw: 10.620283
-[16:30:42.982] [CLIENT RECV] 📨 Raw Velocity: X=499.400 Y=24.800 Z=0.000
-[16:30:42.983] [CLIENT RECV] 📨 bIsReadyToSync: true
-[16:30:42.983] [CLIENT RECV] 📨 SpawnedEntities count: 1
-[16:30:42.983] [HANDLER] [CHECK] Found existing entity 1185853251, updating...
-[16:30:42.983] [CLIENT RECV] 🧮 Calculated World Position: X=1000.000 Y=1100.000 Z=100.000
-[16:30:42.983] [CLIENT RECV] 🧮 Entity Current Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.984] === UpdateFromQuantizedNetwork #9 ===
-[16:30:42.984] [ENTITY] EntityId: 1185853251
-[16:30:42.984] [ENTITY] Quantized: (10, 11, 1)
-[16:30:42.984] [ENTITY] Quadrant: (0, 0)
-[16:30:42.984] [ENTITY] Yaw: 10.620283
-[16:30:42.985] [ENTITY] Velocity: X=499.400 Y=24.800 Z=0.000
-[16:30:42.985] [ENTITY] Animation: 0, IsFalling: false
-[16:30:42.985] [ENTITY] Calculated world position: X=1000.000 Y=1100.000 Z=100.000
-[16:30:42.985] [ENTITY] Previous TargetLocation: X=1000.000 Y=1100.000 Z=100.000
-[16:30:42.986] [ENTITY] Setting new TargetLocation and TargetRotation
-[16:30:42.986] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1185853251
-[16:30:42.987] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.987] === HandleUpdateEntityQuantized #10 ===
-[16:30:42.987] [CLIENT RECV] 📨 Received EntityId: 1185853251
-[16:30:42.987] [CLIENT RECV] 📨 Raw Quantized: X=10 Y=11 Z=1
-[16:30:42.987] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
-[16:30:42.987] [CLIENT RECV] 📨 Raw Yaw: 10.620283
-[16:30:42.988] [CLIENT RECV] 📨 Raw Velocity: X=499.400 Y=24.800 Z=0.000
-[16:30:42.988] [CLIENT RECV] 📨 bIsReadyToSync: true
-[16:30:42.988] [CLIENT RECV] 📨 SpawnedEntities count: 1
-[16:30:42.988] [HANDLER] [CHECK] Found existing entity 1185853251, updating...
-[16:30:42.988] [CLIENT RECV] 🧮 Calculated World Position: X=1000.000 Y=1100.000 Z=100.000
-[16:30:42.988] [CLIENT RECV] 🧮 Entity Current Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.989] === UpdateFromQuantizedNetwork #10 ===
-[16:30:42.989] [ENTITY] EntityId: 1185853251
-[16:30:42.989] [ENTITY] Quantized: (10, 11, 1)
-[16:30:42.989] [ENTITY] Quadrant: (0, 0)
-[16:30:42.990] [ENTITY] Yaw: 10.620283
-[16:30:42.990] [ENTITY] Velocity: X=499.400 Y=24.800 Z=0.000
-[16:30:42.990] [ENTITY] Animation: 0, IsFalling: false
-[16:30:42.990] [ENTITY] Calculated world position: X=1000.000 Y=1100.000 Z=100.000
-[16:30:42.991] [ENTITY] Previous TargetLocation: X=1000.000 Y=1100.000 Z=100.000
-[16:30:42.991] [ENTITY] Setting new TargetLocation and TargetRotation
-[16:30:42.991] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1185853251
-[16:30:42.992] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.992] === HandleUpdateEntityQuantized #11 ===
-[16:30:42.992] [CLIENT RECV] 📨 Received EntityId: 1185853251
-[16:30:42.992] [CLIENT RECV] 📨 Raw Quantized: X=10 Y=11 Z=1
-[16:30:42.992] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
-[16:30:42.992] [CLIENT RECV] 📨 Raw Yaw: 10.620283
-[16:30:42.993] [CLIENT RECV] 📨 Raw Velocity: X=499.400 Y=24.800 Z=0.000
-[16:30:42.993] [CLIENT RECV] 📨 bIsReadyToSync: true
-[16:30:42.993] [CLIENT RECV] 📨 SpawnedEntities count: 1
-[16:30:42.993] [CLIENT RECV] 🧮 Calculated World Position: X=1000.000 Y=1100.000 Z=100.000
-[16:30:42.993] [CLIENT RECV] 🧮 Entity Current Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.993] === UpdateFromQuantizedNetwork #11 ===
-[16:30:42.993] [ENTITY] EntityId: 1185853251
-[16:30:42.994] [ENTITY] Quantized: (10, 11, 1)
-[16:30:42.994] [ENTITY] Quadrant: (0, 0)
-[16:30:42.994] [ENTITY] Yaw: 10.620283
-[16:30:42.995] [ENTITY] Velocity: X=499.400 Y=24.800 Z=0.000
-[16:30:42.995] [ENTITY] Animation: 0, IsFalling: false
-[16:30:42.995] [ENTITY] Calculated world position: X=1000.000 Y=1100.000 Z=100.000
-[16:30:42.996] [ENTITY] Previous TargetLocation: X=1000.000 Y=1100.000 Z=100.000
-[16:30:42.996] [ENTITY] Setting new TargetLocation and TargetRotation
-[16:30:42.996] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1185853251
-[16:30:42.997] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.997] === HandleUpdateEntityQuantized #12 ===
-[16:30:42.997] [CLIENT RECV] 📨 Received EntityId: 1185853251
-[16:30:42.997] [CLIENT RECV] 📨 Raw Quantized: X=10 Y=11 Z=1
-[16:30:42.997] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
-[16:30:42.997] [CLIENT RECV] 📨 Raw Yaw: 10.620283
-[16:30:42.997] [CLIENT RECV] 📨 Raw Velocity: X=499.400 Y=24.800 Z=0.000
-[16:30:42.998] [CLIENT RECV] 📨 bIsReadyToSync: true
-[16:30:42.998] [CLIENT RECV] 📨 SpawnedEntities count: 1
-[16:30:42.998] [CLIENT RECV] 🧮 Calculated World Position: X=1000.000 Y=1100.000 Z=100.000
-[16:30:42.998] [CLIENT RECV] 🧮 Entity Current Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:42.998] === UpdateFromQuantizedNetwork #12 ===
-[16:30:42.999] [ENTITY] EntityId: 1185853251
-[16:30:42.999] [ENTITY] Quantized: (10, 11, 1)
-[16:30:42.999] [ENTITY] Quadrant: (0, 0)
-[16:30:42.999] [ENTITY] Yaw: 10.620283
-[16:30:43.000] [ENTITY] Velocity: X=499.400 Y=24.800 Z=0.000
-[16:30:43.000] [ENTITY] Animation: 0, IsFalling: false
-[16:30:43.000] [ENTITY] Calculated world position: X=1000.000 Y=1100.000 Z=100.000
-[16:30:43.000] [ENTITY] Previous TargetLocation: X=1000.000 Y=1100.000 Z=100.000
-[16:30:43.001] [ENTITY] Setting new TargetLocation and TargetRotation
-[16:30:43.001] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1185853251
-[16:30:43.001] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:43.002] === HandleUpdateEntityQuantized #13 ===
-[16:30:43.002] [CLIENT RECV] 📨 Received EntityId: 1185853251
-[16:30:43.002] [CLIENT RECV] 📨 Raw Quantized: X=11 Y=12 Z=1
-[16:30:43.003] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
-[16:30:43.003] [CLIENT RECV] 📨 Raw Yaw: 23.449999
-[16:30:43.003] [CLIENT RECV] 📨 Raw Velocity: X=361.200 Y=251.900 Z=0.000
-[16:30:43.003] [CLIENT RECV] 📨 bIsReadyToSync: true
-[16:30:43.003] [CLIENT RECV] 📨 SpawnedEntities count: 1
-[16:30:43.003] [CLIENT RECV] 🧮 Calculated World Position: X=1100.000 Y=1200.000 Z=100.000
-[16:30:43.004] [CLIENT RECV] 🧮 Entity Current Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:43.004] === UpdateFromQuantizedNetwork #13 ===
-[16:30:43.004] [ENTITY] EntityId: 1185853251
-[16:30:43.004] [ENTITY] Quantized: (11, 12, 1)
-[16:30:43.005] [ENTITY] Quadrant: (0, 0)
-[16:30:43.005] [ENTITY] Yaw: 23.449999
-[16:30:43.005] [ENTITY] Velocity: X=361.200 Y=251.900 Z=0.000
-[16:30:43.005] [ENTITY] Animation: 0, IsFalling: false
-[16:30:43.005] [ENTITY] Calculated world position: X=1100.000 Y=1200.000 Z=100.000
-[16:30:43.006] [ENTITY] Previous TargetLocation: X=1100.000 Y=1200.000 Z=100.000
-[16:30:43.006] [ENTITY] Setting new TargetLocation and TargetRotation
-[16:30:43.006] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1185853251
-[16:30:43.007] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:43.007] === HandleUpdateEntityQuantized #14 ===
-[16:30:43.007] [CLIENT RECV] 📨 Received EntityId: 1185853251
-[16:30:43.007] [CLIENT RECV] 📨 Raw Quantized: X=11 Y=12 Z=1
-[16:30:43.007] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
-[16:30:43.008] [CLIENT RECV] 📨 Raw Yaw: 20.299999
-[16:30:43.008] [CLIENT RECV] 📨 Raw Velocity: X=449.300 Y=219.300 Z=0.000
-[16:30:43.008] [CLIENT RECV] 📨 bIsReadyToSync: true
-[16:30:43.008] [CLIENT RECV] 📨 SpawnedEntities count: 1
-[16:30:43.008] [CLIENT RECV] 🧮 Calculated World Position: X=1100.000 Y=1200.000 Z=100.000
-[16:30:43.008] [CLIENT RECV] 🧮 Entity Current Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:43.009] === UpdateFromQuantizedNetwork #14 ===
-[16:30:43.009] [ENTITY] EntityId: 1185853251
-[16:30:43.009] [ENTITY] Quantized: (11, 12, 1)
-[16:30:43.009] [ENTITY] Quadrant: (0, 0)
-[16:30:43.010] [ENTITY] Yaw: 20.299999
-[16:30:43.010] [ENTITY] Velocity: X=449.300 Y=219.300 Z=0.000
-[16:30:43.010] [ENTITY] Animation: 0, IsFalling: false
-[16:30:43.010] [ENTITY] Calculated world position: X=1100.000 Y=1200.000 Z=100.000
-[16:30:43.011] [ENTITY] Previous TargetLocation: X=1100.000 Y=1200.000 Z=100.000
-[16:30:43.011] [ENTITY] Setting new TargetLocation and TargetRotation
-[16:30:43.011] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1185853251
-[16:30:43.012] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=1000.000 Y=1200.000 Z=100.000
-[16:30:43.310] === HandleUpdateEntityQuantized #15 ===
-[16:30:43.310] [CLIENT RECV] 📨 Received EntityId: 1185853251
-[16:30:43.310] [CLIENT RECV] 📨 Raw Quantized: X=12 Y=12 Z=1
-[16:30:43.310] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
-[16:30:43.310] [CLIENT RECV] 📨 Raw Yaw: 17.674999
-[16:30:43.310] [CLIENT RECV] 📨 Raw Velocity: X=467.400 Y=177.500 Z=0.000
-[16:30:43.310] [CLIENT RECV] 📨 bIsReadyToSync: true
-[16:30:43.311] [CLIENT RECV] 📨 SpawnedEntities count: 1
-[16:30:43.311] [CLIENT RECV] 🧮 Calculated World Position: X=1200.000 Y=1200.000 Z=100.000
-[16:30:43.311] [CLIENT RECV] 🧮 Entity Current Position: X=1100.000 Y=1200.000 Z=100.000
-[16:30:43.311] === UpdateFromQuantizedNetwork #15 ===
-[16:30:43.311] [ENTITY] EntityId: 1185853251
-[16:30:43.312] [ENTITY] Quantized: (12, 12, 1)
-[16:30:43.312] [ENTITY] Quadrant: (0, 0)
-[16:30:43.312] [ENTITY] Yaw: 17.674999
-[16:30:43.312] [ENTITY] Velocity: X=467.400 Y=177.500 Z=0.000
-[16:30:43.313] [ENTITY] Animation: 0, IsFalling: false
-[16:30:43.313] [ENTITY] Calculated world position: X=1200.000 Y=1200.000 Z=100.000
-[16:30:43.313] [ENTITY] Previous TargetLocation: X=1200.000 Y=1200.000 Z=100.000
-[16:30:43.314] [ENTITY] Setting new TargetLocation and TargetRotation
-[16:30:43.314] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1185853251
-[16:30:43.314] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=1100.000 Y=1200.000 Z=100.000
-[16:32:08.833] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:08.833] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:08.934] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:08.935] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:09.039] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:09.039] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:09.142] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:09.142] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:09.236] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:09.236] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:09.337] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:09.338] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:09.438] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:09.438] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:09.537] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:09.538] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:09.638] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:09.638] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:09.738] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:09.739] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:09.838] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:09.838] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:09.937] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:09.938] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:10.038] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:10.039] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:10.138] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:10.139] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:10.238] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:10.239] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:10.339] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:10.340] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:10.438] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:10.439] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:10.539] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:10.539] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:10.639] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:10.639] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:10.739] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:10.740] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:10.840] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:10.841] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:10.940] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:10.940] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:45.782] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:45.783] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:45.883] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:45.883] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:45.983] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:45.984] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:46.084] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:46.085] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
-[16:32:46.185] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
-[16:32:46.185] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+=== CLIENT SESSION STARTED: 2025-08-27 16:46:23 ===
+[16:46:23.211] [WRENCH] SyncEntity: NetSubsystem found: YES
+[16:46:23.211] [TARGET] SyncPlayer::BeginPlay - NetSubsystem: FOUND
+[16:46:23.211] [ROCKET] SyncPlayer: Timer started for SendSyncToServer every 0.1s
+[16:46:23.238] [SATELLITE] SendSyncToServer #0: Pos=X=900.000 Y=1110.000 Z=92.013, Rot=P=0.000000 Y=0.000000 R=0.000000, Vel=X=0.000 Y=0.000 Z=0.000
+[16:46:23.238] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:23.238] === SENDING SyncEntityQuantizedPacket #1 ===
+[16:46:23.239] [CLIENT SEND] [ROCKET] Original Position: X=900.000 Y=1110.000 Z=92.013
+[16:46:23.239] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=0.000000 R=0.000000
+[16:46:23.239] [CLIENT SEND] [ROCKET] Original Velocity: X=0.000 Y=0.000 Z=0.000
+[16:46:23.240] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
+[16:46:23.240] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
+[16:46:23.240] [CLIENT SEND] [PACKAGE] Quantized: X=9 Y=11 Z=1
+[16:46:23.240] [CLIENT SEND] [PACKAGE] Relative Position: X=900.000 Y=1110.000 Z=92.013
+[16:46:23.240] [CLIENT SEND] [PACKAGE] Yaw Only: 0.000000
+[16:46:23.240] === CLIENT SERIALIZATION DEBUG ===
+[16:46:23.240] [CLIENT STRUCT] QuantizedX: 9
+[16:46:23.241] [CLIENT STRUCT] QuantizedY: 11
+[16:46:23.241] [CLIENT STRUCT] QuantizedZ: 1
+[16:46:23.241] [CLIENT STRUCT] QuadrantX: 0
+[16:46:23.241] [CLIENT STRUCT] QuadrantY: 0
+[16:46:23.241] [CLIENT STRUCT] Yaw: 0.000000
+[16:46:23.242] [CLIENT STRUCT] Velocity: X=0.000 Y=0.000 Z=0.000
+[16:46:23.242] [CLIENT STRUCT] AnimationState: 0
+[16:46:23.242] [CLIENT STRUCT] IsFalling: false
+[16:46:23.242] [CLIENT] About to serialize SyncEntityQuantizedPacket...
+[16:46:23.242] [CLIENT] [CHECK] Serialization complete - buffer length: 26
+[16:46:23.243] === SERIALIZED BUFFER ANALYSIS ===
+[16:46:23.243] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
+[16:46:23.243] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
+[16:46:23.243] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
+[16:46:23.243] [CLIENT BUFFER] [03] =   9 (0x09) - QuantizedX[0]
+[16:46:23.244] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
+[16:46:23.244] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
+[16:46:23.244] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
+[16:46:23.244] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
+[16:46:23.244] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
+[16:46:23.244] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
+[16:46:23.245] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
+[16:46:23.245] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
+[16:46:23.245] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
+[16:46:23.245] [CLIENT BUFFER] [13] =   0 (0x00) - Yaw[0]
+[16:46:23.245] [CLIENT BUFFER] [14] =   0 (0x00) - Yaw[1]
+[16:46:23.245] [CLIENT BUFFER] [15] =   0 (0x00) - Yaw[2]
+[16:46:23.245] [CLIENT BUFFER] [16] =   0 (0x00) - Yaw[3]
+[16:46:23.245] [CLIENT BUFFER] [17] =   0 (0x00) - Data[17]
+[16:46:23.245] [CLIENT BUFFER] [18] =   0 (0x00) - Data[18]
+[16:46:23.245] [CLIENT BUFFER] [19] =   0 (0x00) - Data[19]
+[16:46:23.245] [CLIENT BUFFER] [20] =   0 (0x00) - Data[20]
+[16:46:23.246] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
+[16:46:23.246] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
+[16:46:23.246] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
+[16:46:23.246] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
+[16:46:23.246] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
+[16:46:23.246] === MANUAL BUFFER INTERPRETATION ===
+[16:46:23.246] [CLIENT MANUAL] QuantizedX: 9 (from bytes 09 00)
+[16:46:23.247] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
+[16:46:23.247] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
+[16:46:23.247] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
+[16:46:23.247] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
+[16:46:23.248] [CLIENT] Sending SyncEntityQuantizedPacket via UdpClient...
+[16:46:23.248] === CRYPTO HANDSHAKE START ===
+[16:46:23.248] [CLIENT] 🔐 Sending CryptoTest: 2712847316
+[16:46:23.248] [CLIENT] 🔐 Buffer size: 5 bytes
+[16:46:23.248] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:23.249] === CRYPTO HANDSHAKE START ===
+[16:46:23.249] [CLIENT] 🔐 Sending CryptoTest: 2712847316
+[16:46:23.249] [CLIENT] 🔐 Buffer size: 5 bytes
+[16:46:23.250] === CRYPTO HANDSHAKE START ===
+[16:46:23.250] [CLIENT] 🔐 Sending CryptoTest: 2712847316
+[16:46:23.250] [CLIENT] 🔐 Buffer size: 5 bytes
+[16:46:23.250] === CRYPTO HANDSHAKE START ===
+[16:46:23.251] [CLIENT] 🔐 Sending CryptoTest: 2712847316
+[16:46:23.251] [CLIENT] 🔐 Buffer size: 5 bytes
+[16:46:23.257] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:46:23.257] [CLIENT] 🔐 Server crypto confirmed: NO
+[16:46:23.257] === RELIABLE HANDSHAKE START ===
+[16:46:23.258] [CLIENT] 🤝 Crypto ready: YES
+[16:46:23.258] [CLIENT] 🤝 Sending ReliableHandshake packet (2 bytes)
+[16:46:23.258] [CLIENT] 🤝 Buffer: [0x10, 0x01]
+[16:46:23.259] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:46:23.259] [CLIENT] 🔐 Server crypto confirmed: YES
+[16:46:23.259] === ENCRYPTING RELIABLE HANDSHAKE PACKET ===
+[16:46:23.259] [CLIENT] ConnectionId: 977185156
+[16:46:23.259] [CLIENT] Sequence: 0
+[16:46:23.259] [CLIENT] Channel: 0
+[16:46:23.260] [CLIENT] Flags: 3
+[16:46:23.260] [CLIENT] AAD: 84A93E3A00030000000000000000
+[16:46:23.260] [CLIENT] Payload: 0F4D3C2B1A
+[16:46:23.260] [CLIENT] Nonce: 84A93E3A0000000000000000
+[16:46:23.260] [CLIENT] TxKey: 6BEE6B26A9485904A3FD0210635E0FFC3D2630E1375250BFBF9AEC869E775549
+[16:46:23.260] [CLIENT] Compression: false
+[16:46:23.260] [CLIENT] Ciphertext: 542DDC43B7E4169DC8466F09551B3E6517CAA3BB2C
+[16:46:23.261] [CLIENT] Ciphertext Length: 21 bytes
+[16:46:23.261] [CLIENT] TxKey: 6BEE6B26A9485904A3FD0210635E0FFC3D2630E1375250BFBF9AEC869E775549
+[16:46:23.261] [CLIENT] Final Packet Size: 39 bytes (Header: 14 + Ciphertext: 21 + CRC32: 4)
+[16:46:23.261] [CLIENT] CRC32 Signature: A22BF803
+[16:46:23.261] [CLIENT] Complete Packet: 84A93E3A00030000000000000000542DDC43B7E4169DC8466F09551B3E6517CAA3BB2C03F82BA2
+[16:46:23.262] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:46:23.262] [CLIENT] 🔐 Server crypto confirmed: YES
+[16:46:23.262] === SENDING Unknown Type 15 (seq=1) ===
+[16:46:23.262] [CLIENT] Channel: Unreliable
+[16:46:23.262] [CLIENT] Payload Size: 5 bytes
+[16:46:23.262] [CLIENT] RAW Payload: 0F4D3C2B1A
+[16:46:23.263] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:46:23.263] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[16:46:23.263] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[16:46:23.263] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[16:46:23.263] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[16:46:23.263] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[16:46:23.263] [CLIENT] ClientPacket interpreted as uint16: 15437
+[16:46:23.264] [CLIENT] Should be 0 for SyncEntity: NO
+[16:46:23.264] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:46:23.264] [CLIENT] 🔐 Server crypto confirmed: YES
+[16:46:23.264] === SENDING Unknown Type 15 (seq=2) ===
+[16:46:23.265] [CLIENT] Channel: Unreliable
+[16:46:23.265] [CLIENT] Payload Size: 5 bytes
+[16:46:23.265] [CLIENT] RAW Payload: 0F4D3C2B1A
+[16:46:23.265] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:46:23.265] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[16:46:23.265] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[16:46:23.265] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[16:46:23.266] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[16:46:23.266] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[16:46:23.266] [CLIENT] ClientPacket interpreted as uint16: 15437
+[16:46:23.266] [CLIENT] Should be 0 for SyncEntity: NO
+[16:46:23.266] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:46:23.267] [CLIENT] 🔐 Server crypto confirmed: YES
+[16:46:23.267] === SENDING Unknown Type 15 (seq=3) ===
+[16:46:23.267] [CLIENT] Channel: Unreliable
+[16:46:23.267] [CLIENT] Payload Size: 5 bytes
+[16:46:23.267] [CLIENT] RAW Payload: 0F4D3C2B1A
+[16:46:23.267] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:46:23.268] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[16:46:23.268] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[16:46:23.268] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[16:46:23.268] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[16:46:23.268] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[16:46:23.269] [CLIENT] ClientPacket interpreted as uint16: 15437
+[16:46:23.269] [CLIENT] Should be 0 for SyncEntity: NO
+[16:46:23.269] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:46:23.269] [CLIENT] 🔐 Server crypto confirmed: YES
+[16:46:23.270] === SENDING Unknown Type 15 (seq=4) ===
+[16:46:23.270] [CLIENT] Channel: Unreliable
+[16:46:23.270] [CLIENT] Payload Size: 5 bytes
+[16:46:23.270] [CLIENT] RAW Payload: 0F4D3C2B1A
+[16:46:23.270] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:46:23.270] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[16:46:23.270] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[16:46:23.271] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[16:46:23.271] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[16:46:23.271] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[16:46:23.271] [CLIENT] ClientPacket interpreted as uint16: 15437
+[16:46:23.271] [CLIENT] Should be 0 for SyncEntity: NO
+[16:46:23.272] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:46:23.272] [CLIENT] 🔐 Server crypto confirmed: YES
+[16:46:23.272] === SENDING Unknown Type 15 (seq=5) ===
+[16:46:23.272] [CLIENT] Channel: Unreliable
+[16:46:23.272] [CLIENT] Payload Size: 5 bytes
+[16:46:23.272] [CLIENT] RAW Payload: 0F4D3C2B1A
+[16:46:23.273] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:46:23.273] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[16:46:23.273] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[16:46:23.273] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[16:46:23.273] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[16:46:23.273] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[16:46:23.273] [CLIENT] ClientPacket interpreted as uint16: 15437
+[16:46:23.274] [CLIENT] Should be 0 for SyncEntity: NO
+[16:46:23.274] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:46:23.274] [CLIENT] 🔐 Server crypto confirmed: YES
+[16:46:23.275] === SENDING Unknown Type 15 (seq=6) ===
+[16:46:23.275] [CLIENT] Channel: Unreliable
+[16:46:23.275] [CLIENT] Payload Size: 5 bytes
+[16:46:23.275] [CLIENT] RAW Payload: 0F4D3C2B1A
+[16:46:23.275] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:46:23.275] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[16:46:23.275] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[16:46:23.275] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[16:46:23.275] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[16:46:23.275] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[16:46:23.276] [CLIENT] ClientPacket interpreted as uint16: 15437
+[16:46:23.276] [CLIENT] Should be 0 for SyncEntity: NO
+[16:46:23.276] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:46:23.276] [CLIENT] 🔐 Server crypto confirmed: YES
+[16:46:23.277] === SENDING Unknown Type 15 (seq=7) ===
+[16:46:23.277] [CLIENT] Channel: Unreliable
+[16:46:23.277] [CLIENT] Payload Size: 5 bytes
+[16:46:23.277] [CLIENT] RAW Payload: 0F4D3C2B1A
+[16:46:23.277] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:46:23.277] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[16:46:23.277] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[16:46:23.277] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[16:46:23.278] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[16:46:23.278] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[16:46:23.278] [CLIENT] ClientPacket interpreted as uint16: 15437
+[16:46:23.278] [CLIENT] Should be 0 for SyncEntity: NO
+[16:46:23.279] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:46:23.280] [CLIENT] 🔐 Server crypto confirmed: YES
+[16:46:23.280] === SENDING Unknown Type 15 (seq=8) ===
+[16:46:23.280] [CLIENT] Channel: Unreliable
+[16:46:23.280] [CLIENT] Payload Size: 5 bytes
+[16:46:23.280] [CLIENT] RAW Payload: 0F4D3C2B1A
+[16:46:23.280] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:46:23.281] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[16:46:23.281] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[16:46:23.281] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[16:46:23.281] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[16:46:23.281] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[16:46:23.281] [CLIENT] ClientPacket interpreted as uint16: 15437
+[16:46:23.281] [CLIENT] Should be 0 for SyncEntity: NO
+[16:46:23.282] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:46:23.282] [CLIENT] 🔐 Server crypto confirmed: YES
+[16:46:23.282] === SENDING Unknown Type 15 (seq=9) ===
+[16:46:23.282] [CLIENT] Channel: Unreliable
+[16:46:23.282] [CLIENT] Payload Size: 5 bytes
+[16:46:23.283] [CLIENT] RAW Payload: 0F4D3C2B1A
+[16:46:23.283] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:46:23.283] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[16:46:23.283] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[16:46:23.283] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[16:46:23.283] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[16:46:23.283] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[16:46:23.283] [CLIENT] ClientPacket interpreted as uint16: 15437
+[16:46:23.284] [CLIENT] Should be 0 for SyncEntity: NO
+[16:46:23.284] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:46:23.285] [CLIENT] 🔐 Server crypto confirmed: YES
+[16:46:23.285] === SENDING Unknown Type 15 (seq=10) ===
+[16:46:23.285] [CLIENT] Channel: Unreliable
+[16:46:23.285] [CLIENT] Payload Size: 5 bytes
+[16:46:23.286] [CLIENT] RAW Payload: 0F4D3C2B1A
+[16:46:23.286] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:46:23.286] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[16:46:23.286] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[16:46:23.286] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[16:46:23.286] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[16:46:23.286] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[16:46:23.286] [CLIENT] ClientPacket interpreted as uint16: 15437
+[16:46:23.286] [CLIENT] Should be 0 for SyncEntity: NO
+[16:46:23.637] [SATELLITE] SendSyncToServer #1: Pos=X=900.700 Y=1110.010 Z=92.013, Rot=P=0.000000 Y=1.225000 R=0.000000, Vel=X=39.653 Y=0.627 Z=0.000
+[16:46:23.637] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:23.637] === SENDING SyncEntityQuantizedPacket #2 ===
+[16:46:23.637] [CLIENT SEND] [ROCKET] Original Position: X=900.700 Y=1110.010 Z=92.013
+[16:46:23.637] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=1.225000 R=0.000000
+[16:46:23.638] [CLIENT SEND] [ROCKET] Original Velocity: X=39.653 Y=0.627 Z=0.000
+[16:46:23.638] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
+[16:46:23.638] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
+[16:46:23.638] [CLIENT SEND] [PACKAGE] Quantized: X=9 Y=11 Z=1
+[16:46:23.638] [CLIENT SEND] [PACKAGE] Relative Position: X=900.700 Y=1110.010 Z=92.013
+[16:46:23.638] [CLIENT SEND] [PACKAGE] Yaw Only: 1.225000
+[16:46:23.638] === CLIENT SERIALIZATION DEBUG ===
+[16:46:23.638] [CLIENT STRUCT] QuantizedX: 9
+[16:46:23.639] [CLIENT STRUCT] QuantizedY: 11
+[16:46:23.639] [CLIENT STRUCT] QuantizedZ: 1
+[16:46:23.639] [CLIENT STRUCT] QuadrantX: 0
+[16:46:23.639] [CLIENT STRUCT] QuadrantY: 0
+[16:46:23.639] [CLIENT STRUCT] Yaw: 1.225000
+[16:46:23.639] [CLIENT STRUCT] Velocity: X=39.653 Y=0.627 Z=0.000
+[16:46:23.639] [CLIENT STRUCT] AnimationState: 0
+[16:46:23.640] [CLIENT STRUCT] IsFalling: false
+[16:46:23.640] [CLIENT] About to serialize SyncEntityQuantizedPacket...
+[16:46:23.640] [CLIENT] [CHECK] Serialization complete - buffer length: 26
+[16:46:23.640] === SERIALIZED BUFFER ANALYSIS ===
+[16:46:23.640] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
+[16:46:23.640] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
+[16:46:23.640] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
+[16:46:23.640] [CLIENT BUFFER] [03] =   9 (0x09) - QuantizedX[0]
+[16:46:23.641] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
+[16:46:23.641] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
+[16:46:23.641] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
+[16:46:23.641] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
+[16:46:23.641] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
+[16:46:23.641] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
+[16:46:23.642] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
+[16:46:23.642] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
+[16:46:23.642] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
+[16:46:23.642] [CLIENT BUFFER] [13] = 205 (0xCD) - Yaw[0]
+[16:46:23.642] [CLIENT BUFFER] [14] = 204 (0xCC) - Yaw[1]
+[16:46:23.642] [CLIENT BUFFER] [15] = 156 (0x9C) - Yaw[2]
+[16:46:23.642] [CLIENT BUFFER] [16] =  63 (0x3F) - Yaw[3]
+[16:46:23.642] [CLIENT BUFFER] [17] = 141 (0x8D) - Data[17]
+[16:46:23.643] [CLIENT BUFFER] [18] =   1 (0x01) - Data[18]
+[16:46:23.643] [CLIENT BUFFER] [19] =   6 (0x06) - Data[19]
+[16:46:23.643] [CLIENT BUFFER] [20] =   0 (0x00) - Data[20]
+[16:46:23.643] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
+[16:46:23.643] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
+[16:46:23.643] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
+[16:46:23.643] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
+[16:46:23.643] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
+[16:46:23.644] === MANUAL BUFFER INTERPRETATION ===
+[16:46:23.644] [CLIENT MANUAL] QuantizedX: 9 (from bytes 09 00)
+[16:46:23.644] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
+[16:46:23.644] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
+[16:46:23.644] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
+[16:46:23.644] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
+[16:46:23.644] [CLIENT] Sending SyncEntityQuantizedPacket via UdpClient...
+[16:46:23.644] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:23.738] [SATELLITE] SendSyncToServer #2: Pos=X=913.177 Y=1110.515 Z=92.013, Rot=P=0.000000 Y=4.200000 R=0.000000, Vel=X=191.434 Y=10.373 Z=0.000
+[16:46:23.738] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:23.738] === SENDING SyncEntityQuantizedPacket #3 ===
+[16:46:23.738] [CLIENT SEND] [ROCKET] Original Position: X=913.177 Y=1110.515 Z=92.013
+[16:46:23.738] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=4.200000 R=0.000000
+[16:46:23.738] [CLIENT SEND] [ROCKET] Original Velocity: X=191.434 Y=10.373 Z=0.000
+[16:46:23.739] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
+[16:46:23.739] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
+[16:46:23.739] [CLIENT SEND] [PACKAGE] Quantized: X=9 Y=11 Z=1
+[16:46:23.739] [CLIENT SEND] [PACKAGE] Relative Position: X=913.177 Y=1110.515 Z=92.013
+[16:46:23.739] [CLIENT SEND] [PACKAGE] Yaw Only: 4.200000
+[16:46:23.739] === CLIENT SERIALIZATION DEBUG ===
+[16:46:23.739] [CLIENT STRUCT] QuantizedX: 9
+[16:46:23.739] [CLIENT STRUCT] QuantizedY: 11
+[16:46:23.739] [CLIENT STRUCT] QuantizedZ: 1
+[16:46:23.740] [CLIENT STRUCT] QuadrantX: 0
+[16:46:23.740] [CLIENT STRUCT] QuadrantY: 0
+[16:46:23.740] [CLIENT STRUCT] Yaw: 4.200000
+[16:46:23.740] [CLIENT STRUCT] Velocity: X=191.434 Y=10.373 Z=0.000
+[16:46:23.740] [CLIENT STRUCT] AnimationState: 0
+[16:46:23.740] [CLIENT STRUCT] IsFalling: false
+[16:46:23.740] [CLIENT] About to serialize SyncEntityQuantizedPacket...
+[16:46:23.740] [CLIENT] [CHECK] Serialization complete - buffer length: 26
+[16:46:23.741] === SERIALIZED BUFFER ANALYSIS ===
+[16:46:23.741] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
+[16:46:23.741] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
+[16:46:23.741] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
+[16:46:23.741] [CLIENT BUFFER] [03] =   9 (0x09) - QuantizedX[0]
+[16:46:23.741] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
+[16:46:23.741] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
+[16:46:23.742] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
+[16:46:23.742] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
+[16:46:23.742] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
+[16:46:23.742] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
+[16:46:23.742] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
+[16:46:23.742] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
+[16:46:23.742] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
+[16:46:23.742] [CLIENT BUFFER] [13] = 102 (0x66) - Yaw[0]
+[16:46:23.743] [CLIENT BUFFER] [14] = 102 (0x66) - Yaw[1]
+[16:46:23.743] [CLIENT BUFFER] [15] = 134 (0x86) - Yaw[2]
+[16:46:23.743] [CLIENT BUFFER] [16] =  64 (0x40) - Yaw[3]
+[16:46:23.743] [CLIENT BUFFER] [17] = 122 (0x7A) - Data[17]
+[16:46:23.743] [CLIENT BUFFER] [18] =   7 (0x07) - Data[18]
+[16:46:23.743] [CLIENT BUFFER] [19] = 104 (0x68) - Data[19]
+[16:46:23.743] [CLIENT BUFFER] [20] =   0 (0x00) - Data[20]
+[16:46:23.744] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
+[16:46:23.744] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
+[16:46:23.744] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
+[16:46:23.744] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
+[16:46:23.744] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
+[16:46:23.744] === MANUAL BUFFER INTERPRETATION ===
+[16:46:23.744] [CLIENT MANUAL] QuantizedX: 9 (from bytes 09 00)
+[16:46:23.744] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
+[16:46:23.744] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
+[16:46:23.745] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
+[16:46:23.745] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
+[16:46:23.745] [CLIENT] Sending SyncEntityQuantizedPacket via UdpClient...
+[16:46:23.745] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:23.835] [SATELLITE] SendSyncToServer #3: Pos=X=939.720 Y=1112.261 Z=92.013, Rot=P=0.000000 Y=4.375000 R=0.000000, Vel=X=337.550 Y=23.862 Z=0.000
+[16:46:23.835] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:23.835] === SENDING SyncEntityQuantizedPacket #4 ===
+[16:46:23.835] [CLIENT SEND] [ROCKET] Original Position: X=939.720 Y=1112.261 Z=92.013
+[16:46:23.836] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=4.375000 R=0.000000
+[16:46:23.836] [CLIENT SEND] [ROCKET] Original Velocity: X=337.550 Y=23.862 Z=0.000
+[16:46:23.836] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
+[16:46:23.836] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
+[16:46:23.836] [CLIENT SEND] [PACKAGE] Quantized: X=9 Y=11 Z=1
+[16:46:23.836] [CLIENT SEND] [PACKAGE] Relative Position: X=939.720 Y=1112.261 Z=92.013
+[16:46:23.836] [CLIENT SEND] [PACKAGE] Yaw Only: 4.375000
+[16:46:23.837] === CLIENT SERIALIZATION DEBUG ===
+[16:46:23.837] [CLIENT STRUCT] QuantizedX: 9
+[16:46:23.837] [CLIENT STRUCT] QuantizedY: 11
+[16:46:23.837] [CLIENT STRUCT] QuantizedZ: 1
+[16:46:23.837] [CLIENT STRUCT] QuadrantX: 0
+[16:46:23.837] [CLIENT STRUCT] QuadrantY: 0
+[16:46:23.837] [CLIENT STRUCT] Yaw: 4.375000
+[16:46:23.837] [CLIENT STRUCT] Velocity: X=337.550 Y=23.862 Z=0.000
+[16:46:23.838] [CLIENT STRUCT] AnimationState: 0
+[16:46:23.838] [CLIENT STRUCT] IsFalling: false
+[16:46:23.838] [CLIENT] About to serialize SyncEntityQuantizedPacket...
+[16:46:23.838] [CLIENT] [CHECK] Serialization complete - buffer length: 26
+[16:46:23.838] === SERIALIZED BUFFER ANALYSIS ===
+[16:46:23.838] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
+[16:46:23.838] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
+[16:46:23.839] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
+[16:46:23.839] [CLIENT BUFFER] [03] =   9 (0x09) - QuantizedX[0]
+[16:46:23.839] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
+[16:46:23.839] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
+[16:46:23.839] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
+[16:46:23.839] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
+[16:46:23.839] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
+[16:46:23.839] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
+[16:46:23.840] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
+[16:46:23.840] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
+[16:46:23.840] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
+[16:46:23.840] [CLIENT BUFFER] [13] =   0 (0x00) - Yaw[0]
+[16:46:23.840] [CLIENT BUFFER] [14] =   0 (0x00) - Yaw[1]
+[16:46:23.840] [CLIENT BUFFER] [15] = 140 (0x8C) - Yaw[2]
+[16:46:23.840] [CLIENT BUFFER] [16] =  64 (0x40) - Yaw[3]
+[16:46:23.841] [CLIENT BUFFER] [17] =  48 (0x30) - Data[17]
+[16:46:23.841] [CLIENT BUFFER] [18] =  13 (0x0D) - Data[18]
+[16:46:23.841] [CLIENT BUFFER] [19] = 239 (0xEF) - Data[19]
+[16:46:23.841] [CLIENT BUFFER] [20] =   0 (0x00) - Data[20]
+[16:46:23.841] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
+[16:46:23.841] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
+[16:46:23.842] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
+[16:46:23.842] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
+[16:46:23.842] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
+[16:46:23.842] === MANUAL BUFFER INTERPRETATION ===
+[16:46:23.842] [CLIENT MANUAL] QuantizedX: 9 (from bytes 09 00)
+[16:46:23.842] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
+[16:46:23.842] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
+[16:46:23.842] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
+[16:46:23.843] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
+[16:46:23.843] [CLIENT] Sending SyncEntityQuantizedPacket via UdpClient...
+[16:46:23.843] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:23.933] [SATELLITE] SendSyncToServer #4: Pos=X=980.995 Y=1115.292 Z=92.013, Rot=P=0.000000 Y=4.375000 R=0.000000, Vel=X=485.039 Y=36.245 Z=0.000
+[16:46:23.934] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:23.934] === SENDING SyncEntityQuantizedPacket #5 ===
+[16:46:23.934] [CLIENT SEND] [ROCKET] Original Position: X=980.995 Y=1115.292 Z=92.013
+[16:46:23.934] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=4.375000 R=0.000000
+[16:46:23.934] [CLIENT SEND] [ROCKET] Original Velocity: X=485.039 Y=36.245 Z=0.000
+[16:46:23.935] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
+[16:46:23.935] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
+[16:46:23.935] [CLIENT SEND] [PACKAGE] Quantized: X=10 Y=11 Z=1
+[16:46:23.935] [CLIENT SEND] [PACKAGE] Relative Position: X=980.995 Y=1115.292 Z=92.013
+[16:46:23.935] [CLIENT SEND] [PACKAGE] Yaw Only: 4.375000
+[16:46:23.936] === CLIENT SERIALIZATION DEBUG ===
+[16:46:23.936] [CLIENT STRUCT] QuantizedX: 10
+[16:46:23.936] [CLIENT STRUCT] QuantizedY: 11
+[16:46:23.936] [CLIENT STRUCT] QuantizedZ: 1
+[16:46:23.936] [CLIENT STRUCT] QuadrantX: 0
+[16:46:23.936] [CLIENT STRUCT] QuadrantY: 0
+[16:46:23.936] [CLIENT STRUCT] Yaw: 4.375000
+[16:46:23.937] [CLIENT STRUCT] Velocity: X=485.039 Y=36.245 Z=0.000
+[16:46:23.937] [CLIENT STRUCT] AnimationState: 0
+[16:46:23.937] [CLIENT STRUCT] IsFalling: false
+[16:46:23.937] [CLIENT] About to serialize SyncEntityQuantizedPacket...
+[16:46:23.937] [CLIENT] [CHECK] Serialization complete - buffer length: 26
+[16:46:23.937] === SERIALIZED BUFFER ANALYSIS ===
+[16:46:23.937] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
+[16:46:23.937] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
+[16:46:23.938] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
+[16:46:23.938] [CLIENT BUFFER] [03] =  10 (0x0A) - QuantizedX[0]
+[16:46:23.938] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
+[16:46:23.938] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
+[16:46:23.938] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
+[16:46:23.938] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
+[16:46:23.938] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
+[16:46:23.938] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
+[16:46:23.939] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
+[16:46:23.939] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
+[16:46:23.939] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
+[16:46:23.939] [CLIENT BUFFER] [13] =   0 (0x00) - Yaw[0]
+[16:46:23.939] [CLIENT BUFFER] [14] =   0 (0x00) - Yaw[1]
+[16:46:23.939] [CLIENT BUFFER] [15] = 140 (0x8C) - Yaw[2]
+[16:46:23.940] [CLIENT BUFFER] [16] =  64 (0x40) - Yaw[3]
+[16:46:23.940] [CLIENT BUFFER] [17] = 242 (0xF2) - Data[17]
+[16:46:23.940] [CLIENT BUFFER] [18] =  18 (0x12) - Data[18]
+[16:46:23.940] [CLIENT BUFFER] [19] = 106 (0x6A) - Data[19]
+[16:46:23.940] [CLIENT BUFFER] [20] =   1 (0x01) - Data[20]
+[16:46:23.940] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
+[16:46:23.940] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
+[16:46:23.941] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
+[16:46:23.941] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
+[16:46:23.941] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
+[16:46:23.941] === MANUAL BUFFER INTERPRETATION ===
+[16:46:23.941] [CLIENT MANUAL] QuantizedX: 10 (from bytes 0A 00)
+[16:46:23.941] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
+[16:46:23.941] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
+[16:46:23.942] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
+[16:46:23.942] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
+[16:46:23.942] [CLIENT] Sending SyncEntityQuantizedPacket via UdpClient...
+[16:46:23.942] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:24.032] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:24.032] === SENDING SyncEntityQuantizedPacket #6 ===
+[16:46:24.032] [CLIENT SEND] [ROCKET] Original Position: X=1030.283 Y=1119.014 Z=92.013
+[16:46:24.032] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=4.375000 R=0.000000
+[16:46:24.032] [CLIENT SEND] [ROCKET] Original Velocity: X=498.565 Y=37.853 Z=0.000
+[16:46:24.032] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
+[16:46:24.033] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
+[16:46:24.033] [CLIENT SEND] [PACKAGE] Quantized: X=10 Y=11 Z=1
+[16:46:24.033] [CLIENT SEND] [PACKAGE] Relative Position: X=1030.283 Y=1119.014 Z=92.013
+[16:46:24.033] [CLIENT SEND] [PACKAGE] Yaw Only: 4.375000
+[16:46:24.033] === CLIENT SERIALIZATION DEBUG ===
+[16:46:24.033] [CLIENT STRUCT] QuantizedX: 10
+[16:46:24.034] [CLIENT STRUCT] QuantizedY: 11
+[16:46:24.034] [CLIENT STRUCT] QuantizedZ: 1
+[16:46:24.034] [CLIENT STRUCT] QuadrantX: 0
+[16:46:24.034] [CLIENT STRUCT] QuadrantY: 0
+[16:46:24.034] [CLIENT STRUCT] Yaw: 4.375000
+[16:46:24.034] [CLIENT STRUCT] Velocity: X=498.565 Y=37.853 Z=0.000
+[16:46:24.034] [CLIENT STRUCT] AnimationState: 0
+[16:46:24.035] [CLIENT STRUCT] IsFalling: false
+[16:46:24.035] [CLIENT] About to serialize SyncEntityQuantizedPacket...
+[16:46:24.035] [CLIENT] [CHECK] Serialization complete - buffer length: 26
+[16:46:24.035] === SERIALIZED BUFFER ANALYSIS ===
+[16:46:24.035] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
+[16:46:24.035] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
+[16:46:24.036] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
+[16:46:24.036] [CLIENT BUFFER] [03] =  10 (0x0A) - QuantizedX[0]
+[16:46:24.036] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
+[16:46:24.036] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
+[16:46:24.036] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
+[16:46:24.036] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
+[16:46:24.036] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
+[16:46:24.037] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
+[16:46:24.037] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
+[16:46:24.037] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
+[16:46:24.037] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
+[16:46:24.037] [CLIENT BUFFER] [13] =   0 (0x00) - Yaw[0]
+[16:46:24.037] [CLIENT BUFFER] [14] =   0 (0x00) - Yaw[1]
+[16:46:24.037] [CLIENT BUFFER] [15] = 140 (0x8C) - Yaw[2]
+[16:46:24.037] [CLIENT BUFFER] [16] =  64 (0x40) - Yaw[3]
+[16:46:24.037] [CLIENT BUFFER] [17] = 122 (0x7A) - Data[17]
+[16:46:24.037] [CLIENT BUFFER] [18] =  19 (0x13) - Data[18]
+[16:46:24.038] [CLIENT BUFFER] [19] = 123 (0x7B) - Data[19]
+[16:46:24.038] [CLIENT BUFFER] [20] =   1 (0x01) - Data[20]
+[16:46:24.038] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
+[16:46:24.038] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
+[16:46:24.038] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
+[16:46:24.038] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
+[16:46:24.038] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
+[16:46:24.039] === MANUAL BUFFER INTERPRETATION ===
+[16:46:24.039] [CLIENT MANUAL] QuantizedX: 10 (from bytes 0A 00)
+[16:46:24.039] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
+[16:46:24.039] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
+[16:46:24.039] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
+[16:46:24.039] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
+[16:46:24.040] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:24.135] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:24.135] === SENDING SyncEntityQuantizedPacket #7 ===
+[16:46:24.135] [CLIENT SEND] [ROCKET] Original Position: X=1081.609 Y=1122.924 Z=92.013
+[16:46:24.135] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=4.375000 R=0.000000
+[16:46:24.135] [CLIENT SEND] [ROCKET] Original Velocity: X=498.550 Y=38.052 Z=0.000
+[16:46:24.135] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
+[16:46:24.135] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
+[16:46:24.135] [CLIENT SEND] [PACKAGE] Quantized: X=11 Y=11 Z=1
+[16:46:24.136] [CLIENT SEND] [PACKAGE] Relative Position: X=1081.609 Y=1122.924 Z=92.013
+[16:46:24.136] [CLIENT SEND] [PACKAGE] Yaw Only: 4.375000
+[16:46:24.136] === CLIENT SERIALIZATION DEBUG ===
+[16:46:24.136] [CLIENT STRUCT] QuantizedX: 11
+[16:46:24.137] [CLIENT STRUCT] QuantizedY: 11
+[16:46:24.137] [CLIENT STRUCT] QuantizedZ: 1
+[16:46:24.137] [CLIENT STRUCT] QuadrantX: 0
+[16:46:24.137] [CLIENT STRUCT] QuadrantY: 0
+[16:46:24.137] [CLIENT STRUCT] Yaw: 4.375000
+[16:46:24.137] [CLIENT STRUCT] Velocity: X=498.550 Y=38.052 Z=0.000
+[16:46:24.137] [CLIENT STRUCT] AnimationState: 0
+[16:46:24.137] [CLIENT STRUCT] IsFalling: false
+[16:46:24.137] [CLIENT] About to serialize SyncEntityQuantizedPacket...
+[16:46:24.138] [CLIENT] [CHECK] Serialization complete - buffer length: 26
+[16:46:24.138] === SERIALIZED BUFFER ANALYSIS ===
+[16:46:24.138] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
+[16:46:24.138] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
+[16:46:24.138] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
+[16:46:24.138] [CLIENT BUFFER] [03] =  11 (0x0B) - QuantizedX[0]
+[16:46:24.138] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
+[16:46:24.138] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
+[16:46:24.138] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
+[16:46:24.139] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
+[16:46:24.139] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
+[16:46:24.139] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
+[16:46:24.139] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
+[16:46:24.139] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
+[16:46:24.139] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
+[16:46:24.139] [CLIENT BUFFER] [13] =   0 (0x00) - Yaw[0]
+[16:46:24.140] [CLIENT BUFFER] [14] =   0 (0x00) - Yaw[1]
+[16:46:24.140] [CLIENT BUFFER] [15] = 140 (0x8C) - Yaw[2]
+[16:46:24.140] [CLIENT BUFFER] [16] =  64 (0x40) - Yaw[3]
+[16:46:24.140] [CLIENT BUFFER] [17] = 121 (0x79) - Data[17]
+[16:46:24.140] [CLIENT BUFFER] [18] =  19 (0x13) - Data[18]
+[16:46:24.140] [CLIENT BUFFER] [19] = 125 (0x7D) - Data[19]
+[16:46:24.140] [CLIENT BUFFER] [20] =   1 (0x01) - Data[20]
+[16:46:24.140] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
+[16:46:24.141] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
+[16:46:24.141] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
+[16:46:24.141] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
+[16:46:24.141] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
+[16:46:24.141] === MANUAL BUFFER INTERPRETATION ===
+[16:46:24.141] [CLIENT MANUAL] QuantizedX: 11 (from bytes 0B 00)
+[16:46:24.141] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
+[16:46:24.142] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
+[16:46:24.142] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
+[16:46:24.142] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
+[16:46:24.142] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:24.232] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:24.232] === SENDING SyncEntityQuantizedPacket #8 ===
+[16:46:24.232] [CLIENT SEND] [ROCKET] Original Position: X=1129.735 Y=1126.601 Z=92.013
+[16:46:24.232] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=4.375000 R=0.000000
+[16:46:24.232] [CLIENT SEND] [ROCKET] Original Velocity: X=498.545 Y=38.112 Z=0.000
+[16:46:24.232] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
+[16:46:24.232] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
+[16:46:24.233] [CLIENT SEND] [PACKAGE] Quantized: X=11 Y=11 Z=1
+[16:46:24.233] [CLIENT SEND] [PACKAGE] Relative Position: X=1129.735 Y=1126.601 Z=92.013
+[16:46:24.233] [CLIENT SEND] [PACKAGE] Yaw Only: 4.375000
+[16:46:24.233] === CLIENT SERIALIZATION DEBUG ===
+[16:46:24.233] [CLIENT STRUCT] QuantizedX: 11
+[16:46:24.233] [CLIENT STRUCT] QuantizedY: 11
+[16:46:24.233] [CLIENT STRUCT] QuantizedZ: 1
+[16:46:24.233] [CLIENT STRUCT] QuadrantX: 0
+[16:46:24.233] [CLIENT STRUCT] QuadrantY: 0
+[16:46:24.234] [CLIENT STRUCT] Yaw: 4.375000
+[16:46:24.234] [CLIENT STRUCT] Velocity: X=498.545 Y=38.112 Z=0.000
+[16:46:24.234] [CLIENT STRUCT] AnimationState: 0
+[16:46:24.234] [CLIENT STRUCT] IsFalling: false
+[16:46:24.234] [CLIENT] About to serialize SyncEntityQuantizedPacket...
+[16:46:24.234] [CLIENT] [CHECK] Serialization complete - buffer length: 26
+[16:46:24.234] === SERIALIZED BUFFER ANALYSIS ===
+[16:46:24.234] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
+[16:46:24.235] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
+[16:46:24.235] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
+[16:46:24.235] [CLIENT BUFFER] [03] =  11 (0x0B) - QuantizedX[0]
+[16:46:24.235] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
+[16:46:24.236] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
+[16:46:24.236] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
+[16:46:24.236] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
+[16:46:24.236] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
+[16:46:24.236] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
+[16:46:24.236] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
+[16:46:24.236] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
+[16:46:24.236] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
+[16:46:24.236] [CLIENT BUFFER] [13] =   0 (0x00) - Yaw[0]
+[16:46:24.236] [CLIENT BUFFER] [14] =   0 (0x00) - Yaw[1]
+[16:46:24.236] [CLIENT BUFFER] [15] = 140 (0x8C) - Yaw[2]
+[16:46:24.236] [CLIENT BUFFER] [16] =  64 (0x40) - Yaw[3]
+[16:46:24.236] [CLIENT BUFFER] [17] = 121 (0x79) - Data[17]
+[16:46:24.236] [CLIENT BUFFER] [18] =  19 (0x13) - Data[18]
+[16:46:24.237] [CLIENT BUFFER] [19] = 125 (0x7D) - Data[19]
+[16:46:24.237] [CLIENT BUFFER] [20] =   1 (0x01) - Data[20]
+[16:46:24.237] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
+[16:46:24.237] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
+[16:46:24.237] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
+[16:46:24.237] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
+[16:46:24.237] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
+[16:46:24.237] === MANUAL BUFFER INTERPRETATION ===
+[16:46:24.237] [CLIENT MANUAL] QuantizedX: 11 (from bytes 0B 00)
+[16:46:24.238] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
+[16:46:24.238] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
+[16:46:24.238] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
+[16:46:24.238] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
+[16:46:24.238] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:24.336] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:24.336] === SENDING SyncEntityQuantizedPacket #9 ===
+[16:46:24.336] [CLIENT SEND] [ROCKET] Original Position: X=1182.063 Y=1130.602 Z=92.013
+[16:46:24.337] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=4.375000 R=0.000000
+[16:46:24.337] [CLIENT SEND] [ROCKET] Original Velocity: X=498.544 Y=38.133 Z=0.000
+[16:46:24.337] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
+[16:46:24.337] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
+[16:46:24.337] [CLIENT SEND] [PACKAGE] Quantized: X=12 Y=11 Z=1
+[16:46:24.337] [CLIENT SEND] [PACKAGE] Relative Position: X=1182.063 Y=1130.602 Z=92.013
+[16:46:24.337] [CLIENT SEND] [PACKAGE] Yaw Only: 4.375000
+[16:46:24.338] === CLIENT SERIALIZATION DEBUG ===
+[16:46:24.338] [CLIENT STRUCT] QuantizedX: 12
+[16:46:24.338] [CLIENT STRUCT] QuantizedY: 11
+[16:46:24.338] [CLIENT STRUCT] QuantizedZ: 1
+[16:46:24.338] [CLIENT STRUCT] QuadrantX: 0
+[16:46:24.338] [CLIENT STRUCT] QuadrantY: 0
+[16:46:24.338] [CLIENT STRUCT] Yaw: 4.375000
+[16:46:24.338] [CLIENT STRUCT] Velocity: X=498.544 Y=38.133 Z=0.000
+[16:46:24.338] [CLIENT STRUCT] AnimationState: 0
+[16:46:24.339] [CLIENT STRUCT] IsFalling: false
+[16:46:24.339] [CLIENT] About to serialize SyncEntityQuantizedPacket...
+[16:46:24.339] [CLIENT] [CHECK] Serialization complete - buffer length: 26
+[16:46:24.339] === SERIALIZED BUFFER ANALYSIS ===
+[16:46:24.339] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
+[16:46:24.339] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
+[16:46:24.340] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
+[16:46:24.340] [CLIENT BUFFER] [03] =  12 (0x0C) - QuantizedX[0]
+[16:46:24.340] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
+[16:46:24.340] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
+[16:46:24.340] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
+[16:46:24.340] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
+[16:46:24.340] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
+[16:46:24.340] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
+[16:46:24.341] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
+[16:46:24.341] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
+[16:46:24.341] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
+[16:46:24.341] [CLIENT BUFFER] [13] =   0 (0x00) - Yaw[0]
+[16:46:24.341] [CLIENT BUFFER] [14] =   0 (0x00) - Yaw[1]
+[16:46:24.341] [CLIENT BUFFER] [15] = 140 (0x8C) - Yaw[2]
+[16:46:24.341] [CLIENT BUFFER] [16] =  64 (0x40) - Yaw[3]
+[16:46:24.341] [CLIENT BUFFER] [17] = 121 (0x79) - Data[17]
+[16:46:24.342] [CLIENT BUFFER] [18] =  19 (0x13) - Data[18]
+[16:46:24.342] [CLIENT BUFFER] [19] = 125 (0x7D) - Data[19]
+[16:46:24.342] [CLIENT BUFFER] [20] =   1 (0x01) - Data[20]
+[16:46:24.342] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
+[16:46:24.342] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
+[16:46:24.342] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
+[16:46:24.343] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
+[16:46:24.343] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
+[16:46:24.343] === MANUAL BUFFER INTERPRETATION ===
+[16:46:24.343] [CLIENT MANUAL] QuantizedX: 12 (from bytes 0C 00)
+[16:46:24.343] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
+[16:46:24.343] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
+[16:46:24.343] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
+[16:46:24.343] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
+[16:46:24.344] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:24.434] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:24.434] === SENDING SyncEntityQuantizedPacket #10 ===
+[16:46:24.434] [CLIENT SEND] [ROCKET] Original Position: X=1230.431 Y=1134.302 Z=92.013
+[16:46:24.434] [CLIENT SEND] [ROCKET] Original Rotation: P=0.000000 Y=4.375000 R=0.000000
+[16:46:24.434] [CLIENT SEND] [ROCKET] Original Velocity: X=498.543 Y=38.139 Z=0.000
+[16:46:24.434] [CLIENT SEND] [ROCKET] AnimID: 0, IsFalling: false
+[16:46:24.434] [CLIENT SEND] [PACKAGE] Quadrant: X=0 Y=0
+[16:46:24.435] [CLIENT SEND] [PACKAGE] Quantized: X=12 Y=11 Z=1
+[16:46:24.435] [CLIENT SEND] [PACKAGE] Relative Position: X=1230.431 Y=1134.302 Z=92.013
+[16:46:24.435] [CLIENT SEND] [PACKAGE] Yaw Only: 4.375000
+[16:46:24.435] === CLIENT SERIALIZATION DEBUG ===
+[16:46:24.435] [CLIENT STRUCT] QuantizedX: 12
+[16:46:24.435] [CLIENT STRUCT] QuantizedY: 11
+[16:46:24.435] [CLIENT STRUCT] QuantizedZ: 1
+[16:46:24.435] [CLIENT STRUCT] QuadrantX: 0
+[16:46:24.435] [CLIENT STRUCT] QuadrantY: 0
+[16:46:24.435] [CLIENT STRUCT] Yaw: 4.375000
+[16:46:24.436] [CLIENT STRUCT] Velocity: X=498.543 Y=38.139 Z=0.000
+[16:46:24.436] [CLIENT STRUCT] AnimationState: 0
+[16:46:24.436] [CLIENT STRUCT] IsFalling: false
+[16:46:24.436] [CLIENT] About to serialize SyncEntityQuantizedPacket...
+[16:46:24.436] [CLIENT] [CHECK] Serialization complete - buffer length: 26
+[16:46:24.436] === SERIALIZED BUFFER ANALYSIS ===
+[16:46:24.437] [CLIENT BUFFER] [00] =   4 (0x04) - PacketType
+[16:46:24.437] [CLIENT BUFFER] [01] =   1 (0x01) - ClientPacket Low
+[16:46:24.437] [CLIENT BUFFER] [02] =   0 (0x00) - ClientPacket High
+[16:46:24.437] [CLIENT BUFFER] [03] =  12 (0x0C) - QuantizedX[0]
+[16:46:24.437] [CLIENT BUFFER] [04] =   0 (0x00) - QuantizedX[1]
+[16:46:24.437] [CLIENT BUFFER] [05] =  11 (0x0B) - QuantizedY[0]
+[16:46:24.438] [CLIENT BUFFER] [06] =   0 (0x00) - QuantizedY[1]
+[16:46:24.438] [CLIENT BUFFER] [07] =   1 (0x01) - QuantizedZ[0]
+[16:46:24.438] [CLIENT BUFFER] [08] =   0 (0x00) - QuantizedZ[1]
+[16:46:24.438] [CLIENT BUFFER] [09] =   0 (0x00) - QuadrantX[0]
+[16:46:24.438] [CLIENT BUFFER] [10] =   0 (0x00) - QuadrantX[1]
+[16:46:24.438] [CLIENT BUFFER] [11] =   0 (0x00) - QuadrantY[0]
+[16:46:24.438] [CLIENT BUFFER] [12] =   0 (0x00) - QuadrantY[1]
+[16:46:24.438] [CLIENT BUFFER] [13] =   0 (0x00) - Yaw[0]
+[16:46:24.439] [CLIENT BUFFER] [14] =   0 (0x00) - Yaw[1]
+[16:46:24.439] [CLIENT BUFFER] [15] = 140 (0x8C) - Yaw[2]
+[16:46:24.439] [CLIENT BUFFER] [16] =  64 (0x40) - Yaw[3]
+[16:46:24.439] [CLIENT BUFFER] [17] = 121 (0x79) - Data[17]
+[16:46:24.439] [CLIENT BUFFER] [18] =  19 (0x13) - Data[18]
+[16:46:24.439] [CLIENT BUFFER] [19] = 125 (0x7D) - Data[19]
+[16:46:24.439] [CLIENT BUFFER] [20] =   1 (0x01) - Data[20]
+[16:46:24.439] [CLIENT BUFFER] [21] =   0 (0x00) - Data[21]
+[16:46:24.440] [CLIENT BUFFER] [22] =   0 (0x00) - Data[22]
+[16:46:24.440] [CLIENT BUFFER] [23] =   0 (0x00) - Data[23]
+[16:46:24.440] [CLIENT BUFFER] [24] =   0 (0x00) - Data[24]
+[16:46:24.440] [CLIENT BUFFER] [25] =   0 (0x00) - Data[25]
+[16:46:24.440] === MANUAL BUFFER INTERPRETATION ===
+[16:46:24.440] [CLIENT MANUAL] QuantizedX: 12 (from bytes 0C 00)
+[16:46:24.441] [CLIENT MANUAL] QuantizedY: 11 (from bytes 0B 00)
+[16:46:24.441] [CLIENT MANUAL] QuantizedZ: 1 (from bytes 01 00)
+[16:46:24.441] [CLIENT MANUAL] QuadrantX: 0 (from bytes 00 00)
+[16:46:24.441] [CLIENT MANUAL] QuadrantY: 0 (from bytes 00 00)
+[16:46:24.441] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:24.539] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:24.539] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:24.639] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:24.639] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:24.738] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:24.739] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:24.839] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:24.839] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:24.938] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:24.939] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:25.038] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:25.039] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:25.139] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:25.139] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:25.238] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:25.239] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:25.338] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:25.339] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:25.438] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:25.439] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:25.538] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:25.539] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:25.639] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:25.639] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:25.738] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:25.739] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:25.838] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:25.839] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:25.939] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:25.940] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:26.039] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:26.039] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:26.138] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:26.139] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:26.239] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:26.239] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:26.339] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:26.339] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:46:26.439] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:46:26.439] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:35.922] === CRYPTO HANDSHAKE START ===
+[16:47:35.922] [CLIENT] 🔐 Sending CryptoTest: 2712847316
+[16:47:35.922] [CLIENT] 🔐 Buffer size: 5 bytes
+[16:47:35.923] === CRYPTO HANDSHAKE START ===
+[16:47:35.923] [CLIENT] 🔐 Sending CryptoTest: 2712847316
+[16:47:35.923] [CLIENT] 🔐 Buffer size: 5 bytes
+[16:47:35.927] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:47:35.927] [CLIENT] 🔐 Server crypto confirmed: NO
+[16:47:35.928] === RELIABLE HANDSHAKE START ===
+[16:47:35.928] [CLIENT] 🤝 Crypto ready: YES
+[16:47:35.928] [CLIENT] 🤝 Sending ReliableHandshake packet (2 bytes)
+[16:47:35.928] [CLIENT] 🤝 Buffer: [0x10, 0x01]
+[16:47:35.929] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:47:35.929] [CLIENT] 🔐 Server crypto confirmed: YES
+[16:47:35.929] === ENCRYPTING RELIABLE HANDSHAKE PACKET ===
+[16:47:35.929] [CLIENT] ConnectionId: 881872852
+[16:47:35.929] [CLIENT] Sequence: 0
+[16:47:35.930] [CLIENT] Channel: 0
+[16:47:35.930] [CLIENT] Flags: 3
+[16:47:35.930] [CLIENT] AAD: D44F903400030000000000000000
+[16:47:35.930] [CLIENT] Payload: 0F4D3C2B1A
+[16:47:35.930] [CLIENT] Nonce: D44F90340000000000000000
+[16:47:35.930] [CLIENT] TxKey: 364F55662237B1818BC1DA3577E94CD308E26D4A599F04D60EFF61C757EF4558
+[16:47:35.931] [CLIENT] Compression: false
+[16:47:35.931] [CLIENT] Ciphertext: 1F96CEA7F64702716808BCDECF76FD9BDCA19C9A47
+[16:47:35.931] [CLIENT] Ciphertext Length: 21 bytes
+[16:47:35.931] [CLIENT] TxKey: 364F55662237B1818BC1DA3577E94CD308E26D4A599F04D60EFF61C757EF4558
+[16:47:35.931] [CLIENT] Final Packet Size: 39 bytes (Header: 14 + Ciphertext: 21 + CRC32: 4)
+[16:47:35.932] [CLIENT] CRC32 Signature: 272E9DA8
+[16:47:35.932] [CLIENT] Complete Packet: D44F9034000300000000000000001F96CEA7F64702716808BCDECF76FD9BDCA19C9A47A89D2E27
+[16:47:35.932] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:47:35.933] [CLIENT] 🔐 Server crypto confirmed: YES
+[16:47:35.933] === SENDING Unknown Type 15 (seq=1) ===
+[16:47:35.933] [CLIENT] Channel: Unreliable
+[16:47:35.934] [CLIENT] Payload Size: 5 bytes
+[16:47:35.934] [CLIENT] RAW Payload: 0F4D3C2B1A
+[16:47:35.934] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:47:35.934] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[16:47:35.934] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[16:47:35.934] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[16:47:35.934] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[16:47:35.934] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[16:47:35.934] [CLIENT] ClientPacket interpreted as uint16: 15437
+[16:47:35.935] [CLIENT] Should be 0 for SyncEntity: NO
+[16:47:35.935] [WRENCH] SyncEntity: NetSubsystem found: YES
+[16:47:35.936] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:47:35.936] [CLIENT] 🔐 Server crypto confirmed: YES
+[16:47:35.936] === SENDING Unknown Type 15 (seq=2) ===
+[16:47:35.936] [CLIENT] Channel: Unreliable
+[16:47:35.936] [CLIENT] Payload Size: 5 bytes
+[16:47:35.936] [CLIENT] RAW Payload: 0F4D3C2B1A
+[16:47:35.936] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:47:35.937] [TARGET] SyncPlayer::BeginPlay - NetSubsystem: FOUND
+[16:47:35.937] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[16:47:35.937] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[16:47:35.937] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[16:47:35.938] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[16:47:35.938] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[16:47:35.938] [CLIENT] ClientPacket interpreted as uint16: 15437
+[16:47:35.938] [CLIENT] Should be 0 for SyncEntity: NO
+[16:47:35.938] [ROCKET] SyncPlayer: Timer started for SendSyncToServer every 0.1s
+[16:47:35.939] [CLIENT] 🔐 Sending CryptoTestAck: 439041101
+[16:47:35.939] [CLIENT] 🔐 Server crypto confirmed: YES
+[16:47:35.939] === SENDING Unknown Type 15 (seq=3) ===
+[16:47:35.940] [CLIENT] Channel: Unreliable
+[16:47:35.940] [CLIENT] Payload Size: 5 bytes
+[16:47:35.940] [CLIENT] RAW Payload: 0F4D3C2B1A
+[16:47:35.940] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:47:35.940] [CLIENT] Payload[00] =  15 (0x0F) (Should be EPacketType)
+[16:47:35.941] [CLIENT] Payload[01] =  77 (0x4D) (ClientPacket low byte)
+[16:47:35.941] [CLIENT] Payload[02] =  60 (0x3C) (ClientPacket high byte)
+[16:47:35.941] [CLIENT] Payload[03] =  43 (0x2B) (Position data byte 1)
+[16:47:35.941] [CLIENT] Payload[04] =  26 (0x1A) (Position data byte 2)
+[16:47:35.941] [CLIENT] ClientPacket interpreted as uint16: 15437
+[16:47:35.941] [CLIENT] Should be 0 for SyncEntity: NO
+[16:47:35.963] [WRENCH] SyncEntity: NetSubsystem found: YES
+[16:47:35.967] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:35.967] === SENDING Unknown Type 4 (seq=4) ===
+[16:47:35.967] [CLIENT] Channel: Unreliable
+[16:47:35.967] [CLIENT] Payload Size: 26 bytes
+[16:47:35.967] [CLIENT] RAW Payload: 04010009000B0001000000000000000000000000000000000000
+[16:47:35.968] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:47:35.968] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[16:47:35.968] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
+[16:47:35.968] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[16:47:35.968] [CLIENT] Payload[03] =   9 (0x09) (Position data byte 1)
+[16:47:35.968] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
+[16:47:35.968] [CLIENT] Payload[05] =  11 (0x0B) (Position data byte 3)
+[16:47:35.968] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
+[16:47:35.968] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
+[16:47:35.969] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
+[16:47:35.969] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[16:47:35.969] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[16:47:35.969] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
+[16:47:35.969] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
+[16:47:35.969] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[16:47:35.969] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[16:47:35.969] [CLIENT] Payload[15] =   0 (0x00) (Rotation data byte 1)
+[16:47:35.970] [CLIENT] Payload[16] =   0 (0x00) (Rotation data byte 2)
+[16:47:35.970] [CLIENT] Payload[17] =   0 (0x00) (Rotation data byte 3)
+[16:47:35.970] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
+[16:47:35.970] [CLIENT] Payload[19] =   0 (0x00) (Rotation data byte 5)
+[16:47:35.970] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[16:47:35.970] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[16:47:35.970] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[16:47:35.970] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[16:47:35.971] [CLIENT] ClientPacket interpreted as uint16: 1
+[16:47:35.971] [CLIENT] Should be 0 for SyncEntity: NO
+[16:47:35.971] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:36.073] === RECEIVED UpdateEntityQuantizedPacket #1 ===
+[16:47:36.073] [CLIENT] EntityId: 1319209088
+[16:47:36.073] [CLIENT] Quantized Position: (9, 12, 1)
+[16:47:36.073] [CLIENT] Quadrant: (0, 0)
+[16:47:36.073] [CLIENT] Yaw: 0.000000
+[16:47:36.073] [CLIENT] Velocity: X=0.000 Y=0.000 Z=0.000
+[16:47:36.074] [CLIENT] AnimationState: 0
+[16:47:36.074] [CLIENT] Flags: 0
+[16:47:36.074] [CLIENT] UpdateEntityQuantized broadcasted to delegates
+[16:47:36.083] === HandleUpdateEntityQuantized #1 ===
+[16:47:36.084] [CLIENT RECV] 📨 Received EntityId: 1319209088
+[16:47:36.084] [CLIENT RECV] 📨 Raw Quantized: X=9 Y=12 Z=1
+[16:47:36.084] [CLIENT RECV] 📨 Raw Quadrant: X=0 Y=0
+[16:47:36.084] [CLIENT RECV] 📨 Raw Yaw: 0.000000
+[16:47:36.085] [CLIENT RECV] 📨 Raw Velocity: X=0.000 Y=0.000 Z=0.000
+[16:47:36.085] [CLIENT RECV] 📨 bIsReadyToSync: true
+[16:47:36.085] [CLIENT RECV] 📨 SpawnedEntities count: 1
+[16:47:36.085] [HANDLER] [CHECK] Found existing entity 1319209088, updating...
+[16:47:36.085] [CLIENT RECV] 🧮 Calculated World Position: X=900.000 Y=1200.000 Z=100.000
+[16:47:36.085] [CLIENT RECV] 🧮 Entity Current Position: X=0.000 Y=0.000 Z=0.000
+[16:47:36.086] === UpdateFromQuantizedNetwork #1 ===
+[16:47:36.086] [ENTITY] EntityId: 1319209088
+[16:47:36.086] [ENTITY] Quantized: (9, 12, 1)
+[16:47:36.087] [ENTITY] Quadrant: (0, 0)
+[16:47:36.087] [ENTITY] Yaw: 0.000000
+[16:47:36.087] [ENTITY] Velocity: X=0.000 Y=0.000 Z=0.000
+[16:47:36.087] [ENTITY] Animation: 0, IsFalling: false
+[16:47:36.087] [ENTITY] Calculated world position: X=900.000 Y=1200.000 Z=100.000
+[16:47:36.088] [ENTITY] Previous TargetLocation: X=900.000 Y=1200.000 Z=100.000
+[16:47:36.088] [ENTITY] Setting new TargetLocation and TargetRotation
+[16:47:36.088] [ENTITY] [CHECK] UpdateFromQuantizedNetwork completed for Entity 1319209088
+[16:47:36.089] [CLIENT RECV] [CHECK] Entity Updated - New Position: X=0.000 Y=0.000 Z=0.000
+[16:47:36.486] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:36.486] === SENDING Unknown Type 4 (seq=5) ===
+[16:47:36.486] [CLIENT] Channel: Unreliable
+[16:47:36.486] [CLIENT] Payload Size: 26 bytes
+[16:47:36.486] [CLIENT] RAW Payload: 04010009000B00010000000000055685407C000F000000000000
+[16:47:36.487] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:47:36.487] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[16:47:36.487] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
+[16:47:36.487] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[16:47:36.487] [CLIENT] Payload[03] =   9 (0x09) (Position data byte 1)
+[16:47:36.487] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
+[16:47:36.487] [CLIENT] Payload[05] =  11 (0x0B) (Position data byte 3)
+[16:47:36.487] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
+[16:47:36.487] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
+[16:47:36.488] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
+[16:47:36.488] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[16:47:36.488] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[16:47:36.488] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
+[16:47:36.488] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
+[16:47:36.488] [CLIENT] Payload[13] =   5 (0x05) (Position data byte 11)
+[16:47:36.488] [CLIENT] Payload[14] =  86 (0x56) (Position data byte 12)
+[16:47:36.488] [CLIENT] Payload[15] = 133 (0x85) (Rotation data byte 1)
+[16:47:36.489] [CLIENT] Payload[16] =  64 (0x40) (Rotation data byte 2)
+[16:47:36.489] [CLIENT] Payload[17] = 124 (0x7C) (Rotation data byte 3)
+[16:47:36.489] [CLIENT] Payload[18] =   0 (0x00) (Rotation data byte 4)
+[16:47:36.489] [CLIENT] Payload[19] =  15 (0x0F) (Rotation data byte 5)
+[16:47:36.489] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[16:47:36.489] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[16:47:36.489] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[16:47:36.489] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[16:47:36.490] [CLIENT] ClientPacket interpreted as uint16: 1
+[16:47:36.490] [CLIENT] Should be 0 for SyncEntity: NO
+[16:47:36.490] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:36.592] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:36.592] === SENDING Unknown Type 4 (seq=6) ===
+[16:47:36.592] [CLIENT] Channel: Unreliable
+[16:47:36.592] [CLIENT] Payload Size: 26 bytes
+[16:47:36.592] [CLIENT] RAW Payload: 04010009000B000100000000009A9973417D0679010000000000
+[16:47:36.592] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:47:36.593] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[16:47:36.593] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
+[16:47:36.593] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[16:47:36.593] [CLIENT] Payload[03] =   9 (0x09) (Position data byte 1)
+[16:47:36.593] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
+[16:47:36.593] [CLIENT] Payload[05] =  11 (0x0B) (Position data byte 3)
+[16:47:36.593] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
+[16:47:36.593] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
+[16:47:36.594] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
+[16:47:36.594] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[16:47:36.594] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[16:47:36.594] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
+[16:47:36.594] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
+[16:47:36.594] [CLIENT] Payload[13] = 154 (0x9A) (Position data byte 11)
+[16:47:36.594] [CLIENT] Payload[14] = 153 (0x99) (Position data byte 12)
+[16:47:36.594] [CLIENT] Payload[15] = 115 (0x73) (Rotation data byte 1)
+[16:47:36.594] [CLIENT] Payload[16] =  65 (0x41) (Rotation data byte 2)
+[16:47:36.594] [CLIENT] Payload[17] = 125 (0x7D) (Rotation data byte 3)
+[16:47:36.594] [CLIENT] Payload[18] =   6 (0x06) (Rotation data byte 4)
+[16:47:36.594] [CLIENT] Payload[19] = 121 (0x79) (Rotation data byte 5)
+[16:47:36.595] [CLIENT] Payload[20] =   1 (0x01) (Rotation data byte 6)
+[16:47:36.595] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[16:47:36.595] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[16:47:36.595] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[16:47:36.595] [CLIENT] ClientPacket interpreted as uint16: 1
+[16:47:36.595] [CLIENT] Should be 0 for SyncEntity: NO
+[16:47:36.595] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:36.687] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:36.687] === SENDING Unknown Type 4 (seq=7) ===
+[16:47:36.687] [CLIENT] Channel: Unreliable
+[16:47:36.688] [CLIENT] Payload Size: 26 bytes
+[16:47:36.688] [CLIENT] RAW Payload: 04010009000B0001000000000066669B41CB0B89030000000000
+[16:47:36.688] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:47:36.688] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[16:47:36.688] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
+[16:47:36.689] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[16:47:36.689] [CLIENT] Payload[03] =   9 (0x09) (Position data byte 1)
+[16:47:36.689] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
+[16:47:36.689] [CLIENT] Payload[05] =  11 (0x0B) (Position data byte 3)
+[16:47:36.689] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
+[16:47:36.689] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
+[16:47:36.689] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
+[16:47:36.690] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[16:47:36.690] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[16:47:36.690] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
+[16:47:36.690] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
+[16:47:36.690] [CLIENT] Payload[13] = 102 (0x66) (Position data byte 11)
+[16:47:36.690] [CLIENT] Payload[14] = 102 (0x66) (Position data byte 12)
+[16:47:36.690] [CLIENT] Payload[15] = 155 (0x9B) (Rotation data byte 1)
+[16:47:36.690] [CLIENT] Payload[16] =  65 (0x41) (Rotation data byte 2)
+[16:47:36.691] [CLIENT] Payload[17] = 203 (0xCB) (Rotation data byte 3)
+[16:47:36.691] [CLIENT] Payload[18] =  11 (0x0B) (Rotation data byte 4)
+[16:47:36.691] [CLIENT] Payload[19] = 137 (0x89) (Rotation data byte 5)
+[16:47:36.691] [CLIENT] Payload[20] =   3 (0x03) (Rotation data byte 6)
+[16:47:36.691] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[16:47:36.691] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[16:47:36.691] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[16:47:36.692] [CLIENT] ClientPacket interpreted as uint16: 1
+[16:47:36.692] [CLIENT] Should be 0 for SyncEntity: NO
+[16:47:36.692] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:36.784] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:36.784] === SENDING Unknown Type 4 (seq=8) ===
+[16:47:36.785] [CLIENT] Channel: Unreliable
+[16:47:36.785] [CLIENT] Payload Size: 26 bytes
+[16:47:36.785] [CLIENT] RAW Payload: 0401000A000B000100000000000000B641D31049060000000000
+[16:47:36.785] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:47:36.785] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[16:47:36.785] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
+[16:47:36.786] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[16:47:36.786] [CLIENT] Payload[03] =  10 (0x0A) (Position data byte 1)
+[16:47:36.786] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
+[16:47:36.786] [CLIENT] Payload[05] =  11 (0x0B) (Position data byte 3)
+[16:47:36.786] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
+[16:47:36.786] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
+[16:47:36.787] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
+[16:47:36.787] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[16:47:36.787] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[16:47:36.787] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
+[16:47:36.787] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
+[16:47:36.787] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[16:47:36.787] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[16:47:36.787] [CLIENT] Payload[15] = 182 (0xB6) (Rotation data byte 1)
+[16:47:36.788] [CLIENT] Payload[16] =  65 (0x41) (Rotation data byte 2)
+[16:47:36.788] [CLIENT] Payload[17] = 211 (0xD3) (Rotation data byte 3)
+[16:47:36.788] [CLIENT] Payload[18] =  16 (0x10) (Rotation data byte 4)
+[16:47:36.788] [CLIENT] Payload[19] =  73 (0x49) (Rotation data byte 5)
+[16:47:36.788] [CLIENT] Payload[20] =   6 (0x06) (Rotation data byte 6)
+[16:47:36.788] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[16:47:36.788] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[16:47:36.788] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[16:47:36.789] [CLIENT] ClientPacket interpreted as uint16: 1
+[16:47:36.789] [CLIENT] Should be 0 for SyncEntity: NO
+[16:47:36.789] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:36.887] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:36.887] === SENDING Unknown Type 4 (seq=9) ===
+[16:47:36.888] [CLIENT] Channel: Unreliable
+[16:47:36.888] [CLIENT] Payload Size: 26 bytes
+[16:47:36.888] [CLIENT] RAW Payload: 0401000A000B000100000000000000B6411A1255070000000000
+[16:47:36.888] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:47:36.888] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[16:47:36.888] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
+[16:47:36.888] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[16:47:36.888] [CLIENT] Payload[03] =  10 (0x0A) (Position data byte 1)
+[16:47:36.889] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
+[16:47:36.889] [CLIENT] Payload[05] =  11 (0x0B) (Position data byte 3)
+[16:47:36.889] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
+[16:47:36.889] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
+[16:47:36.889] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
+[16:47:36.889] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[16:47:36.889] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[16:47:36.890] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
+[16:47:36.890] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
+[16:47:36.890] [CLIENT] Payload[13] =   0 (0x00) (Position data byte 11)
+[16:47:36.890] [CLIENT] Payload[14] =   0 (0x00) (Position data byte 12)
+[16:47:36.890] [CLIENT] Payload[15] = 182 (0xB6) (Rotation data byte 1)
+[16:47:36.890] [CLIENT] Payload[16] =  65 (0x41) (Rotation data byte 2)
+[16:47:36.890] [CLIENT] Payload[17] =  26 (0x1A) (Rotation data byte 3)
+[16:47:36.891] [CLIENT] Payload[18] =  18 (0x12) (Rotation data byte 4)
+[16:47:36.891] [CLIENT] Payload[19] =  85 (0x55) (Rotation data byte 5)
+[16:47:36.891] [CLIENT] Payload[20] =   7 (0x07) (Rotation data byte 6)
+[16:47:36.891] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[16:47:36.891] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[16:47:36.892] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[16:47:36.892] [CLIENT] ClientPacket interpreted as uint16: 1
+[16:47:36.892] [CLIENT] Should be 0 for SyncEntity: NO
+[16:47:36.892] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:36.989] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:36.990] === SENDING Unknown Type 4 (seq=10) ===
+[16:47:36.990] [CLIENT] Channel: Unreliable
+[16:47:36.990] [CLIENT] Payload Size: 26 bytes
+[16:47:36.990] [CLIENT] RAW Payload: 0401000B000C00010000000000408E03C188133B000000000000
+[16:47:36.990] [CLIENT] === DETAILED PAYLOAD ANALYSIS ===
+[16:47:36.991] [CLIENT] Payload[00] =   4 (0x04) (Should be EPacketType)
+[16:47:36.991] [CLIENT] Payload[01] =   1 (0x01) (ClientPacket low byte)
+[16:47:36.991] [CLIENT] Payload[02] =   0 (0x00) (ClientPacket high byte)
+[16:47:36.991] [CLIENT] Payload[03] =  11 (0x0B) (Position data byte 1)
+[16:47:36.991] [CLIENT] Payload[04] =   0 (0x00) (Position data byte 2)
+[16:47:36.991] [CLIENT] Payload[05] =  12 (0x0C) (Position data byte 3)
+[16:47:36.991] [CLIENT] Payload[06] =   0 (0x00) (Position data byte 4)
+[16:47:36.991] [CLIENT] Payload[07] =   1 (0x01) (Position data byte 5)
+[16:47:36.991] [CLIENT] Payload[08] =   0 (0x00) (Position data byte 6)
+[16:47:36.992] [CLIENT] Payload[09] =   0 (0x00) (Position data byte 7)
+[16:47:36.992] [CLIENT] Payload[10] =   0 (0x00) (Position data byte 8)
+[16:47:36.992] [CLIENT] Payload[11] =   0 (0x00) (Position data byte 9)
+[16:47:36.992] [CLIENT] Payload[12] =   0 (0x00) (Position data byte 10)
+[16:47:36.992] [CLIENT] Payload[13] =  64 (0x40) (Position data byte 11)
+[16:47:36.992] [CLIENT] Payload[14] = 142 (0x8E) (Position data byte 12)
+[16:47:36.992] [CLIENT] Payload[15] =   3 (0x03) (Rotation data byte 1)
+[16:47:36.993] [CLIENT] Payload[16] = 193 (0xC1) (Rotation data byte 2)
+[16:47:36.993] [CLIENT] Payload[17] = 136 (0x88) (Rotation data byte 3)
+[16:47:36.993] [CLIENT] Payload[18] =  19 (0x13) (Rotation data byte 4)
+[16:47:36.993] [CLIENT] Payload[19] =  59 (0x3B) (Rotation data byte 5)
+[16:47:36.993] [CLIENT] Payload[20] =   0 (0x00) (Rotation data byte 6)
+[16:47:36.993] [CLIENT] Payload[21] =   0 (0x00) (Rotation data byte 7)
+[16:47:36.993] [CLIENT] Payload[22] =   0 (0x00) (Rotation data byte 8)
+[16:47:36.994] [CLIENT] Payload[23] =   0 (0x00) (Rotation data byte 9)
+[16:47:36.994] [CLIENT] ClientPacket interpreted as uint16: 1
+[16:47:36.994] [CLIENT] Should be 0 for SyncEntity: NO
+[16:47:36.994] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:37.086] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:37.086] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:37.185] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:37.185] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:37.286] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:37.286] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:37.385] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:37.386] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:37.485] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:37.486] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:37.586] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:37.586] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:37.685] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:37.685] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:37.786] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:37.786] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:37.885] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:37.885] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:37.986] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:37.986] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:38.086] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:38.087] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:38.185] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:38.186] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:38.285] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:38.286] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:38.386] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:38.386] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:38.486] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:38.486] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:38.586] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:38.586] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:38.685] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:38.686] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:38.786] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:38.786] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:38.885] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:38.886] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:38.986] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:38.986] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:39.086] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:39.086] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:39.191] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:39.191] [CHECK] NetSubsystem->SendEntitySyncQuantized completed
+[16:47:39.291] [OUTBOX] Calling NetSubsystem->SendEntitySyncQuantized...
+[16:47:39.291] [CHECK] NetSubsystem->SendEntitySyncQuantized completed

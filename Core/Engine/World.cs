@@ -110,8 +110,6 @@ public class World : IDisposable
     {
         if (_entityPool.IsActive(entity.Id))
             return;
-
-        //_entityPool.Create(entity.Id, );
     }
 
     public void AddPlayer(PlayerController player)
@@ -121,14 +119,9 @@ public class World : IDisposable
 
         _players[player.EntityId] = player;
 
-        // Realizar sincronização inicial - enviar entidades existentes na área de interesse
         SendInitialEntities(player);
     }
 
-        /// <summary>
-    /// Envia todas as entidades na área de interesse para um novo jogador que acabou de se conectar
-    /// e notifica os jogadores existentes sobre o novo jogador
-    /// </summary>
     private void SendInitialEntities(PlayerController newPlayer)
     {
         if (!EntityManager.TryGet(newPlayer.EntityId, out var playerEntity))
@@ -144,10 +137,8 @@ public class World : IDisposable
 
         FileLogger.Log($"[INITIAL SYNC] ⚡ Sending initial entities to player {newPlayer.EntityId}");
 
-        // Enviar todos os jogadores conectados que estão na área de interesse
         foreach (var otherPlayer in _players.Values)
         {
-            // Não enviar o próprio jogador
             if (otherPlayer.EntityId == newPlayer.EntityId)
                 continue;
 
@@ -157,7 +148,6 @@ public class World : IDisposable
             float distance = FVector.Distance(playerEntity.Position, otherEntity.Position);
             if (distance <= aoiDistance)
             {
-                // Enviar CreateEntity para o novo jogador
                 var createPacket = new CreateEntityPacket
                 {
                     EntityId = otherEntity.Id,
@@ -172,32 +162,25 @@ public class World : IDisposable
 
                 syncCount++;
 
-                // Adicionar à lista de entidades visíveis do jogador
                 if (newPlayer._visibleEntities == null)
                     newPlayer._visibleEntities = new HashSet<uint>();
 
                 newPlayer._visibleEntities.Add(otherEntity.Id);
 
-                // Adicionar à lista de jogadores que precisam ser notificados sobre o novo jogador
                 playersInRange.Add(otherPlayer);
             }
         }
 
         FileLogger.Log($"[INITIAL SYNC] ✅ Sent {syncCount} initial entities to player {newPlayer.EntityId}");
 
-        // Notificar os jogadores existentes sobre o novo jogador
         NotifyExistingPlayersAboutNewPlayer(newPlayer, playersInRange);
     }
 
-    /// <summary>
-    /// Notifica os jogadores existentes sobre um novo jogador que entrou na área de interesse
-    /// </summary>
     private void NotifyExistingPlayersAboutNewPlayer(PlayerController newPlayer, List<PlayerController> playersInRange)
     {
         if (!EntityManager.TryGet(newPlayer.EntityId, out var playerEntity))
             return;
 
-        // Criar pacote CreateEntity para o novo jogador
         var createPacket = new CreateEntityPacket
         {
             EntityId = playerEntity.Id,
@@ -208,16 +191,13 @@ public class World : IDisposable
 
         int notifiedCount = 0;
 
-        // Enviar para todos os jogadores na área de interesse
         foreach (var existingPlayer in playersInRange)
         {
-            // Adicionar o novo jogador à lista de entidades visíveis do jogador existente
             if (existingPlayer._visibleEntities == null)
                 existingPlayer._visibleEntities = new HashSet<uint>();
 
             existingPlayer._visibleEntities.Add(playerEntity.Id);
 
-            // Enviar CreateEntity para o jogador existente
             var createBuffer = new FlatBuffer(createPacket.Size);
             createPacket.Serialize(ref createBuffer);
             existingPlayer.Socket.Send(ref createBuffer, true);
@@ -249,7 +229,6 @@ public class World : IDisposable
         _entityPool.Destroy((int)id);
     }
 
-    // Intervalo de sincronização periódica para jogadores parados (em segundos)
     private const int PERIODIC_SYNC_INTERVAL = 5;
 
     public void Tick(float deltaTime)
@@ -265,7 +244,6 @@ public class World : IDisposable
                 bool moved = entity.Position != entity.LastPosition;
                 bool needsPeriodicSync = false;
 
-                // Verificar se é hora de fazer uma sincronização periódica para jogadores parados
                 if (!moved && entity.Type == EntityType.Player)
                 {
                     TimeSpan timeSinceLastSync = DateTime.UtcNow - entity.LastSyncTime;
@@ -291,33 +269,60 @@ public class World : IDisposable
                         var prevAOI = GetEntitiesInAOI(entity.Id, prevCell);
                         var currAOI = GetEntitiesInAOI(entity.Id, newCell);
 
-                        // Entidades que saíram da AOI
                         foreach (var otherId in prevAOI)
                         {
                             if (!currAOI.Contains(otherId))
                             {
-                                // TODO: Enviar pacote para remover entidade otherId do client de entity.Id
+                                if (entity.Type == EntityType.Player && PlayerController.TryGet(entity.Id, out var controller))
+                                {
+                                    if (controller._visibleEntities != null)
+                                    {
+                                        controller._visibleEntities.Remove(otherId);
+                                    }
+
+                                    var removePacket = new RemoveEntityPacket { EntityId = otherId };
+                                    var removeBuffer = new FlatBuffer(removePacket.Size);
+                                    removePacket.Serialize(ref removeBuffer);
+                                    controller.Socket.Send(ref removeBuffer, true);
+                                }
                             }
                         }
-                        // Entidades que entraram na AOI
+
                         foreach (var otherId in currAOI)
                         {
                             if (!prevAOI.Contains(otherId))
                             {
-                                // TODO: Enviar pacote para criar entidade para otherId
-                                // TODO: Enviar pacote para criar otherId para entity.Id
+                                if (entity.Type == EntityType.Player && PlayerController.TryGet(entity.Id, out var controller))
+                                {
+                                    if (!EntityManager.TryGet(otherId, out var otherEntity))
+                                        continue;
+
+                                    if (controller._visibleEntities == null)
+                                        controller._visibleEntities = new HashSet<uint>();
+
+                                    controller._visibleEntities.Add(otherId);
+
+                                    var createPacket = new CreateEntityPacket
+                                    {
+                                        EntityId = otherId,
+                                        Positon = otherEntity.Position,
+                                        Rotator = otherEntity.Rotation,
+                                        Flags = (uint)otherEntity.Flags
+                                    };
+
+                                    var createBuffer = new FlatBuffer(createPacket.Size);
+                                    createPacket.Serialize(ref createBuffer);
+                                    controller.Socket.Send(ref createBuffer, true);
+                                }
                             }
                         }
                     }
                     else
                     {
-                        // Enviar atualizações para entidades na AOI (quando moveu ou em sincronização periódica)
                         var aoiEntities = GetEntitiesInAOI(entity.Id);
 
-                        // Se for jogador, verificar se há outros jogadores para enviar atualizações
                         if (entity.Type == EntityType.Player && PlayerController.TryGet(entity.Id, out var controller))
                         {
-                            // Se for sincronização periódica de um jogador parado, forçar envio de posição
                             if (needsPeriodicSync)
                             {
                                 SendPeriodicUpdateToNearbyPlayers(entity.Id);
@@ -339,9 +344,6 @@ public class World : IDisposable
         }
     }
 
-    /// <summary>
-    /// Envia uma atualização periódica de um jogador parado para outros jogadores próximos
-    /// </summary>
     private void SendPeriodicUpdateToNearbyPlayers(uint entityId)
     {
         if (!EntityManager.TryGet(entityId, out var entity))
@@ -350,7 +352,6 @@ public class World : IDisposable
         if (!PlayerController.TryGet(entityId, out var sourceController))
             return;
 
-        // Obter jogadores na área de interesse
         var aoiConfig = ServerConfig.Instance.AreaOfInterest;
         if (!aoiConfig.Enabled)
             return;
@@ -358,10 +359,8 @@ public class World : IDisposable
         float aoiDistance = aoiConfig.GetDistanceForEntityType("Player");
         int updateCount = 0;
 
-        // Enviar atualização para todos os jogadores próximos
         foreach (var otherPlayer in _players.Values)
         {
-            // Não enviar para o próprio jogador
             if (otherPlayer.EntityId == entityId)
                 continue;
 
@@ -371,32 +370,23 @@ public class World : IDisposable
             float distance = FVector.Distance(entity.Position, otherEntity.Position);
             if (distance <= aoiDistance)
             {
-                                                                // Verificar se o buffer do socket está quase cheio
-                // Tamanho estimado de um pacote UpdateEntityQuantized
-                const int estimatedPacketSize = 40; // bytes
-                const int safetyMargin = 100; // bytes
+                const int estimatedPacketSize = 40;
+                const int safetyMargin = 100;
                 int safetyLimit = UDPServer.Mtu - estimatedPacketSize - safetyMargin;
 
                 if (otherPlayer.Socket.UnreliableBuffer.Position > safetyLimit)
                 {
-                    // Enviar o buffer atual antes de adicionar mais dados
                     otherPlayer.Socket.Send(ref otherPlayer.Socket.UnreliableBuffer);
-                    // O buffer é redefinido após o envio
                 }
 
                 try
                 {
-                    // Criar pacote de atualização quantizada
                     var updatePacket = new UpdateEntityQuantizedPacket();
-
-                    // Calcular posição quantizada
                     var worldConfig = ServerConfig.Instance.WorldOriginRebasing;
                     var defaultMapName = ServerConfig.Instance.Server.DefaultMapName;
 
-                    // Verificar se o mapa existe na configuração
                     if (!worldConfig.Maps.TryGetValue(defaultMapName, out var mapConfig))
                     {
-                        // Usar o primeiro mapa disponível se o mapa padrão não for encontrado
                         mapConfig = worldConfig.Maps.Values.FirstOrDefault() ?? new MapSectionConfig();
                     }
 
@@ -416,16 +406,10 @@ public class World : IDisposable
                     updatePacket.Velocity = entity.Velocity;
                     updatePacket.AnimationState = (ushort)entity.AnimState;
                     updatePacket.Flags = (uint)entity.Flags;
-
-                    // Serializar diretamente para o buffer do socket em vez de criar um novo buffer
                     updatePacket.Serialize(ref otherPlayer.Socket.UnreliableBuffer);
-
-                    // Não enviamos o buffer aqui - ele será enviado automaticamente no próximo tick
-                    // ou quando estiver quase cheio
                 }
                 catch (IndexOutOfRangeException ex)
                 {
-                    // Log do erro e envio do buffer para evitar problemas futuros
                     FileLogger.Log($"[PERIODIC SYNC] ⚠️ Buffer overflow ao enviar update para player {otherPlayer.EntityId}: {ex.Message}");
                     otherPlayer.Socket.Send(ref otherPlayer.Socket.UnreliableBuffer);
                 }
