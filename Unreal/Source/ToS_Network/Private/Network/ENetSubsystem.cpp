@@ -13,9 +13,11 @@
 #include "Packets/CreateEntityPacket.h"
 #include "Packets/UpdateEntityPacket.h"
 #include "Packets/RemoveEntityPacket.h"
+#include "Packets/UpdateEntityQuantizedPacket.h"
 #include "Packets/RekeyRequestPacket.h"
 #include "Packets/DeltaSyncPacket.h"
 #include "Packets/SyncEntityPacket.h"
+#include "Packets/SyncEntityQuantizedPacket.h"
 #include "Packets/EnterToWorldPacket.h"
 #include "Packets/RekeyResponsePacket.h"
 
@@ -61,6 +63,33 @@ void UENetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
                             FRemoveEntityPacket fRemoveEntity = FRemoveEntityPacket();
                             fRemoveEntity.Deserialize(Buffer);
                             OnRemoveEntity.Broadcast(fRemoveEntity.EntityId);
+                        }
+                        break;
+                        case EServerPackets::UpdateEntityQuantized:
+                        {
+                            FUpdateEntityQuantizedPacket fUpdateEntityQuantized = FUpdateEntityQuantizedPacket();
+                            fUpdateEntityQuantized.Deserialize(Buffer);
+                            static int32 QuantizedUpdateCount = 0;
+                            QuantizedUpdateCount++;
+                            
+                            if (QuantizedUpdateCount <= 10)
+                            {
+                                ClientFileLog(FString::Printf(TEXT("=== RECEIVED UpdateEntityQuantizedPacket #%d ==="), QuantizedUpdateCount));
+                                ClientFileLog(FString::Printf(TEXT("[CLIENT] EntityId: %d"), fUpdateEntityQuantized.EntityId));
+                                ClientFileLog(FString::Printf(TEXT("[CLIENT] Quantized Position: (%d, %d, %d)"), fUpdateEntityQuantized.QuantizedX, fUpdateEntityQuantized.QuantizedY, fUpdateEntityQuantized.QuantizedZ));
+                                ClientFileLog(FString::Printf(TEXT("[CLIENT] Quadrant: (%d, %d)"), fUpdateEntityQuantized.QuadrantX, fUpdateEntityQuantized.QuadrantY));
+                                ClientFileLog(FString::Printf(TEXT("[CLIENT] Yaw: %f"), fUpdateEntityQuantized.Yaw));
+                                ClientFileLog(FString::Printf(TEXT("[CLIENT] Velocity: %s"), *fUpdateEntityQuantized.Velocity.ToString()));
+                                ClientFileLog(FString::Printf(TEXT("[CLIENT] AnimationState: %d"), fUpdateEntityQuantized.AnimationState));
+                                ClientFileLog(FString::Printf(TEXT("[CLIENT] Flags: %d"), fUpdateEntityQuantized.Flags));
+                            }
+                            
+                            OnUpdateEntityQuantized.Broadcast(fUpdateEntityQuantized);
+                            
+                            if (QuantizedUpdateCount <= 10)
+                            {
+                                ClientFileLog(TEXT("[CLIENT] UpdateEntityQuantized broadcasted to delegates"));
+                            }
                         }
                         break;
                         case EServerPackets::RekeyRequest:
@@ -275,6 +304,100 @@ void UENetSubsystem::SendEntitySync(FVector Position, FRotator Rotation, int32 A
         if (SyncCount <= 5)
         {
             ClientFileLog(TEXT("[CLIENT] Sending SyncEntityPacket via UdpClient..."));
+        }
+        UdpClient->Send(syncBuffer);
+    }
+    else
+    {
+        ClientFileLog(TEXT("[CLIENT] ERROR: UdpClient is NULL!"));
+    }
+}
+
+void UENetSubsystem::SendEntitySyncQuantized(FVector Position, FRotator Rotation, int32 AnimID, FVector Velocity, bool IsFalling) const
+{
+    static int32 SyncCount = 0;
+    SyncCount++;
+
+    if (SyncCount <= 10)
+    {
+        ClientFileLog(FString::Printf(TEXT("=== SENDING SyncEntityQuantizedPacket #%d ==="), SyncCount));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 🚀 Original Position: %s"), *Position.ToString()));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 🚀 Original Rotation: %s"), *Rotation.ToString()));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 🚀 Original Velocity: %s"), *Velocity.ToString()));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 🚀 AnimID: %d, IsFalling: %s"), AnimID, IsFalling ? TEXT("true") : TEXT("false")));
+    }
+
+    // World Origin Rebasing quantization
+    const float QuadrantSize = 25600.0f * 4; // 102400 units per quadrant
+    int32 QuadrantX = FMath::FloorToInt(Position.X / QuadrantSize);
+    int32 QuadrantY = FMath::FloorToInt(Position.Y / QuadrantSize);
+
+    // Calculate relative position within quadrant
+    FVector RelativePosition = FVector(
+        Position.X - (QuadrantX * QuadrantSize),
+        Position.Y - (QuadrantY * QuadrantSize),
+        Position.Z
+    );
+
+    // Quantize position with scale factor
+    const float Scale = 100.0f;
+    int16 QuantizedX = FMath::Clamp(FMath::RoundToInt(RelativePosition.X / Scale), -32768, 32767);
+    int16 QuantizedY = FMath::Clamp(FMath::RoundToInt(RelativePosition.Y / Scale), -32768, 32767);
+    int16 QuantizedZ = FMath::Clamp(FMath::RoundToInt(RelativePosition.Z / Scale), -32768, 32767);
+
+    // Use only Yaw for rotation optimization
+    float Yaw = Rotation.Yaw;
+
+    if (SyncCount <= 10)
+    {
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 📦 Quadrant: X=%d Y=%d"), QuadrantX, QuadrantY));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 📦 Quantized: X=%d Y=%d Z=%d"), QuantizedX, QuantizedY, QuantizedZ));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 📦 Relative Position: %s"), *RelativePosition.ToString()));
+        ClientFileLog(FString::Printf(TEXT("[CLIENT SEND] 📦 Yaw Only: %f"), Yaw));
+    }
+
+    UFlatBuffer* syncBuffer = UFlatBuffer::CreateFlatBuffer(26); // Quantized SyncEntity packet size
+    FSyncEntityQuantizedPacket syncPacket = FSyncEntityQuantizedPacket();
+    syncPacket.QuantizedX = QuantizedX;
+    syncPacket.QuantizedY = QuantizedY;
+    syncPacket.QuantizedZ = QuantizedZ;
+    syncPacket.QuadrantX = static_cast<int16>(QuadrantX);
+    syncPacket.QuadrantY = static_cast<int16>(QuadrantY);
+    syncPacket.Yaw = Yaw;
+    syncPacket.Velocity = Velocity;
+    syncPacket.AnimationState = static_cast<uint16>(AnimID);
+    syncPacket.IsFalling = IsFalling;
+
+    if (SyncCount <= 5)
+    {
+        ClientFileLog(TEXT("[CLIENT] About to serialize SyncEntityQuantizedPacket..."));
+    }
+
+    syncPacket.Serialize(syncBuffer);
+
+    if (SyncCount <= 5 && syncBuffer)
+    {
+        ClientFileLog(FString::Printf(TEXT("[CLIENT] Quantized buffer created with length: %d"), syncBuffer->GetLength()));
+        if (syncBuffer->GetLength() > 0)
+        {
+            TArray<uint8> BufferData;
+            BufferData.SetNumUninitialized(FMath::Min(syncBuffer->GetLength(), 10));
+            FMemory::Memcpy(BufferData.GetData(), syncBuffer->GetRawBuffer(), BufferData.Num());
+
+            FString HexData;
+            for (int32 i = 0; i < BufferData.Num(); i++)
+            {
+                HexData += FString::Printf(TEXT("%02X"), BufferData[i]);
+            }
+            ClientFileLog(FString::Printf(TEXT("[CLIENT] First %d bytes: %s"), BufferData.Num(), *HexData));
+        }
+    }
+
+    if (UdpClient)
+    {
+        if (SyncCount <= 5)
+        {
+            ClientFileLog(TEXT("[CLIENT] Sending SyncEntityQuantizedPacket via UdpClient..."));
         }
         UdpClient->Send(syncBuffer);
     }

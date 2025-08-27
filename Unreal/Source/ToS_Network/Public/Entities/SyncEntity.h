@@ -25,6 +25,9 @@ public:
 
     void UpdateAnimationFromNetwork(FVector Velocity, uint32 Animation, bool IsFalling);
 
+    void UpdateFromQuantizedNetwork(int16 QuantizedX, int16 QuantizedY, int16 QuantizedZ,
+        int16 QuadrantX, int16 QuadrantY, float Yaw, FVector Velocity, uint32 Animation, bool IsFalling);
+
     UFUNCTION(BlueprintImplementableEvent, Category = "Network")
     void SetSpeed(float Speed);
 

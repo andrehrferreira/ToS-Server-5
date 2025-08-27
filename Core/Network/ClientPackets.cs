@@ -3,7 +3,8 @@
 public enum ClientPackets: ushort
 {
     SyncEntity = 0,
-    Pong = 1,
-    EnterToWorld = 2,
-    RekeyResponse = 3,
+    SyncEntityQuantized = 1,
+    Pong = 2,
+    EnterToWorld = 3,
+    RekeyResponse = 4,
 }

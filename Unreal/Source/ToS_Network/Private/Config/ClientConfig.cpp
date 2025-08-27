@@ -36,6 +36,10 @@ UClientConfig* UClientConfig::GetDefaultConfig()
         DefaultConfigInstance->Logging.LogLevel = TEXT("Info");
         DefaultConfigInstance->Logging.bEnableCryptoLogs = false;
         DefaultConfigInstance->Logging.bEnablePacketLogs = false;
+
+        DefaultConfigInstance->WorldOriginRebasing.bEnableWorldOriginRebasing = false;
+        DefaultConfigInstance->WorldOriginRebasing.bEnableYawOnlyRotation = true;
+        DefaultConfigInstance->WorldOriginRebasing.CurrentMapName = TEXT("SurvivalMap");
     }
 
     return DefaultConfigInstance;
@@ -141,6 +145,11 @@ void UClientConfig::ApplyToGameInstance(UTOSGameInstance* GameInstance) const
     GameInstance->bEnableFileLogging = Logging.bEnableFileLogging;
     GameInstance->bEnableCryptoLogs = Logging.bEnableCryptoLogs;
     GameInstance->bEnablePacketLogs = Logging.bEnablePacketLogs;
+
+    // Apply World Origin Rebasing settings
+    GameInstance->bEnableWorldOriginRebasing = WorldOriginRebasing.bEnableWorldOriginRebasing;
+    GameInstance->bEnableYawOnlyRotation = WorldOriginRebasing.bEnableYawOnlyRotation;
+    GameInstance->CurrentMapName = WorldOriginRebasing.CurrentMapName;
 
     UE_LOG(LogTemp, Warning, TEXT("Client configuration applied successfully"));
 }

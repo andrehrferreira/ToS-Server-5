@@ -54,8 +54,8 @@ public:
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDeltaUpdateHandler, FDeltaUpdateData, Data);
 
 //%DELEGATES%
-    
-    
+
+
 	UPROPERTY(BlueprintAssignable, Category = "UDP")
 	FOnUDPConnectionError OnConnectionError;
 
@@ -105,6 +105,7 @@ public:
     bool IsRetryEnabled() const;
 
     void SendEntitySync(FVector Position, FRotator Rotation, int32 AnimID, FVector Velocity, bool IsFalling) const;
+    void SendEntitySyncQuantized(FVector Position, FRotator Rotation, int32 AnimID, FVector Velocity, bool IsFalling) const;
 
     UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnDeltaUpdate", Keywords = "Server Events"), Category = "UDP")
     FDeltaUpdateHandler OnDeltaUpdate;

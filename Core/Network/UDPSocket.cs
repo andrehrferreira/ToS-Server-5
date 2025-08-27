@@ -613,6 +613,29 @@ public class UDPSocket
                     FileLogger.Log($"[SERVER] 🤝 Reliable handshake complete for client: {Id}");
                 }
                 break;
+
+            case PacketType.Unreliable:
+                {
+                    // Handle unreliable packets through PacketHandler system
+                    ClientPackets clientPacket = (ClientPackets)buffer.Read<ushort>();
+
+                    FileLogger.Log($"[SERVER] 🎯 Processing Unreliable packet - ClientPacket: {clientPacket}");
+                    FileLogger.Log($"[SERVER] 📦 Buffer position: {buffer.Position}, capacity: {buffer.Capacity}");
+
+                    if (PlayerController.TryGet(Id, out var controller))
+                    {
+                        // Reset buffer position to start (PacketHandler expects to read from position 0)
+                        buffer.RestorePosition(0);
+
+                        PacketHandler.HandlePacket(controller, ref buffer, clientPacket);
+                        FileLogger.Log($"[SERVER] ✅ Routed {clientPacket} to PacketHandler");
+                    }
+                    else
+                    {
+                        FileLogger.Log($"[SERVER] ❌ PlayerController not found for client {Id}");
+                    }
+                }
+                break;
         }
     }
 }

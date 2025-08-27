@@ -94,6 +94,21 @@ struct FLoggingClientConfig
     bool bEnablePacketLogs = false;
 };
 
+USTRUCT(BlueprintType)
+struct FWorldOriginRebasingClientConfig
+{
+    GENERATED_USTRUCT_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "World Origin Rebasing", meta = (DisplayName = "Enable World Origin Rebasing"))
+    bool bEnableWorldOriginRebasing = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "World Origin Rebasing", meta = (DisplayName = "Enable Yaw Only Rotation"))
+    bool bEnableYawOnlyRotation = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "World Origin Rebasing", meta = (DisplayName = "Current Map Name"))
+    FString CurrentMapName = TEXT("SurvivalMap");
+};
+
 /**
  * Client configuration data asset
  */
@@ -114,6 +129,9 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Logging Configuration")
     FLoggingClientConfig Logging;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "World Origin Rebasing Configuration")
+    FWorldOriginRebasingClientConfig WorldOriginRebasing;
 
     /** Get default client configuration */
     UFUNCTION(BlueprintCallable, Category = "Configuration")
