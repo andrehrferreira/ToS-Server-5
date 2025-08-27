@@ -70,11 +70,10 @@ class Program
 
         Guard(() =>
         {
-            // Initialize server with configuration
             Console.WriteLine($"[INIT] Starting server on port {port}...");
+
             UDPServer.Init(port, (UDPSocket socket, string token) =>
             {
-                // Check password protection if enabled
                 if (config.Server.EnablePasswordProtection)
                 {
                     if (string.IsNullOrEmpty(token) || token != config.Server.Password)
@@ -82,12 +81,12 @@ class Program
                         Console.WriteLine($"[AUTH] ❌ Invalid password from {socket.RemoteAddress}");
                         return false;
                     }
+
                     Console.WriteLine($"[AUTH] ✅ Valid password from {socket.RemoteAddress}");
                 }
 
                 if (!string.IsNullOrEmpty(token) && !config.Server.EnablePasswordProtection)
                 {
-                    // Token provided but no password protection - reject for security
                     return false;
                 }
 
