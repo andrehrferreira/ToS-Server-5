@@ -5,6 +5,27 @@ All notable changes to the Tales Of Shadowland MMO Server will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.8.0] - 2025-02-20 - Adaptive Synchronization System
+
+### 🚀 Added
+
+#### High-Performance Networking
+- **60 FPS Server Tick Rate**: Increased from 20 FPS for smoother gameplay
+- **Adaptive Synchronization**: Intelligent network usage based on game state
+- **Configurable Parameters**: Fine-tune all sync behaviors through server-config.json
+  - Server tick rate (default: 60 FPS)
+  - Periodic sync interval (default: 5 seconds)
+  - Stationary entity sync rate (default: 10% of normal rate)
+  - Distant entity sync rate (default: 30% of normal rate)
+  - Distance threshold (default: 500m)
+  - Movement threshold (default: 0.1 units/s)
+
+### 📈 Improved
+- **Network Bandwidth Optimization**: Reduced data usage through adaptive sync rates
+- **Server Scalability**: Better performance with many connected players
+- **Detailed Diagnostics**: Enhanced logging for synchronization events
+- **Dynamic Configuration**: Server settings can be updated without restart
+
 ## [5.7.1] - 2025-02-15 - Enhanced AOI System with Periodic Synchronization
 
 ### 🔄 Added

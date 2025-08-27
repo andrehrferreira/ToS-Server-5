@@ -20,7 +20,7 @@ public class World : IDisposable
     private int _maxEntities;
     private Thread _worldThread;
     private bool _running = true;
-    private float _tickDelta = 1f / 20f;
+    private float _tickDelta = 1f / 60f;  
 
     private AOIGridConfig _aoiConfig = new AOIGridConfig();
     private Dictionary<(int, int, int), List<uint>> _aoiGrid = new();
@@ -28,7 +28,7 @@ public class World : IDisposable
 
     public static ConcurrentDictionary<uint, World> Worlds = new ConcurrentDictionary<uint, World>();
 
-    public World(int maxEntities = 10000, AOIGridConfig aoiConfig = null)
+        public World(int maxEntities = 10000, AOIGridConfig aoiConfig = null)
     {
         _maxEntities = maxEntities;
         _entityPool = new StructPool<Entity>(_maxEntities);
@@ -41,9 +41,24 @@ public class World : IDisposable
         for (int z = 0; z < _aoiConfig.GridDepth; z++)
             _aoiGrid[(x, y, z)] = new List<uint>();
 
-        _worldThread = new Thread(WorldLoop) { IsBackground = true };
+        UpdateTickRate();
 
+        _worldThread = new Thread(WorldLoop) { IsBackground = true };
         _worldThread.Start();
+    }
+
+    private void UpdateTickRate()
+    {
+        if (ServerConfig.IsLoaded)
+        {
+            var adaptiveConfig = ServerConfig.Instance.AreaOfInterest.AdaptiveSync;
+            _tickDelta = 1f / adaptiveConfig.ServerTickRate;
+            FileLogger.Log($"[WORLD] 🕒 Configurado com taxa de atualização de {adaptiveConfig.ServerTickRate} FPS (intervalo: {_tickDelta:F4}s)");
+        }
+        else
+        {
+            FileLogger.Log($"[WORLD] ⚠️ Configuração não carregada, usando taxa de atualização padrão de 60 FPS");
+        }
     }
 
     public static World GetOrCreate(string map)
@@ -229,8 +244,6 @@ public class World : IDisposable
         _entityPool.Destroy((int)id);
     }
 
-    private const int PERIODIC_SYNC_INTERVAL = 5;
-
     public void Tick(float deltaTime)
     {
         lock (_aoiGrid)
@@ -246,8 +259,9 @@ public class World : IDisposable
 
                 if (!moved && entity.Type == EntityType.Player)
                 {
+                    var adaptiveConfig = ServerConfig.Instance.AreaOfInterest.AdaptiveSync;
                     TimeSpan timeSinceLastSync = DateTime.UtcNow - entity.LastSyncTime;
-                    if (timeSinceLastSync.TotalSeconds >= PERIODIC_SYNC_INTERVAL)
+                    if (timeSinceLastSync.TotalSeconds >= adaptiveConfig.PeriodicSyncInterval)
                     {
                         needsPeriodicSync = true;
                         entity.LastSyncTime = DateTime.UtcNow;
@@ -370,6 +384,23 @@ public class World : IDisposable
             float distance = FVector.Distance(entity.Position, otherEntity.Position);
             if (distance <= aoiDistance)
             {
+                var adaptiveConfig = ServerConfig.Instance.AreaOfInterest.AdaptiveSync;
+                bool shouldSync = true;
+
+                bool isStationary = entity.Velocity.Length() < adaptiveConfig.MovementThreshold;
+                bool isDistant = distance > adaptiveConfig.DistanceThreshold;
+
+                if (isStationary || isDistant)
+                {
+                    float syncRate = isStationary ? adaptiveConfig.StationarySyncRate : adaptiveConfig.DistantSyncRate;
+
+                    Random random = new Random();
+                    shouldSync = random.NextDouble() < syncRate;
+
+                    if (!shouldSync)
+                        continue;
+                }
+
                 const int estimatedPacketSize = 40;
                 const int safetyMargin = 100;
                 int safetyLimit = UDPServer.Mtu - estimatedPacketSize - safetyMargin;
@@ -407,6 +438,13 @@ public class World : IDisposable
                     updatePacket.AnimationState = (ushort)entity.AnimState;
                     updatePacket.Flags = (uint)entity.Flags;
                     updatePacket.Serialize(ref otherPlayer.Socket.UnreliableBuffer);
+
+                    string syncType = isStationary ? "STATIONARY" : (isDistant ? "DISTANT" : "NORMAL");
+                    
+                    if (isStationary || isDistant)
+                    {
+                        FileLogger.Log($"[ADAPTIVE SYNC] {syncType} sync for player {entityId} to {otherPlayer.EntityId} at distance {distance:F1}");
+                    }
                 }
                 catch (IndexOutOfRangeException ex)
                 {

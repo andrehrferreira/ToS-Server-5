@@ -77,6 +77,14 @@
       "Projectile": 200000.0,
       "Item": 10000.0,
       "Effect": 50000.0
+    },
+    "adaptiveSync": {
+      "serverTickRate": 60,
+      "periodicSyncInterval": 5,
+      "stationarySyncRate": 0.1,
+      "distantSyncRate": 0.3,
+      "distanceThreshold": 50000.0,
+      "movementThreshold": 0.1
     }
   }
 }

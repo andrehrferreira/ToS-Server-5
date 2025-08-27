@@ -22,6 +22,12 @@ public struct FVector
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float Length()
+    {
+        return Size();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float SizeSquared()
     {
         return X * X + Y * Y + Z * Z;
