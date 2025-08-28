@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Network",
+	"Description": "",
+	"Category": "Other",
+	"CreatedBy": "Andre Ferreira",
+	"CreatedByURL": "https://github.com/andrehrferreira",
+	"DocsURL": "https://github.com/andrehrferreira/ToS-Server-5",
+	"MarketplaceURL": "",
+	"SupportURL": "https://github.com/andrehrferreira/ToS-Server-5",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "Network",
+			"Type": "Runtime",
+			"LoadingPhase": "PreLoadingScreen"
+		}
+	]
+}

@@ -1,0 +1,8 @@
+{
+    "network": {
+        "port": 3565,
+        "maxClients": 256,
+        "tickRate": 30,
+        "pingInterval": 5000
+    }
+}

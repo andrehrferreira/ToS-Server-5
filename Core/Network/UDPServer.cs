@@ -1,0 +1,240 @@
+﻿using NanoSockets;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Channels;
+using System.Xml.Serialization;
+
+public sealed class UDPServer
+{
+    private static Socket ServerSocket;
+
+    private static bool Running = false;
+
+    private static Thread SendThread;
+
+    private static Thread ReceiveThread;
+
+    private static Channel<PacketPack> GlobalSendChannel;
+
+    private static unsafe byte* RecivedBuffer;
+
+    public static ConcurrentDictionary<Address, UDPSocket> Clients =
+        new ConcurrentDictionary<Address, UDPSocket>();
+
+    public static bool Start(ushort port)
+    {
+        try
+        {
+            if (UDP.Initialize() != Status.OK)
+            {
+                Debug.Log("[SERVER] Failed to initialize NanoSockets");
+
+                return false;
+            }
+
+            ServerSocket = UDP.Create(256 * 1024, 256 * 1024);
+
+            if (!ServerSocket.IsCreated)
+            {
+                Debug.Log("[SERVER] Failed to create NanoSockets socket");
+
+                return false;
+            }
+
+            var bindAddress = Address.CreateFromIpPort("0.0.0.0", port);
+
+            if (UDP.Bind(ServerSocket, ref bindAddress) != 0)
+            {
+                Debug.Log($"[SERVER] Failed to bind to port {port}");
+
+                return false;
+            }
+
+            UDP.SetDontFragment(ServerSocket);
+
+            UDP.SetNonBlocking(ServerSocket, false);
+
+            Running = true;
+
+            CreateSendThread();
+
+            CreateReceiveThread();
+
+            RunMainLoop();
+
+            Debug.Log($"[SERVER] NanoSockets UDP server started on port {port}");
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.Log($"[SERVER] Error initializing UDP server: {ex.Message}");
+
+            Running = false;
+
+            return false;
+        }
+    }
+
+    public static void Stop()
+    {
+        Running = false;
+
+        if (ServerSocket.IsCreated)
+            UDP.Destroy(ref ServerSocket);
+
+        UDP.Deinitialize();
+    }
+
+    public static void CreateSendThread()
+    {
+        if (SendThread != null) return;
+
+        SendThread = new Thread(() =>
+        {
+            while (Running)
+            {
+                if (GlobalSendChannel.Reader.TryRead(out var packet))
+                {
+                    unsafe
+                    {
+                        byte* buffer = packet.Pack();
+                        UDP.Unsafe.Send(ServerSocket, &packet.Address, buffer, packet.Length);
+                        packet.Free();
+                    }
+                }
+            }
+        });
+
+        SendThread.IsBackground = true;
+
+        SendThread.Start();
+    }
+
+    public static unsafe void CreateReceiveThread()
+    {
+        if (ReceiveThread != null) return;
+
+        ReceiveThread = new Thread(() =>
+        {
+            ReceiveThread = Thread.CurrentThread;
+
+            StringBuilder ip = new StringBuilder(UDP.hostNameSize);
+
+            Address address = new Address();
+
+            RecivedBuffer = (byte*)Marshal.AllocHGlobal(1024);
+
+            while (Running)
+            {
+                if (UDP.Poll(ServerSocket, 15) > 0)
+                {
+                    int dataLength = 0;
+
+                    while ((dataLength = UDP.Unsafe.Receive(ServerSocket, &address, RecivedBuffer, 1024)) > 0)
+                    {
+                        ProcessPacket(RecivedBuffer, dataLength, address);
+                    }
+                }
+            }
+        });
+
+        ReceiveThread.IsBackground = true;
+
+        ReceiveThread.Start();
+    }
+
+    public static unsafe void ProcessPacket(byte* buffer, int len, Address address)
+    {
+        UDPSocket conn;
+
+        var packet = PacketPack.Unpack(buffer, len, address);
+
+        if (packet.Type == PacketType.Connect)
+            ValidateConnection(packet);
+        else if (Clients.TryGetValue(address, out conn))
+            PacketHandler.HandlePacket(packet, conn);
+
+        packet.Free();
+    }
+
+    public static unsafe void ValidateConnection(PacketPack packet)
+    {
+
+    }
+
+    public static unsafe bool Send(PacketType type, ref TinyBuffer buffer, UDPSocket socket, PacketHeader header = PacketHeader.None)
+    {
+        return GlobalSendChannel.Writer.TryWrite(new PacketPack
+        {
+            Address = socket.RemoteAddress,
+            Payload = buffer,
+            Type = type,
+            Sequence = socket.NextSequence,
+            Header = header
+        });
+    }
+
+    public static void RunMainLoop()
+    {
+        float deltaTime = 1.0f / ServerConfig.Instance.Network.TickRate;
+        TimeSpan frameTime = TimeSpan.FromSeconds(deltaTime);
+        TimeSpan targetTime = frameTime;
+
+        Stopwatch sw = Stopwatch.StartNew();
+        Stopwatch memLog = Stopwatch.StartNew();
+        Stopwatch trimTimer = Stopwatch.StartNew();
+        Stopwatch latence = Stopwatch.StartNew();
+        Stopwatch pingTimer = Stopwatch.StartNew();
+
+        int fps = 0;
+        double lastTime = sw.Elapsed.TotalMilliseconds;
+
+        while (Running)
+        {
+            double now = sw.Elapsed.TotalMilliseconds;
+            double delta = now - lastTime;
+            lastTime = now;
+
+            if (pingTimer.ElapsedMilliseconds >= 5000)
+            {
+                PingTimer();
+                pingTimer.Restart();
+            }
+
+            if (latence.Elapsed >= TimeSpan.FromSeconds(1))
+            {
+                fps = 0;
+                latence.Restart();
+            }
+
+            TimeSpan elapsed = TimeSpan.FromMilliseconds(sw.Elapsed.TotalMilliseconds - now);
+            int sleepTime = (int)(frameTime - elapsed).TotalMilliseconds;
+            fps++;
+
+            if (sleepTime > 1)
+                Thread.Sleep(sleepTime - 1);
+        }
+    }
+
+    public static void PingTimer()
+    {
+        if (Clients.Count > 0)
+        {
+            var sentTimestamp = Stopwatch.GetTimestamp();
+            ushort timestampMs = (ushort)(Stopwatch.GetTimestamp() / (Stopwatch.Frequency / 1000) % 65536);
+            var buffer = (new PingPacket { SentTimestamp = timestampMs }).ToBuffer();
+
+            foreach (var kv in Clients)
+            {
+                kv.Value.PingSentAt = DateTime.UtcNow;
+
+                kv.Value.Send(PacketType.Ping, buffer);
+            }
+
+            buffer.Free();
+        }
+    }
+}
