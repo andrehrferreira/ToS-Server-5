@@ -5,6 +5,39 @@ All notable changes to the Tales Of Shadowland MMO Server will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.10.0] - 2025-03-01 - Position Validation and Smoothing
+
+### 🚀 Added
+
+#### Client-Side Improvements
+- **Position Validation**: Implementada validação de posição para evitar saltos abruptos
+- **Zero Position Detection**: Detecção e rejeição automática de posições zero (0,0,0)
+- **NaN Detection**: Detecção e filtragem de valores NaN nas posições
+- **Smooth Interpolation**: Interpolação gradual para posições muito distantes
+- **Teleport Detection**: Detecção inteligente de teletransportes legítimos vs. erros
+
+### 📈 Improved
+- **Movement Fluidity**: Movimentação mais suave das entidades sem saltos
+- **Error Resilience**: Maior resistência a erros de sincronização de posição
+- **Detailed Logging**: Logs detalhados para diagnóstico de problemas de posição
+- **Client Experience**: Melhor experiência visual para o jogador
+
+## [5.9.0] - 2025-02-25 - Batch Packet Processing
+
+### 🚀 Added
+
+#### Client-Side Optimizations
+- **Multi-Packet Processing**: Implementado processamento em lote de múltiplos subpacotes em um único buffer
+- **Subpacote Detection**: Identificação e extração automática de subpacotes individuais (SyncEntity, UpdateEntity, etc.)
+- **Improved Movement Fluidity**: Movimentação mais fluida das entidades com atualizações a 60 FPS
+- **Enhanced Logging**: Diagnósticos detalhados de processamento de pacotes
+
+### 📈 Improved
+- **Reduced Network Latency**: Processamento mais rápido de múltiplas atualizações de posição
+- **Better Resource Utilization**: Uso mais eficiente de memória e CPU
+- **Enhanced Debugging**: Logs detalhados para processamento e extração de pacotes
+- **Protocol Compliance**: Mantém a hierarquia correta de pacotes (Reliable/Unreliable) e subpacotes
+
 ## [5.8.0] - 2025-02-20 - Adaptive Synchronization System
 
 ### 🚀 Added

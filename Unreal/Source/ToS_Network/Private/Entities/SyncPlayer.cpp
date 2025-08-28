@@ -127,6 +127,80 @@ void ASyncPlayer::SendSyncToServer()
     bool IsFalling = false;
     FString AnimName = TEXT("None");
 
+    // Validar posição antes de enviar
+    bool IsValidPosition = true;
+
+    // Verificar se a posição é zero ou NaN (posições inválidas comuns)
+    if (FMath::IsNearlyZero(Position.X, 0.1f) && FMath::IsNearlyZero(Position.Y, 0.1f))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("⚠️ SendSyncToServer: Ignorando posição zero"));
+        ClientFileLog(TEXT("⚠️ SendSyncToServer: Ignorando posição zero"));
+        IsValidPosition = false;
+    }
+
+    if (FMath::IsNaN(Position.X) || FMath::IsNaN(Position.Y) || FMath::IsNaN(Position.Z))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("⚠️ SendSyncToServer: Ignorando posição NaN"));
+        ClientFileLog(TEXT("⚠️ SendSyncToServer: Ignorando posição NaN"));
+        IsValidPosition = false;
+    }
+
+    // Verificar se a posição está muito fora dos limites esperados
+    const float MaxExpectedCoordinate = 1000000.0f; // 10km
+    if (FMath::Abs(Position.X) > MaxExpectedCoordinate ||
+        FMath::Abs(Position.Y) > MaxExpectedCoordinate ||
+        FMath::Abs(Position.Z) > MaxExpectedCoordinate)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("⚠️ SendSyncToServer: Posição fora dos limites esperados: %s"), *Position.ToString());
+        ClientFileLog(FString::Printf(TEXT("⚠️ SendSyncToServer: Posição fora dos limites esperados: %s"), *Position.ToString()));
+        IsValidPosition = false;
+    }
+
+    // Verificar saltos abruptos na posição
+    static FVector LastSentPosition = FVector::ZeroVector;
+    static bool HasSentPosition = false;
+
+    if (HasSentPosition)
+    {
+        const float MaxExpectedMovement = 500.0f; // 5 metros por atualização
+        const float DistanceMoved = FVector::Distance(Position, LastSentPosition);
+
+        if (DistanceMoved > MaxExpectedMovement)
+        {
+            // Verificar se é um teletransporte legítimo (alta velocidade)
+            const FVector Velocity = GetVelocity();
+            if (Velocity.Size() < 1000.0f) // Menos de 10m/s
+            {
+                UE_LOG(LogTemp, Warning, TEXT("⚠️ SendSyncToServer: Movimento muito grande detectado (%.2f unidades)"), DistanceMoved);
+                ClientFileLog(FString::Printf(TEXT("⚠️ SendSyncToServer: Movimento muito grande detectado (%.2f unidades)"), DistanceMoved));
+
+                // Opção: Não enviar ou interpolar
+                // Neste caso, vamos interpolar para evitar saltos
+                Position = LastSentPosition + (Position - LastSentPosition).GetSafeNormal() * MaxExpectedMovement;
+
+                UE_LOG(LogTemp, Warning, TEXT("⚠️ SendSyncToServer: Posição ajustada para %s"), *Position.ToString());
+                ClientFileLog(FString::Printf(TEXT("⚠️ SendSyncToServer: Posição ajustada para %s"), *Position.ToString()));
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("🚀 SendSyncToServer: Teletransporte detectado (%.2f unidades, velocidade: %.2f)"),
+                    DistanceMoved, Velocity.Size());
+                ClientFileLog(FString::Printf(TEXT("🚀 SendSyncToServer: Teletransporte detectado (%.2f unidades, velocidade: %.2f)"),
+                    DistanceMoved, Velocity.Size()));
+            }
+        }
+    }
+
+    // Se a posição for inválida, não enviar atualização
+    if (!IsValidPosition)
+    {
+        return;
+    }
+
+    // Atualizar última posição enviada
+    LastSentPosition = Position;
+    HasSentPosition = true;
+
     if (const UAnimInstance* AnimInstance = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr)
     {
         if (const UAnimMontage* Montage = AnimInstance->GetCurrentActiveMontage())

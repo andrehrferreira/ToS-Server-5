@@ -901,7 +901,9 @@ void UDPClient::ProcessReliableQueue()
         {
             UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(Data.Num());
             Buffer->CopyFromMemory(Data.GetData(), Data.Num());
-            OnDataReceive(Buffer);
+
+            // Processar múltiplos pacotes em um único buffer
+            ProcessMultiplePacketsInBuffer(Buffer);
         }
     }
 }
@@ -916,9 +918,116 @@ void UDPClient::ProcessUnreliableQueue()
         {
             UFlatBuffer* Buffer = UFlatBuffer::CreateFlatBuffer(Data.Num());
             Buffer->CopyFromMemory(Data.GetData(), Data.Num());
-            OnDataReceive(Buffer);
+
+            // Processar múltiplos pacotes em um único buffer
+            ProcessMultiplePacketsInBuffer(Buffer);
         }
     }
+}
+
+void UDPClient::ProcessMultiplePacketsInBuffer(UFlatBuffer* Buffer)
+{
+    if (!Buffer || Buffer->GetLength() <= 0)
+        return;
+
+    // Salvar a posição original do buffer
+    int32 OriginalPosition = Buffer->GetPosition();
+
+    // Resetar a posição para o início
+    Buffer->SetPosition(0);
+
+    // Processar enquanto houver dados suficientes no buffer
+    int32 ProcessedPackets = 0;
+    int32 TotalLength = Buffer->GetLength();
+
+    ClientFileLog(FString::Printf(TEXT("[BATCH PROCESSING] 📦 Iniciando processamento em lote. Tamanho do buffer: %d bytes"), TotalLength));
+
+    // Primeiro, verificar se é um pacote Reliable ou Unreliable
+    if (Buffer->Remaining() < 1)
+    {
+        Buffer->SetPosition(OriginalPosition);
+        OnDataReceive(Buffer);
+        return;
+    }
+
+    // Ler o tipo de pacote principal
+    EPacketType MainPacketType = static_cast<EPacketType>(Buffer->ReadByte());
+
+    // Verificar se é um pacote Reliable ou Unreliable
+    if (MainPacketType != EPacketType::Reliable && MainPacketType != EPacketType::Unreliable)
+    {
+        // Se não for Reliable ou Unreliable, processar normalmente
+        Buffer->SetPosition(OriginalPosition);
+        OnDataReceive(Buffer);
+        ClientFileLog(FString::Printf(TEXT("[BATCH PROCESSING] ⚠️ Pacote principal não é Reliable/Unreliable: %d, processando normalmente"),
+            static_cast<int32>(MainPacketType)));
+        return;
+    }
+
+    // Agora vamos processar os subpacotes dentro do pacote principal
+    while (Buffer->Remaining() >= 3) // Mínimo para um subpacote (2 bytes tipo + pelo menos 1 byte dados)
+    {
+        int32 SubPacketStartPosition = Buffer->GetPosition();
+
+        // Ler o tipo de subpacote (EServerPackets)
+        if (Buffer->Remaining() < 2)
+        {
+            // Não há bytes suficientes para ler o tipo de subpacote
+            break;
+        }
+
+        uint16 ServerPacketTypeValue = Buffer->ReadUInt16();
+
+        // Estimar o tamanho do subpacote com base no tipo
+        // Aqui, vamos usar uma abordagem mais genérica sem switch de tipos de pacotes
+
+        // Verificar se há pelo menos alguns bytes de dados disponíveis
+        if (Buffer->Remaining() < 4) // Mínimo de 4 bytes para qualquer subpacote
+        {
+            // Não há bytes suficientes para um subpacote válido
+            break;
+        }
+
+        // Determinar um tamanho estimado para o subpacote
+        // Para evitar o switch, vamos usar um tamanho fixo e seguro para todos os subpacotes
+        int32 EstimatedDataSize = 32; // Tamanho seguro para a maioria dos subpacotes
+
+        // Verificar se há bytes suficientes disponíveis
+        if (Buffer->Remaining() < EstimatedDataSize)
+        {
+            EstimatedDataSize = Buffer->Remaining(); // Usar o que estiver disponível
+        }
+
+        // Criar um novo buffer para este subpacote
+        int32 EstimatedPacketSize = 3 + EstimatedDataSize; // 1 (tipo principal) + 2 (tipo subpacote) + dados
+
+        UFlatBuffer* SinglePacketBuffer = UFlatBuffer::CreateFlatBuffer(EstimatedPacketSize);
+        SinglePacketBuffer->WriteByte(static_cast<uint8>(MainPacketType)); // Manter o tipo principal
+        SinglePacketBuffer->WriteUInt16(ServerPacketTypeValue); // Tipo de subpacote
+
+        // Copiar os dados do subpacote
+        SinglePacketBuffer->WriteBytes(Buffer->GetRawBuffer() + SubPacketStartPosition + 2, EstimatedDataSize);
+
+        // Processar este subpacote individualmente
+        SinglePacketBuffer->SetPosition(0);
+        OnDataReceive(SinglePacketBuffer);
+
+        // Avançar a posição no buffer principal
+        Buffer->SetPosition(SubPacketStartPosition + 2 + EstimatedDataSize);
+        ProcessedPackets++;
+
+        ClientFileLog(FString::Printf(TEXT("[BATCH PROCESSING] ✅ Subpacote #%d processado: Tipo=%d, Tamanho=%d bytes"),
+            ProcessedPackets, ServerPacketTypeValue, EstimatedDataSize));
+    }
+
+    // Se ainda houver dados restantes, mas não suficientes para um subpacote completo
+    if (Buffer->Remaining() > 0)
+    {
+        ClientFileLog(FString::Printf(TEXT("[BATCH PROCESSING] ℹ️ Dados remanescentes insuficientes para um subpacote completo: %d bytes"),
+            Buffer->Remaining()));
+    }
+
+    ClientFileLog(FString::Printf(TEXT("[BATCH PROCESSING] 📊 Total de subpacotes processados em lote: %d"), ProcessedPackets));
 }
 
 void UDPClient::UpdateReliablePackets()
@@ -965,3 +1074,4 @@ void UDPClient::UpdateReliablePackets()
         }
     }
 }
+

@@ -106,15 +106,63 @@ void ASyncEntity::UpdateFromQuantizedNetwork(int16 QuantizedX, int16 QuantizedY,
     FVector WorldPosition = FVector(WorldX, WorldY, WorldZ);
     FRotator WorldRotation = FRotator(0.0f, Yaw, 0.0f); // Only Yaw for optimization
 
-    // Update target position and rotation for interpolation
-    TargetLocation = WorldPosition;
-    TargetRotation = WorldRotation;
-
-    // Update animation
-    UpdateAnimationFromNetwork(Velocity, Animation, IsFalling);
+    // Validação de posição para evitar saltos abruptos
+    const FVector CurrentLocation = GetActorLocation();
+    const float MaxAllowedDistance = 1000.0f; // 10 metros (1 unidade = 1cm)
+    const float DistanceToNewPosition = FVector::Distance(CurrentLocation, WorldPosition);
 
     static int32 QuantizedUpdateCount = 0;
     QuantizedUpdateCount++;
+
+    bool IsValidPosition = true;
+
+    // Verificar se a posição está muito distante da atual
+    if (DistanceToNewPosition > MaxAllowedDistance)
+    {
+        // Verificar se é a primeira atualização (pode ser uma posição inicial válida)
+        static bool IsFirstUpdate = true;
+
+        if (!IsFirstUpdate)
+        {
+            // Verificar se a posição é zero (posição inválida comum)
+            if (FMath::IsNearlyZero(WorldPosition.X, 0.1f) && FMath::IsNearlyZero(WorldPosition.Y, 0.1f))
+            {
+                ClientFileLog(FString::Printf(TEXT("[ENTITY] ⚠️ Ignorando posição zero para Entity %d"), EntityId));
+                IsValidPosition = false;
+            }
+            else
+            {
+                // Verificar se é um teletransporte legítimo ou um erro
+                // Se a velocidade for alta, pode ser um teletransporte legítimo
+                if (Velocity.Size() < 1000.0f) // Velocidade menor que 10m/s
+                {
+                    ClientFileLog(FString::Printf(TEXT("[ENTITY] ⚠️ Posição muito distante (%.2f unidades) para Entity %d - Interpolando gradualmente"),
+                        DistanceToNewPosition, EntityId));
+
+                    // Em vez de ignorar completamente, vamos interpolar gradualmente
+                    // Mover 20% da distância em direção à nova posição
+                    WorldPosition = CurrentLocation + (WorldPosition - CurrentLocation) * 0.2f;
+                }
+                else
+                {
+                    ClientFileLog(FString::Printf(TEXT("[ENTITY] 🚀 Teletransporte detectado para Entity %d (distância: %.2f)"),
+                        EntityId, DistanceToNewPosition));
+                }
+            }
+        }
+
+        IsFirstUpdate = false;
+    }
+
+    if (IsValidPosition)
+    {
+        // Update target position and rotation for interpolation
+        TargetLocation = WorldPosition;
+        TargetRotation = WorldRotation;
+
+        // Update animation
+        UpdateAnimationFromNetwork(Velocity, Animation, IsFalling);
+    }
 
     if (QuantizedUpdateCount <= 15)
     {
@@ -126,14 +174,16 @@ void ASyncEntity::UpdateFromQuantizedNetwork(int16 QuantizedX, int16 QuantizedY,
         ClientFileLog(FString::Printf(TEXT("[ENTITY] Velocity: %s"), *Velocity.ToString()));
         ClientFileLog(FString::Printf(TEXT("[ENTITY] Animation: %d, IsFalling: %s"), Animation, IsFalling ? TEXT("true") : TEXT("false")));
         ClientFileLog(FString::Printf(TEXT("[ENTITY] Calculated world position: %s"), *WorldPosition.ToString()));
-        ClientFileLog(FString::Printf(TEXT("[ENTITY] Previous TargetLocation: %s"), *TargetLocation.ToString()));
-        ClientFileLog(FString::Printf(TEXT("[ENTITY] Setting new TargetLocation and TargetRotation")));
+        ClientFileLog(FString::Printf(TEXT("[ENTITY] Current location: %s"), *CurrentLocation.ToString()));
+        ClientFileLog(FString::Printf(TEXT("[ENTITY] Distance to new position: %.2f units"), DistanceToNewPosition));
+        ClientFileLog(FString::Printf(TEXT("[ENTITY] Position valid: %s"), IsValidPosition ? TEXT("YES") : TEXT("NO")));
         ClientFileLog(FString::Printf(TEXT("[ENTITY] ✅ UpdateFromQuantizedNetwork completed for Entity %d"), EntityId));
 
         UE_LOG(LogTemp, Warning, TEXT("🎯 SyncEntity: UpdateFromQuantizedNetwork #%d"), QuantizedUpdateCount);
         UE_LOG(LogTemp, Warning, TEXT("🎯 Quadrant: X=%d Y=%d"), QuadrantX, QuadrantY);
         UE_LOG(LogTemp, Warning, TEXT("🎯 Quantized: X=%d Y=%d Z=%d"), QuantizedX, QuantizedY, QuantizedZ);
         UE_LOG(LogTemp, Warning, TEXT("🎯 World Position: %s"), *WorldPosition.ToString());
+        UE_LOG(LogTemp, Warning, TEXT("🎯 Distance: %.2f, Valid: %s"), DistanceToNewPosition, IsValidPosition ? TEXT("YES") : TEXT("NO"));
         UE_LOG(LogTemp, Warning, TEXT("🎯 Yaw: %f"), Yaw);
     }
 }
