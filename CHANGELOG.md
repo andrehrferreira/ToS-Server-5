@@ -5,6 +5,19 @@ All notable changes to the Tales Of Shadowland MMO Server will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.10.1] - 2025-03-02 - Improved Entity Initialization
+
+### 🔄 Fixed
+- **Initial Position**: Corrigido problema onde entidades novas não assumiam posição inicial correta
+- **Entity Tracking**: Implementado sistema de contagem de atualizações por entidade
+- **Spawn Handling**: Melhorado tratamento de posições iniciais durante o spawn de entidades
+- **Zero Position Logic**: Refinada a lógica de detecção de posições zero para permitir posições iniciais válidas
+
+### 📈 Improved
+- **Entity Initialization**: Primeiras atualizações de posição sempre aceitas para garantir inicialização correta
+- **Logging Enhancement**: Adicionado contador de atualizações por entidade nos logs
+- **Startup Experience**: Melhor experiência durante a inicialização de novas entidades
+
 ## [5.10.0] - 2025-03-01 - Position Validation and Smoothing
 
 ### 🚀 Added
