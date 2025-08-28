@@ -5,6 +5,62 @@ All notable changes to the Tales Of Shadowland MMO Server will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.10.5] - 2025-03-06 - Improved Batch Packet Processing
+
+### 🔄 Fixed
+- **Packet Deserialization**: Implementado processamento de pacotes usando sistema de contratos e deserialização
+- **Tamanho Dinâmico**: Tamanho de pacotes determinado usando método GetSize() dos contratos
+- **Processamento Sequencial**: Pacotes processados sequencialmente até o final do buffer
+- **Segurança de Buffer**: Melhor gerenciamento de buffer para evitar corrupção de dados
+
+### 📈 Improved
+- **Compatibilidade**: Sistema agora compatível com futuros tipos de pacotes
+- **Robustez**: Melhor tratamento de erros e pacotes desconhecidos
+- **Logs Detalhados**: Logs de debug aprimorados para facilitar diagnóstico
+- **Eficiência**: Processamento mais eficiente usando métodos de deserialização existentes
+
+## [5.10.4] - 2025-03-05 - Fixed Batch Packet Processing
+
+### 🔄 Fixed
+- **Batch Packet Processing**: Corrigido o processamento de pacotes em lote que causava posições aleatórias
+- **Packet Size Detection**: Implementada detecção de tamanho de pacotes baseada no tipo
+- **Buffer Management**: Melhorado o gerenciamento de buffer para evitar corrupção de dados
+- **Packet Boundaries**: Implementada detecção correta de limites entre subpacotes
+
+### 📈 Improved
+- **Debug Logging**: Adicionado log detalhado do processamento de pacotes em lote
+- **Buffer Dumping**: Implementado dump de buffer para os primeiros pacotes para facilitar debug
+- **Error Handling**: Melhorado o tratamento de erros para pacotes incompletos
+- **Memory Safety**: Implementada cópia segura do buffer para evitar corrupção durante o processamento
+
+## [5.10.3] - 2025-03-04 - Fixed Entity Spawn Position
+
+### 🔄 Fixed
+- **Entity Spawn Position**: Corrigido problema de entidades que ficavam presas na posição (0,0)
+- **Position Validation Pipeline**: Revisada toda a pipeline de spawn e validação de posição
+- **Default Position Fallback**: Implementado sistema de fallback para posições inválidas
+- **Position Memory System**: Sistema de memória de posições válidas por entidade
+
+### 📈 Improved
+- **Entity Creation**: Posicionamento correto das entidades desde o primeiro spawn
+- **Position Handling**: Melhor tratamento de posições inválidas (zero, NaN)
+- **Quadrant Validation**: Validação robusta de quadrantes com valores extremos
+- **Spawn Logging**: Logs detalhados do processo de spawn e posicionamento
+
+## [5.10.2] - 2025-03-03 - Enhanced Position Stability
+
+### 🔄 Fixed
+- **Entity Disappearing**: Corrigido problema de entidades que apareciam e sumiam
+- **Quadrant Validation**: Implementada validação de quadrantes para evitar valores inválidos
+- **Position Memory**: Sistema de rastreamento de última posição válida para cada entidade
+- **Adaptive Interpolation**: Velocidade de interpolação adaptativa baseada na distância
+
+### 📈 Improved
+- **Movement Stability**: Movimento mais estável, sem saltos ou desaparecimentos
+- **Error Recovery**: Melhor recuperação de erros de posição e quadrante
+- **Smooth Transitions**: Transições mais suaves entre posições distantes
+- **Position Validation**: Validação mais robusta de posições, incluindo quadrantes
+
 ## [5.10.1] - 2025-03-02 - Improved Entity Initialization
 
 ### 🔄 Fixed
