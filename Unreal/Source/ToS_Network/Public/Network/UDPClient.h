@@ -186,5 +186,6 @@ public:
     void SendAcknowledgment(uint64 Sequence);
     void ProcessReliableQueue();
     void ProcessUnreliableQueue();
+    void ProcessMultiplePacketsInBuffer(UFlatBuffer* Buffer);
     void UpdateReliablePackets();
 };

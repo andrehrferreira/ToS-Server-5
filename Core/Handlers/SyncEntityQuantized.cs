@@ -60,6 +60,13 @@ namespace Packets.Handler
                 return;
             }
 
+            // Log simples para debug
+            if (syncCounter <= 3)
+            {
+                Console.WriteLine($"[DEBUG] Processando SyncEntityQuantized #{syncCounter} para EntityId: {ctrl.EntityId}");
+                Console.WriteLine($"[DEBUG] Quadrante: ({syncPacket.QuadrantX}, {syncPacket.QuadrantY}), Quantizado: ({syncPacket.QuantizedX}, {syncPacket.QuantizedY}, {syncPacket.QuantizedZ})");
+            }
+
             // Convert quantized position back to world position
             var worldPosition = mapConfig.DequantizePosition(
                 syncPacket.QuantizedX,
@@ -107,66 +114,48 @@ namespace Packets.Handler
             ctrl.Entity.SetAnimState(syncPacket.AnimationState);
             ctrl.Entity.SetFlag(EntityState.IsFalling, syncPacket.IsFalling);
 
-            // Replicate to other clients (broadcast to all connected clients except sender)
-            var count = UDPServer.Clients.Count;
-            if (count > 1) // Only replicate if there are other clients
+            // Replicate using AOI system
+            ctrl.ExecuteAOIReplication(playersInRange =>
             {
-                // Debug replication
-                if (syncCounter <= 20)
+                if (syncCounter <= 5)
                 {
-                    FileLogger.Log($"[QUANTIZED REPLICATION] 📡 Broadcasting SyncEntityQuantized #{syncCounter} to {count - 1} other clients");
-                    FileLogger.Log($"[QUANTIZED REPLICATION] 👤 Sender EntityId: {ctrl.EntityId}");
-                    FileLogger.Log($"[QUANTIZED REPLICATION] 🎯 Broadcasting Quadrant: X={syncPacket.QuadrantX} Y={syncPacket.QuadrantY}");
-                    Console.WriteLine($"[QUANTIZED REPLICATION] 📡 Broadcasting EntityId {ctrl.EntityId} to {count - 1} other clients");
+                    FileLogger.Log($"[AOI REPLICATION] 📡 Broadcasting EntityId {ctrl.EntityId} to {playersInRange.Count} players in range");
                 }
 
-                // Send to all other connected clients (exclude the sender)
-                foreach (var clientSocket in UDPServer.Clients.Values)
+                foreach (var targetPlayer in playersInRange)
                 {
-                    // Don't send back to the sender
-                    if (clientSocket.Id != ctrl.Socket.Id)
+                    // Create UpdateEntityQuantized packet for client (ServerPackets.UpdateEntityQuantized)
+                    var updateBuffer = new FlatBuffer(40); // Size for UpdateEntityQuantizedPacket: 39 bytes + margin
+
+                    // Write packet structure: PacketType + ServerPackets + UpdateEntityQuantizedPacket data
+                    updateBuffer.Write(PacketType.Unreliable);                        // 1 byte
+                    updateBuffer.Write((ushort)ServerPackets.UpdateEntityQuantized);  // 2 bytes
+                    updateBuffer.Write(ctrl.EntityId);                               // 4 bytes (EntityId as uint32)
+                    updateBuffer.Write(syncPacket.QuantizedX);                       // 2 bytes (short)
+                    updateBuffer.Write(syncPacket.QuantizedY);                       // 2 bytes (short)
+                    updateBuffer.Write(syncPacket.QuantizedZ);                       // 2 bytes (short)
+                    updateBuffer.Write(syncPacket.QuadrantX);                        // 2 bytes (short)
+                    updateBuffer.Write(syncPacket.QuadrantY);                        // 2 bytes (short)
+                    updateBuffer.Write(syncPacket.Yaw);                              // 4 bytes (float)
+                    updateBuffer.Write(syncPacket.Velocity);                         // 12 bytes (FVector)
+                    updateBuffer.Write(syncPacket.AnimationState);                   // 2 bytes (uint16)
+
+                    // Calculate flags (IsFalling)
+                    uint flags = syncPacket.IsFalling ? (uint)EntityState.IsFalling : 0u;
+                    updateBuffer.Write(flags);                                        // 4 bytes (uint32)
+
+                    // Send UpdateEntityQuantized packet to target player
+                    targetPlayer.Socket.Send(ref updateBuffer, true);
+
+                    if (syncCounter <= 5) // Log first few replications
                     {
-                        // Create UpdateEntityQuantized packet for client (ServerPackets.UpdateEntityQuantized)
-                        var updateBuffer = new FlatBuffer(40); // Size for UpdateEntityQuantizedPacket: 39 bytes + margin
-
-                        // Write packet structure: PacketType + ServerPackets + UpdateEntityQuantizedPacket data
-                        updateBuffer.Write(PacketType.Unreliable);                        // 1 byte
-                        updateBuffer.Write((ushort)ServerPackets.UpdateEntityQuantized);  // 2 bytes
-                        updateBuffer.Write(ctrl.EntityId);                               // 4 bytes (EntityId as uint32)
-                        updateBuffer.Write(syncPacket.QuantizedX);                       // 2 bytes (short)
-                        updateBuffer.Write(syncPacket.QuantizedY);                       // 2 bytes (short)
-                        updateBuffer.Write(syncPacket.QuantizedZ);                       // 2 bytes (short)
-                        updateBuffer.Write(syncPacket.QuadrantX);                        // 2 bytes (short)
-                        updateBuffer.Write(syncPacket.QuadrantY);                        // 2 bytes (short)
-                        updateBuffer.Write(syncPacket.Yaw);                              // 4 bytes (float)
-                        updateBuffer.Write(syncPacket.Velocity);                         // 12 bytes (FVector)
-                        updateBuffer.Write(syncPacket.AnimationState);                   // 2 bytes (uint16)
-
-                        // Calculate flags (IsFalling)
-                        uint flags = syncPacket.IsFalling ? (uint)EntityState.IsFalling : 0u;
-                        updateBuffer.Write(flags);                                        // 4 bytes (uint32)
-
-                        // Send UpdateEntityQuantized packet to other clients
-                        clientSocket.Send(ref updateBuffer, true);
-
-                        if (syncCounter <= 10) // Log first few replications
-                        {
-                            FileLogger.Log($"[SERVER REPLICATION] 📤 Sending UpdateEntityQuantized to client {clientSocket.Id}");
-                            FileLogger.Log($"[SERVER REPLICATION] 📦 EntityId: {ctrl.EntityId}");
-                            FileLogger.Log($"[SERVER REPLICATION] 📦 Sending Quantized: X={syncPacket.QuantizedX} Y={syncPacket.QuantizedY} Z={syncPacket.QuantizedZ}");
-                            FileLogger.Log($"[SERVER REPLICATION] 📦 Sending Quadrant: X={syncPacket.QuadrantX} Y={syncPacket.QuadrantY}");
-                            FileLogger.Log($"[SERVER REPLICATION] 📦 Sending Yaw: {syncPacket.Yaw:F6}");
-                            FileLogger.Log($"[SERVER REPLICATION] 📦 Sending Velocity: X={syncPacket.Velocity.X:F3} Y={syncPacket.Velocity.Y:F3} Z={syncPacket.Velocity.Z:F3}");
-                            FileLogger.Log($"[SERVER REPLICATION] 📦 Sending Flags: {flags}");
-                            FileLogger.Log($"[SERVER REPLICATION] 📦 Buffer size: {updateBuffer.Position} bytes");
-                        }
+                        FileLogger.Log($"[AOI REPLICATION] 📤 Sending UpdateEntityQuantized to player {targetPlayer.EntityId}");
+                        FileLogger.Log($"[AOI REPLICATION] 📦 EntityId: {ctrl.EntityId}");
+                        FileLogger.Log($"[AOI REPLICATION] 📦 Quantized: X={syncPacket.QuantizedX} Y={syncPacket.QuantizedY} Z={syncPacket.QuantizedZ}");
+                        FileLogger.Log($"[AOI REPLICATION] 📦 Quadrant: X={syncPacket.QuadrantX} Y={syncPacket.QuadrantY}");
                     }
                 }
-            }
-            else if (syncCounter <= 5)
-            {
-                FileLogger.Log($"[QUANTIZED REPLICATION] ⏳ No other clients to replicate to (total clients: {count})");
-            }
+            });
         }
     }
 }

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
-
+using Core.Config;
 public class AOIGridConfig
 {
     public FVector CellSize = new FVector(500, 500, 500);
@@ -19,7 +20,7 @@ public class World : IDisposable
     private int _maxEntities;
     private Thread _worldThread;
     private bool _running = true;
-    private float _tickDelta = 1f / 20f;
+    private float _tickDelta = 1f / 60f;  
 
     private AOIGridConfig _aoiConfig = new AOIGridConfig();
     private Dictionary<(int, int, int), List<uint>> _aoiGrid = new();
@@ -27,7 +28,7 @@ public class World : IDisposable
 
     public static ConcurrentDictionary<uint, World> Worlds = new ConcurrentDictionary<uint, World>();
 
-    public World(int maxEntities = 10000, AOIGridConfig aoiConfig = null)
+        public World(int maxEntities = 10000, AOIGridConfig aoiConfig = null)
     {
         _maxEntities = maxEntities;
         _entityPool = new StructPool<Entity>(_maxEntities);
@@ -40,9 +41,24 @@ public class World : IDisposable
         for (int z = 0; z < _aoiConfig.GridDepth; z++)
             _aoiGrid[(x, y, z)] = new List<uint>();
 
-        _worldThread = new Thread(WorldLoop) { IsBackground = true };
+        UpdateTickRate();
 
+        _worldThread = new Thread(WorldLoop) { IsBackground = true };
         _worldThread.Start();
+    }
+
+    private void UpdateTickRate()
+    {
+        if (ServerConfig.IsLoaded)
+        {
+            var adaptiveConfig = ServerConfig.Instance.AreaOfInterest.AdaptiveSync;
+            _tickDelta = 1f / adaptiveConfig.ServerTickRate;
+            FileLogger.Log($"[WORLD] 🕒 Configurado com taxa de atualização de {adaptiveConfig.ServerTickRate} FPS (intervalo: {_tickDelta:F4}s)");
+        }
+        else
+        {
+            FileLogger.Log($"[WORLD] ⚠️ Configuração não carregada, usando taxa de atualização padrão de 60 FPS");
+        }
     }
 
     public static World GetOrCreate(string map)
@@ -109,14 +125,102 @@ public class World : IDisposable
     {
         if (_entityPool.IsActive(entity.Id))
             return;
-
-        //_entityPool.Create(entity.Id, );
     }
 
     public void AddPlayer(PlayerController player)
     {
-        if (player != null)
-            _players[player.EntityId] = player;
+        if (player == null)
+            return;
+
+        _players[player.EntityId] = player;
+
+        SendInitialEntities(player);
+    }
+
+    private void SendInitialEntities(PlayerController newPlayer)
+    {
+        if (!EntityManager.TryGet(newPlayer.EntityId, out var playerEntity))
+            return;
+
+        var aoiConfig = ServerConfig.Instance.AreaOfInterest;
+        if (!aoiConfig.Enabled)
+            return;
+
+        float aoiDistance = aoiConfig.GetDistanceForEntityType("Player");
+        int syncCount = 0;
+        List<PlayerController> playersInRange = new List<PlayerController>();
+
+        FileLogger.Log($"[INITIAL SYNC] ⚡ Sending initial entities to player {newPlayer.EntityId}");
+
+        foreach (var otherPlayer in _players.Values)
+        {
+            if (otherPlayer.EntityId == newPlayer.EntityId)
+                continue;
+
+            if (!EntityManager.TryGet(otherPlayer.EntityId, out var otherEntity))
+                continue;
+
+            float distance = FVector.Distance(playerEntity.Position, otherEntity.Position);
+            if (distance <= aoiDistance)
+            {
+                var createPacket = new CreateEntityPacket
+                {
+                    EntityId = otherEntity.Id,
+                    Positon = otherEntity.Position,
+                    Rotator = otherEntity.Rotation,
+                    Flags = (uint)otherEntity.Flags
+                };
+
+                var createBuffer = new FlatBuffer(createPacket.Size);
+                createPacket.Serialize(ref createBuffer);
+                newPlayer.Socket.Send(ref createBuffer, true);
+
+                syncCount++;
+
+                if (newPlayer._visibleEntities == null)
+                    newPlayer._visibleEntities = new HashSet<uint>();
+
+                newPlayer._visibleEntities.Add(otherEntity.Id);
+
+                playersInRange.Add(otherPlayer);
+            }
+        }
+
+        FileLogger.Log($"[INITIAL SYNC] ✅ Sent {syncCount} initial entities to player {newPlayer.EntityId}");
+
+        NotifyExistingPlayersAboutNewPlayer(newPlayer, playersInRange);
+    }
+
+    private void NotifyExistingPlayersAboutNewPlayer(PlayerController newPlayer, List<PlayerController> playersInRange)
+    {
+        if (!EntityManager.TryGet(newPlayer.EntityId, out var playerEntity))
+            return;
+
+        var createPacket = new CreateEntityPacket
+        {
+            EntityId = playerEntity.Id,
+            Positon = playerEntity.Position,
+            Rotator = playerEntity.Rotation,
+            Flags = (uint)playerEntity.Flags
+        };
+
+        int notifiedCount = 0;
+
+        foreach (var existingPlayer in playersInRange)
+        {
+            if (existingPlayer._visibleEntities == null)
+                existingPlayer._visibleEntities = new HashSet<uint>();
+
+            existingPlayer._visibleEntities.Add(playerEntity.Id);
+
+            var createBuffer = new FlatBuffer(createPacket.Size);
+            createPacket.Serialize(ref createBuffer);
+            existingPlayer.Socket.Send(ref createBuffer, true);
+
+            notifiedCount++;
+        }
+
+        FileLogger.Log($"[INITIAL SYNC] 📢 Notified {notifiedCount} existing players about new player {newPlayer.EntityId}");
     }
 
     public void RemovePlayer(uint entityId)
@@ -126,7 +230,7 @@ public class World : IDisposable
 
     public void RemoveEntity(uint id)
     {
-        if (!_entityPool.IsActive(id)) 
+        if (!_entityPool.IsActive(id))
             return;
 
         ref Entity entity = ref _entityPool.Get(id);
@@ -151,10 +255,24 @@ public class World : IDisposable
 
                 ref Entity entity = ref _entityPool.Get(i);
                 bool moved = entity.Position != entity.LastPosition;
+                bool needsPeriodicSync = false;
+
+                if (!moved && entity.Type == EntityType.Player)
+                {
+                    var adaptiveConfig = ServerConfig.Instance.AreaOfInterest.AdaptiveSync;
+                    TimeSpan timeSinceLastSync = DateTime.UtcNow - entity.LastSyncTime;
+                    if (timeSinceLastSync.TotalSeconds >= adaptiveConfig.PeriodicSyncInterval)
+                    {
+                        needsPeriodicSync = true;
+                        entity.LastSyncTime = DateTime.UtcNow;
+                        FileLogger.Log($"[PERIODIC SYNC] ⏱️ Sending periodic update for player {entity.Id} after {timeSinceLastSync.TotalSeconds:F1}s");
+                    }
+                }
+
                 var prevCell = entity.CurrentCell;
                 var newCell = (moved) ? GetCell(entity.Position) : entity.CurrentCell;
 
-                if (moved)
+                if (moved || needsPeriodicSync)
                 {
                     if (prevCell != newCell)
                     {
@@ -165,33 +283,71 @@ public class World : IDisposable
                         var prevAOI = GetEntitiesInAOI(entity.Id, prevCell);
                         var currAOI = GetEntitiesInAOI(entity.Id, newCell);
 
-                        // Entidades que saíram da AOI
                         foreach (var otherId in prevAOI)
                         {
                             if (!currAOI.Contains(otherId))
                             {
-                                // TODO: Enviar pacote para remover entidade otherId do client de entity.Id
+                                if (entity.Type == EntityType.Player && PlayerController.TryGet(entity.Id, out var controller))
+                                {
+                                    if (controller._visibleEntities != null)
+                                    {
+                                        controller._visibleEntities.Remove(otherId);
+                                    }
+
+                                    var removePacket = new RemoveEntityPacket { EntityId = otherId };
+                                    var removeBuffer = new FlatBuffer(removePacket.Size);
+                                    removePacket.Serialize(ref removeBuffer);
+                                    controller.Socket.Send(ref removeBuffer, true);
+                                }
                             }
                         }
-                        // Entidades que entraram na AOI
+
                         foreach (var otherId in currAOI)
                         {
                             if (!prevAOI.Contains(otherId))
                             {
-                                // TODO: Enviar pacote para criar entidade para otherId
-                                // TODO: Enviar pacote para criar otherId para entity.Id
+                                if (entity.Type == EntityType.Player && PlayerController.TryGet(entity.Id, out var controller))
+                                {
+                                    if (!EntityManager.TryGet(otherId, out var otherEntity))
+                                        continue;
+
+                                    if (controller._visibleEntities == null)
+                                        controller._visibleEntities = new HashSet<uint>();
+
+                                    controller._visibleEntities.Add(otherId);
+
+                                    var createPacket = new CreateEntityPacket
+                                    {
+                                        EntityId = otherId,
+                                        Positon = otherEntity.Position,
+                                        Rotator = otherEntity.Rotation,
+                                        Flags = (uint)otherEntity.Flags
+                                    };
+
+                                    var createBuffer = new FlatBuffer(createPacket.Size);
+                                    createPacket.Serialize(ref createBuffer);
+                                    controller.Socket.Send(ref createBuffer, true);
+                                }
                             }
                         }
                     }
                     else
                     {
                         var aoiEntities = GetEntitiesInAOI(entity.Id);
-                        foreach (var otherId in aoiEntities)
+
+                        if (entity.Type == EntityType.Player && PlayerController.TryGet(entity.Id, out var controller))
                         {
-                            // TODO: Enviar pacote de atualização de posição para otherId
+                            if (needsPeriodicSync)
+                            {
+                                SendPeriodicUpdateToNearbyPlayers(entity.Id);
+                            }
                         }
                     }
-                    entity.LastPosition = entity.Position;
+
+                    if (moved)
+                    {
+                        entity.LastPosition = entity.Position;
+                    }
                 }
             }
         }
@@ -199,6 +355,110 @@ public class World : IDisposable
         foreach (var player in _players.Values)
         {
             player.Update();
+        }
+    }
+
+    private void SendPeriodicUpdateToNearbyPlayers(uint entityId)
+    {
+        if (!EntityManager.TryGet(entityId, out var entity))
+            return;
+
+        if (!PlayerController.TryGet(entityId, out var sourceController))
+            return;
+
+        var aoiConfig = ServerConfig.Instance.AreaOfInterest;
+        if (!aoiConfig.Enabled)
+            return;
+
+        float aoiDistance = aoiConfig.GetDistanceForEntityType("Player");
+        int updateCount = 0;
+
+        foreach (var otherPlayer in _players.Values)
+        {
+            if (otherPlayer.EntityId == entityId)
+                continue;
+
+            if (!EntityManager.TryGet(otherPlayer.EntityId, out var otherEntity))
+                continue;
+
+            float distance = FVector.Distance(entity.Position, otherEntity.Position);
+            if (distance <= aoiDistance)
+            {
+                var adaptiveConfig = ServerConfig.Instance.AreaOfInterest.AdaptiveSync;
+                bool shouldSync = true;
+
+                bool isStationary = entity.Velocity.Length() < adaptiveConfig.MovementThreshold;
+                bool isDistant = distance > adaptiveConfig.DistanceThreshold;
+
+                if (isStationary || isDistant)
+                {
+                    float syncRate = isStationary ? adaptiveConfig.StationarySyncRate : adaptiveConfig.DistantSyncRate;
+
+                    Random random = new Random();
+                    shouldSync = random.NextDouble() < syncRate;
+
+                    if (!shouldSync)
+                        continue;
+                }
+
+                const int estimatedPacketSize = 40;
+                const int safetyMargin = 100;
+                int safetyLimit = UDPServer.Mtu - estimatedPacketSize - safetyMargin;
+
+                if (otherPlayer.Socket.UnreliableBuffer.Position > safetyLimit)
+                {
+                    otherPlayer.Socket.Send(ref otherPlayer.Socket.UnreliableBuffer);
+                }
+
+                try
+                {
+                    var updatePacket = new UpdateEntityQuantizedPacket();
+                    var worldConfig = ServerConfig.Instance.WorldOriginRebasing;
+                    var defaultMapName = ServerConfig.Instance.Server.DefaultMapName;
+
+                    if (!worldConfig.Maps.TryGetValue(defaultMapName, out var mapConfig))
+                    {
+                        mapConfig = worldConfig.Maps.Values.FirstOrDefault() ?? new MapSectionConfig();
+                    }
+
+                    var quadrantInfo = mapConfig.GetQuadrantFromPosition(entity.Position);
+                    var quadrantX = (short)quadrantInfo.X;
+                    var quadrantY = (short)quadrantInfo.Y;
+
+                    var quantizedPos = mapConfig.QuantizePosition(entity.Position, quadrantX, quadrantY);
+
+                    updatePacket.EntityId = entityId;
+                    updatePacket.QuadrantX = quadrantX;
+                    updatePacket.QuadrantY = quadrantY;
+                    updatePacket.QuantizedX = quantizedPos.X;
+                    updatePacket.QuantizedY = quantizedPos.Y;
+                    updatePacket.QuantizedZ = quantizedPos.Z;
+                    updatePacket.Yaw = entity.Rotation.Yaw;
+                    updatePacket.Velocity = entity.Velocity;
+                    updatePacket.AnimationState = (ushort)entity.AnimState;
+                    updatePacket.Flags = (uint)entity.Flags;
+                    updatePacket.Serialize(ref otherPlayer.Socket.UnreliableBuffer);
+
+                    string syncType = isStationary ? "STATIONARY" : (isDistant ? "DISTANT" : "NORMAL");
+                    
+                    if (isStationary || isDistant)
+                    {
+                        FileLogger.Log($"[ADAPTIVE SYNC] {syncType} sync for player {entityId} to {otherPlayer.EntityId} at distance {distance:F1}");
+                    }
+                }
+                catch (IndexOutOfRangeException ex)
+                {
+                    FileLogger.Log($"[PERIODIC SYNC] ⚠️ Buffer overflow ao enviar update para player {otherPlayer.EntityId}: {ex.Message}");
+                    otherPlayer.Socket.Send(ref otherPlayer.Socket.UnreliableBuffer);
+                }
+
+                updateCount++;
+            }
+        }
+
+        if (updateCount > 0)
+        {
+            FileLogger.Log($"[PERIODIC SYNC] ✅ Sent periodic update for player {entityId} to {updateCount} nearby players");
         }
     }
 

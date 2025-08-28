@@ -42,6 +42,9 @@ namespace Core.Config
         [JsonPropertyName("worldOriginRebasing")]
         public WorldOriginRebasingConfig WorldOriginRebasing { get; set; } = new WorldOriginRebasingConfig();
 
+        [JsonPropertyName("areaOfInterest")]
+        public AreaOfInterestConfig AreaOfInterest { get; set; } = new AreaOfInterestConfig();
+
         #endregion
 
         #region Static Instance Management
@@ -70,7 +73,40 @@ namespace Core.Config
 
         #endregion
 
-        #region Configuration Loading
+        #region Configuration Loading and Updates
+
+        /// <summary>
+        /// Atualiza as configurações de todos os mundos após carregar a configuração
+        /// </summary>
+        private static void UpdateWorldSettings()
+        {
+            try
+            {
+                // Verificar se há mundos para atualizar
+                if (World.Worlds != null && World.Worlds.Count > 0)
+                {
+                    Console.WriteLine($"[CONFIG] 🔄 Atualizando configurações de {World.Worlds.Count} mundo(s)");
+
+                    // Atualizar configurações de todos os mundos existentes
+                    foreach (var world in World.Worlds.Values)
+                    {
+                        // Usar reflexão para chamar o método privado UpdateTickRate
+                        var methodInfo = world.GetType().GetMethod("UpdateTickRate",
+                            System.Reflection.BindingFlags.Instance |
+                            System.Reflection.BindingFlags.NonPublic);
+
+                        if (methodInfo != null)
+                        {
+                            methodInfo.Invoke(world, null);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CONFIG] ⚠️ Não foi possível atualizar configurações dos mundos: {ex.Message}");
+            }
+        }
 
         /// <summary>
         /// Load configuration from JSON file
@@ -89,6 +125,10 @@ namespace Core.Config
                         var defaultConfig = CreateDefaultConfig();
                         SaveConfig(defaultConfig, configPath);
                         _instance = defaultConfig;
+
+                        // Atualizar configurações do mundo após criar configuração padrão
+                        UpdateWorldSettings();
+
                         return defaultConfig;
                     }
 
@@ -114,6 +154,9 @@ namespace Core.Config
                     Console.WriteLine($"[CONFIG] ✅ Configuration loaded successfully from '{configPath}'");
                     LogConfigurationSummary(config);
 
+                    // Atualizar configurações do mundo após carregar configuração
+                    UpdateWorldSettings();
+
                     return config;
                 }
                 catch (Exception ex)
@@ -123,6 +166,10 @@ namespace Core.Config
 
                     var defaultConfig = CreateDefaultConfig();
                     _instance = defaultConfig;
+
+                    // Atualizar configurações do mundo após carregar configuração padrão
+                    UpdateWorldSettings();
+
                     return defaultConfig;
                 }
             }
@@ -394,11 +441,9 @@ namespace Core.Config
         /// </summary>
         public FVector GetQuadrantOrigin(int quadrantX, int quadrantY)
         {
-            float totalWorldSizeX = SectionSize.X * SectionPerComponent.X * NumberOfComponents.X;
-            float totalWorldSizeY = SectionSize.Y * SectionPerComponent.Y * NumberOfComponents.Y;
-
-            float originX = (quadrantX * totalWorldSizeX) / NumberOfComponents.X;
-            float originY = (quadrantY * totalWorldSizeY) / NumberOfComponents.Y;
+            // Simplificado para evitar problemas de NaN - quadrante * tamanho da seção
+            float originX = quadrantX * SectionSize.X;
+            float originY = quadrantY * SectionSize.Y;
 
             return new FVector { X = originX, Y = originY, Z = 0.0f };
         }
@@ -429,15 +474,108 @@ namespace Core.Config
         /// </summary>
         public FVector DequantizePosition(short quantX, short quantY, short quantZ, int quadrantX, int quadrantY)
         {
+            // Obter a origem do quadrante (simplificada)
             FVector quadrantOrigin = GetQuadrantOrigin(quadrantX, quadrantY);
 
+            // Garantir que Scale nunca seja zero
+            float scaleX = Scale.X > 0 ? Scale.X : 100.0f;
+            float scaleY = Scale.Y > 0 ? Scale.Y : 100.0f;
+            float scaleZ = Scale.Z > 0 ? Scale.Z : 100.0f;
+
+            // Calcular posição mundial
             return new FVector
             {
-                X = quadrantOrigin.X + (quantX * Scale.X),
-                Y = quadrantOrigin.Y + (quantY * Scale.Y),
-                Z = quantZ * Scale.Z
+                X = quadrantOrigin.X + (quantX * scaleX),
+                Y = quadrantOrigin.Y + (quantY * scaleY),
+                Z = quantZ * scaleZ
             };
         }
+    }
+
+    /// <summary>
+    /// Area of Interest configuration for optimized entity replication
+    /// </summary>
+    public class AreaOfInterestConfig
+    {
+        [JsonPropertyName("enabled")]
+        public bool Enabled { get; set; } = true;
+
+        [JsonPropertyName("baseDistance")]
+        public float BaseDistance { get; set; } = 100000.0f; // 1km in cm (Unreal units)
+
+        [JsonPropertyName("entityDistances")]
+        public Dictionary<string, float> EntityDistances { get; set; } = new Dictionary<string, float>
+        {
+            ["Player"] = 100000.0f,     // 1km
+            ["NPC"] = 50000.0f,         // 500m
+            ["StaticBuild"] = 25000.0f, // 250m
+            ["Vehicle"] = 150000.0f,    // 1.5km
+            ["Projectile"] = 200000.0f, // 2km
+            ["Item"] = 10000.0f,        // 100m
+            ["Effect"] = 50000.0f       // 500m
+        };
+
+        /// <summary>
+        /// Configurações de sincronização adaptativa
+        /// </summary>
+        [JsonPropertyName("adaptiveSync")]
+        public AdaptiveSyncConfig AdaptiveSync { get; set; } = new AdaptiveSyncConfig();
+
+        public float GetDistanceForEntityType(string entityType)
+        {
+            return EntityDistances.TryGetValue(entityType, out var distance) ? distance : BaseDistance;
+        }
+
+        public bool IsWithinRange(FVector pos1, FVector pos2, string entityType1, string entityType2)
+        {
+            float distance1 = GetDistanceForEntityType(entityType1);
+            float distance2 = GetDistanceForEntityType(entityType2);
+            float maxDistance = Math.Max(distance1, distance2);
+            float actualDistance = FVector.Distance(pos1, pos2);
+            return actualDistance <= maxDistance;
+        }
+    }
+
+    /// <summary>
+    /// Configurações para sincronização adaptativa baseada em movimento e distância
+    /// </summary>
+    public class AdaptiveSyncConfig
+    {
+        /// <summary>
+        /// Taxa de atualização do servidor em Hz (frames por segundo)
+        /// </summary>
+        [JsonPropertyName("serverTickRate")]
+        public int ServerTickRate { get; set; } = 60;
+
+        /// <summary>
+        /// Intervalo em segundos para sincronização periódica de entidades paradas
+        /// </summary>
+        [JsonPropertyName("periodicSyncInterval")]
+        public int PeriodicSyncInterval { get; set; } = 5;
+
+        /// <summary>
+        /// Taxa de sincronização para entidades paradas (percentual da taxa normal)
+        /// </summary>
+        [JsonPropertyName("stationarySyncRate")]
+        public float StationarySyncRate { get; set; } = 0.1f;
+
+        /// <summary>
+        /// Taxa de sincronização para entidades distantes (percentual da taxa normal)
+        /// </summary>
+        [JsonPropertyName("distantSyncRate")]
+        public float DistantSyncRate { get; set; } = 0.3f;
+
+        /// <summary>
+        /// Distância a partir da qual a entidade é considerada distante (em unidades)
+        /// </summary>
+        [JsonPropertyName("distanceThreshold")]
+        public float DistanceThreshold { get; set; } = 50000.0f; // 500m
+
+        /// <summary>
+        /// Velocidade mínima para considerar que uma entidade está em movimento
+        /// </summary>
+        [JsonPropertyName("movementThreshold")]
+        public float MovementThreshold { get; set; } = 0.1f;
     }
 
     #endregion

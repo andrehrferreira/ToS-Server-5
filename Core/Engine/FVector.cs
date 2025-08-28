@@ -22,6 +22,12 @@ public struct FVector
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float Length()
+    {
+        return Size();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float SizeSquared()
     {
         return X * X + Y * Y + Z * Z;
@@ -54,6 +60,24 @@ public struct FVector
             a.Z * b.X - a.X * b.Z,
             a.X * b.Y - a.Y * b.X
         );
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float Distance(FVector a, FVector b)
+    {
+        float dx = a.X - b.X;
+        float dy = a.Y - b.Y;
+        float dz = a.Z - b.Z;
+        return MathF.Sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float DistanceSquared(FVector a, FVector b)
+    {
+        float dx = a.X - b.X;
+        float dy = a.Y - b.Y;
+        float dz = a.Z - b.Z;
+        return dx * dx + dy * dy + dz * dz;
     }
 
     public override string ToString()

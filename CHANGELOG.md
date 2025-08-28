@@ -5,6 +5,175 @@ All notable changes to the Tales Of Shadowland MMO Server will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.10.5] - 2025-03-06 - Improved Batch Packet Processing
+
+### 🔄 Fixed
+- **Packet Deserialization**: Implementado processamento de pacotes usando sistema de contratos e deserialização
+- **Tamanho Dinâmico**: Tamanho de pacotes determinado usando método GetSize() dos contratos
+- **Processamento Sequencial**: Pacotes processados sequencialmente até o final do buffer
+- **Segurança de Buffer**: Melhor gerenciamento de buffer para evitar corrupção de dados
+
+### 📈 Improved
+- **Compatibilidade**: Sistema agora compatível com futuros tipos de pacotes
+- **Robustez**: Melhor tratamento de erros e pacotes desconhecidos
+- **Logs Detalhados**: Logs de debug aprimorados para facilitar diagnóstico
+- **Eficiência**: Processamento mais eficiente usando métodos de deserialização existentes
+
+## [5.10.4] - 2025-03-05 - Fixed Batch Packet Processing
+
+### 🔄 Fixed
+- **Batch Packet Processing**: Corrigido o processamento de pacotes em lote que causava posições aleatórias
+- **Packet Size Detection**: Implementada detecção de tamanho de pacotes baseada no tipo
+- **Buffer Management**: Melhorado o gerenciamento de buffer para evitar corrupção de dados
+- **Packet Boundaries**: Implementada detecção correta de limites entre subpacotes
+
+### 📈 Improved
+- **Debug Logging**: Adicionado log detalhado do processamento de pacotes em lote
+- **Buffer Dumping**: Implementado dump de buffer para os primeiros pacotes para facilitar debug
+- **Error Handling**: Melhorado o tratamento de erros para pacotes incompletos
+- **Memory Safety**: Implementada cópia segura do buffer para evitar corrupção durante o processamento
+
+## [5.10.3] - 2025-03-04 - Fixed Entity Spawn Position
+
+### 🔄 Fixed
+- **Entity Spawn Position**: Corrigido problema de entidades que ficavam presas na posição (0,0)
+- **Position Validation Pipeline**: Revisada toda a pipeline de spawn e validação de posição
+- **Default Position Fallback**: Implementado sistema de fallback para posições inválidas
+- **Position Memory System**: Sistema de memória de posições válidas por entidade
+
+### 📈 Improved
+- **Entity Creation**: Posicionamento correto das entidades desde o primeiro spawn
+- **Position Handling**: Melhor tratamento de posições inválidas (zero, NaN)
+- **Quadrant Validation**: Validação robusta de quadrantes com valores extremos
+- **Spawn Logging**: Logs detalhados do processo de spawn e posicionamento
+
+## [5.10.2] - 2025-03-03 - Enhanced Position Stability
+
+### 🔄 Fixed
+- **Entity Disappearing**: Corrigido problema de entidades que apareciam e sumiam
+- **Quadrant Validation**: Implementada validação de quadrantes para evitar valores inválidos
+- **Position Memory**: Sistema de rastreamento de última posição válida para cada entidade
+- **Adaptive Interpolation**: Velocidade de interpolação adaptativa baseada na distância
+
+### 📈 Improved
+- **Movement Stability**: Movimento mais estável, sem saltos ou desaparecimentos
+- **Error Recovery**: Melhor recuperação de erros de posição e quadrante
+- **Smooth Transitions**: Transições mais suaves entre posições distantes
+- **Position Validation**: Validação mais robusta de posições, incluindo quadrantes
+
+## [5.10.1] - 2025-03-02 - Improved Entity Initialization
+
+### 🔄 Fixed
+- **Initial Position**: Corrigido problema onde entidades novas não assumiam posição inicial correta
+- **Entity Tracking**: Implementado sistema de contagem de atualizações por entidade
+- **Spawn Handling**: Melhorado tratamento de posições iniciais durante o spawn de entidades
+- **Zero Position Logic**: Refinada a lógica de detecção de posições zero para permitir posições iniciais válidas
+
+### 📈 Improved
+- **Entity Initialization**: Primeiras atualizações de posição sempre aceitas para garantir inicialização correta
+- **Logging Enhancement**: Adicionado contador de atualizações por entidade nos logs
+- **Startup Experience**: Melhor experiência durante a inicialização de novas entidades
+
+## [5.10.0] - 2025-03-01 - Position Validation and Smoothing
+
+### 🚀 Added
+
+#### Client-Side Improvements
+- **Position Validation**: Implementada validação de posição para evitar saltos abruptos
+- **Zero Position Detection**: Detecção e rejeição automática de posições zero (0,0,0)
+- **NaN Detection**: Detecção e filtragem de valores NaN nas posições
+- **Smooth Interpolation**: Interpolação gradual para posições muito distantes
+- **Teleport Detection**: Detecção inteligente de teletransportes legítimos vs. erros
+
+### 📈 Improved
+- **Movement Fluidity**: Movimentação mais suave das entidades sem saltos
+- **Error Resilience**: Maior resistência a erros de sincronização de posição
+- **Detailed Logging**: Logs detalhados para diagnóstico de problemas de posição
+- **Client Experience**: Melhor experiência visual para o jogador
+
+## [5.9.0] - 2025-02-25 - Batch Packet Processing
+
+### 🚀 Added
+
+#### Client-Side Optimizations
+- **Multi-Packet Processing**: Implementado processamento em lote de múltiplos subpacotes em um único buffer
+- **Subpacote Detection**: Identificação e extração automática de subpacotes individuais (SyncEntity, UpdateEntity, etc.)
+- **Improved Movement Fluidity**: Movimentação mais fluida das entidades com atualizações a 60 FPS
+- **Enhanced Logging**: Diagnósticos detalhados de processamento de pacotes
+
+### 📈 Improved
+- **Reduced Network Latency**: Processamento mais rápido de múltiplas atualizações de posição
+- **Better Resource Utilization**: Uso mais eficiente de memória e CPU
+- **Enhanced Debugging**: Logs detalhados para processamento e extração de pacotes
+- **Protocol Compliance**: Mantém a hierarquia correta de pacotes (Reliable/Unreliable) e subpacotes
+
+## [5.8.0] - 2025-02-20 - Adaptive Synchronization System
+
+### 🚀 Added
+
+#### High-Performance Networking
+- **60 FPS Server Tick Rate**: Increased from 20 FPS for smoother gameplay
+- **Adaptive Synchronization**: Intelligent network usage based on game state
+- **Configurable Parameters**: Fine-tune all sync behaviors through server-config.json
+  - Server tick rate (default: 60 FPS)
+  - Periodic sync interval (default: 5 seconds)
+  - Stationary entity sync rate (default: 10% of normal rate)
+  - Distant entity sync rate (default: 30% of normal rate)
+  - Distance threshold (default: 500m)
+  - Movement threshold (default: 0.1 units/s)
+
+### 📈 Improved
+- **Network Bandwidth Optimization**: Reduced data usage through adaptive sync rates
+- **Server Scalability**: Better performance with many connected players
+- **Detailed Diagnostics**: Enhanced logging for synchronization events
+- **Dynamic Configuration**: Server settings can be updated without restart
+
+## [5.7.1] - 2025-02-15 - Enhanced AOI System with Periodic Synchronization
+
+### 🔄 Added
+
+#### Periodic Synchronization System
+- **Stationary Entity Updates**: Automatic periodic updates for stationary players
+  - **Configurable Interval**: 5-second default interval for periodic updates
+  - **Smart Targeting**: Updates only sent to players within AOI range
+  - **Bandwidth Efficient**: Only sends updates when needed, not continuously
+  - **Immediate Visibility**: New players immediately see existing stationary players
+  - **Seamless Experience**: Prevents "invisible player" issues when joining a server
+
+### 🔧 Fixed
+- Fixed issue where stationary players were not visible to newly connected clients
+- Fixed inconsistent entity visibility when players remain stationary for extended periods
+
+## [5.7.0] - 2025-02-10 - Area of Interest System
+
+### 🔍 Added
+
+#### Area of Interest (AOI) System
+- **Complete AOI Implementation**: Efficient network replication based on entity proximity
+  - **Distance-Based Filtering**: Configurable visibility ranges for different entity types
+  - **Automatic Entity Management**: Automatic CreateEntity/RemoveEntity packets for AOI enter/exit events
+  - **Initial Synchronization**: New players receive all entities in their AOI upon connection
+  - **Bidirectional Notification**: Existing players are notified when new players enter their AOI
+  - **Bandwidth Optimization**: ~70-90% reduction in network traffic in crowded areas
+
+#### Configuration System
+- **AOI Configuration**: Complete AOI configuration in `server-config.json`
+  - **Entity-Type Distances**: Configurable AOI distances per entity type (NPC, static builds, vehicles, etc.)
+  - **Base Distance**: Default 1km AOI range for all entity types
+  - **Runtime Toggle**: Enable/disable AOI system without server restart
+
+#### Client-Side Improvements
+- **Entity Validation**: Robust validation to prevent entity duplication and invalid positions
+- **Position Validation**: Client-side checks to prevent sending invalid coordinates (0,0,0)
+- **Detailed Logging**: Comprehensive logging for AOI events and entity management
+- **Teleport Handling**: Smooth handling of large position changes
+
+### 🛠️ Fixed
+- Fixed NaN position issues with improved quadrant origin calculation
+- Fixed entity duplication issues with robust client-side validation
+- Fixed incorrect position synchronization with enhanced logging and validation
+- Fixed missing entity creation for players joining after others
+
 ## [5.6.0] - 2025-01-26 - World Origin Rebasing System
 
 ### 🌍 Added

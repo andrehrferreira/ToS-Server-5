@@ -34,24 +34,113 @@ ASyncEntity* ATOSPlayerController::GetEntityById(int32 Id)
     return nullptr;
 }
 
-void ATOSPlayerController::HandleCreateEntity(int32 EntityId, FVector Positon, FRotator Rotator, int32 Flags)
+void ATOSPlayerController::HandleCreateEntity(int32 EntityId, FVector Position, FRotator Rotator, int32 Flags)
 {
-    if (!bIsReadyToSync) return;
+    static int32 CreateEntityCount = 0;
+    CreateEntityCount++;
 
-    if (!EntityClass) return;
+    if (!bIsReadyToSync)
+    {
+        ClientFileLog(FString::Printf(TEXT("[CREATE ENTITY] #%d ❌ Not ready to sync for EntityId: %d"),
+            CreateEntityCount, EntityId));
+        return;
+    }
+
+    // Verificar se a entidade já existe para evitar duplicação
+    if (SpawnedEntities.Contains(EntityId))
+    {
+        ClientFileLog(FString::Printf(TEXT("[CREATE ENTITY] #%d ⚠️ Entity %d already exists - skipping creation"),
+            CreateEntityCount, EntityId));
+        return;
+    }
 
     UWorld* World = GetWorld();
-    if (!World) return;
-
-    FActorSpawnParameters Params;
-    Params.Owner = nullptr;
-    Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-    ASyncEntity* NewEntity = World->SpawnActor<ASyncEntity>(EntityClass, Positon, Rotator, Params);
-
-    if (NewEntity)
+    if (!World || !EntityClass)
     {
-        NewEntity->EntityId = EntityId;
-        SpawnedEntities.Add(EntityId, NewEntity);
+        ClientFileLog(FString::Printf(TEXT("[CREATE ENTITY] #%d ❌ Invalid World or EntityClass for EntityId: %d"),
+            CreateEntityCount, EntityId));
+        return;
+    }
+
+    // Rastrear posições válidas para entidades
+    static TMap<int32, FVector> LastValidPositions;
+
+    // Validar posição para evitar valores inválidos
+    bool IsValidPosition = true;
+
+    // Verificar NaN
+    if (FMath::IsNaN(Position.X) || FMath::IsNaN(Position.Y) || FMath::IsNaN(Position.Z))
+    {
+        ClientFileLog(FString::Printf(TEXT("[CREATE ENTITY] #%d ⚠️ NaN position for EntityId: %d - Position: %s"),
+            CreateEntityCount, EntityId, *Position.ToString()));
+        IsValidPosition = false;
+    }
+
+    // Verificar posição zero
+    bool IsZeroPosition = FMath::IsNearlyZero(Position.X, 0.1f) &&
+                          FMath::IsNearlyZero(Position.Y, 0.1f) &&
+                          FMath::IsNearlyZero(Position.Z, 0.1f);
+
+    if (IsZeroPosition)
+    {
+        ClientFileLog(FString::Printf(TEXT("[CREATE ENTITY] #%d ⚠️ Zero position for EntityId: %d - Position: %s"),
+            CreateEntityCount, EntityId, *Position.ToString()));
+
+        // Para entidades criadas, não queremos permitir posição zero
+        IsValidPosition = false;
+    }
+
+    // Se a posição for inválida, tente usar a última posição válida conhecida ou uma posição padrão
+    if (!IsValidPosition)
+    {
+        if (LastValidPositions.Contains(EntityId))
+        {
+            Position = LastValidPositions[EntityId];
+            ClientFileLog(FString::Printf(TEXT("[CREATE ENTITY] #%d ⚠️ Using last valid position for EntityId: %d - Position: %s"),
+                CreateEntityCount, EntityId, *Position.ToString()));
+        }
+        else
+        {
+            // Se não temos posição válida anterior, use uma posição padrão não-zero
+            Position = FVector(100.0f, 100.0f, 100.0f);
+            ClientFileLog(FString::Printf(TEXT("[CREATE ENTITY] #%d ⚠️ Using default position for EntityId: %d - Position: %s"),
+                CreateEntityCount, EntityId, *Position.ToString()));
+        }
+    }
+    else if (!IsZeroPosition)
+    {
+        // Atualizar a última posição válida conhecida
+        LastValidPositions.Add(EntityId, Position);
+    }
+
+    // Criar entidade
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+    ASyncEntity* Entity = World->SpawnActor<ASyncEntity>(EntityClass, Position, Rotator, SpawnParams);
+
+    if (Entity)
+    {
+        Entity->EntityId = EntityId;
+        Entity->SetFlags(static_cast<EEntityState>(Flags));
+
+        // Definir explicitamente a posição e rotação para garantir que esteja correta desde o início
+        Entity->SetActorLocation(Position);
+        Entity->SetActorRotation(Rotator);
+
+        // Definir explicitamente os alvos de interpolação para a posição atual
+        Entity->TargetLocation = Position;
+        Entity->TargetRotation = Rotator;
+
+        SpawnedEntities.Add(EntityId, Entity);
+
+        ClientFileLog(FString::Printf(TEXT("[CREATE ENTITY] #%d ✅ Successfully spawned Entity %d at %s"),
+            CreateEntityCount, EntityId, *Entity->GetActorLocation().ToString()));
+    }
+    else
+    {
+        ClientFileLog(FString::Printf(TEXT("[CREATE ENTITY] #%d ❌ Failed to spawn Entity %d"),
+            CreateEntityCount, EntityId));
     }
 }
 
@@ -124,6 +213,92 @@ void ATOSPlayerController::HandleUpdateEntityQuantized(FUpdateEntityQuantizedPac
         return;
     }
 
+    // Validar quadrantes - valores muito grandes ou pequenos são provavelmente erros
+    const int16 MaxQuadrantValue = 100; // Limite razoável para quadrantes
+    bool QuadrantAdjusted = false;
+    int16 QuadrantX = data.QuadrantX;
+    int16 QuadrantY = data.QuadrantY;
+
+    if (QuadrantX < -MaxQuadrantValue || QuadrantX > MaxQuadrantValue)
+    {
+        QuadrantX = 0;
+        QuadrantAdjusted = true;
+    }
+
+    if (QuadrantY < -MaxQuadrantValue || QuadrantY > MaxQuadrantValue)
+    {
+        QuadrantY = 0;
+        QuadrantAdjusted = true;
+    }
+
+    if (QuadrantAdjusted && HandlerCallCount <= 15)
+    {
+        ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] ⚠️ Quadrante inválido (%d, %d) - Ajustado para (%d, %d)"),
+            data.QuadrantX, data.QuadrantY, QuadrantX, QuadrantY));
+    }
+
+    // Calcular a posição mundial para spawn ou comparação
+    const float Scale = 100.0f; // Match server scale
+    const float QuadrantSize = 25600.0f * 4; // Section size * sections per component
+
+    float WorldX = (QuadrantX * QuadrantSize) + (data.QuantizedX * Scale);
+    float WorldY = (QuadrantY * QuadrantSize) + (data.QuantizedY * Scale);
+    float WorldZ = data.QuantizedZ * Scale;
+
+    FVector WorldPosition = FVector(WorldX, WorldY, WorldZ);
+    FRotator WorldRotation = FRotator(0.0f, data.Yaw, 0.0f);
+
+    // Verificar se a posição é válida
+    bool IsValidPosition = true;
+
+    // Verificar valores NaN
+    if (FMath::IsNaN(WorldPosition.X) || FMath::IsNaN(WorldPosition.Y) || FMath::IsNaN(WorldPosition.Z))
+    {
+        ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] ⚠️ Posição NaN detectada para Entity %d"), data.EntityId));
+        IsValidPosition = false;
+    }
+
+    // Verificar se a posição é zero (posição inválida comum)
+    bool IsZeroPosition = FMath::IsNearlyZero(WorldPosition.X, 0.1f) &&
+                          FMath::IsNearlyZero(WorldPosition.Y, 0.1f) &&
+                          FMath::IsNearlyZero(WorldPosition.Z, 0.1f);
+
+    // Posição zero é suspeita, mas não necessariamente inválida para o spawn inicial
+    if (IsZeroPosition && HandlerCallCount <= 15)
+    {
+        ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] ⚠️ Posição zero detectada para Entity %d"), data.EntityId));
+    }
+
+    // Se a posição for inválida, tente usar a última posição válida conhecida
+    static TMap<int32, FVector> LastValidPositions;
+
+    if (!IsValidPosition)
+    {
+        if (LastValidPositions.Contains(data.EntityId))
+        {
+            WorldPosition = LastValidPositions[data.EntityId];
+            ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] ⚠️ Usando última posição válida para Entity %d: %s"),
+                data.EntityId, *WorldPosition.ToString()));
+        }
+        else
+        {
+            // Se não temos posição válida anterior, use uma posição padrão não-zero
+            WorldPosition = FVector(100.0f, 100.0f, 100.0f);
+            ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] ⚠️ Usando posição padrão para Entity %d: %s"),
+                data.EntityId, *WorldPosition.ToString()));
+        }
+    }
+    else if (!IsZeroPosition)
+    {
+        // Atualizar a última posição válida conhecida
+        LastValidPositions.Add(data.EntityId, WorldPosition);
+    }
+
+    if (HandlerCallCount <= 15)
+    {
+        ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] 🧮 Posição mundial calculada: %s"), *WorldPosition.ToString()));
+    }
+
     if (ASyncEntity** Found = SpawnedEntities.Find(data.EntityId))
     {
         ASyncEntity* Entity = *Found;
@@ -140,27 +315,29 @@ void ATOSPlayerController::HandleUpdateEntityQuantized(FUpdateEntityQuantizedPac
         if (HandlerCallCount <= 10)
         {
             ClientFileLog(FString::Printf(TEXT("[HANDLER] ✅ Found existing entity %d, updating..."), data.EntityId));
-        }
-
-        // Calculate final world position before updating (for comparison)
-        if (HandlerCallCount <= 15)
-        {
-            const float Scale = 100.0f;
-            const float QuadrantSize = 25600.0f * 4;
-            float WorldX = (data.QuadrantX * QuadrantSize) + (data.QuantizedX * Scale);
-            float WorldY = (data.QuadrantY * QuadrantSize) + (data.QuantizedY * Scale);
-            float WorldZ = data.QuantizedZ * Scale;
-            FVector CalculatedWorldPos = FVector(WorldX, WorldY, WorldZ);
-
-            ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] 🧮 Calculated World Position: %s"), *CalculatedWorldPos.ToString()));
             ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] 🧮 Entity Current Position: %s"), *Entity->GetActorLocation().ToString()));
         }
 
-        // Use the new quantized update method
+        // Para entidades existentes, primeiro definir diretamente a posição para garantir que não fique em (0,0)
+        // Isso é especialmente importante para as primeiras atualizações
+        static TMap<int32, int32> EntityUpdateCounts;
+        int32& UpdateCount = EntityUpdateCounts.FindOrAdd(data.EntityId, 0);
+        UpdateCount++;
+
+        if (UpdateCount <= 3 && !IsZeroPosition)
+        {
+            // Nas primeiras atualizações, forçar a posição diretamente
+            Entity->SetActorLocation(WorldPosition);
+            Entity->SetActorRotation(WorldRotation);
+            ClientFileLog(FString::Printf(TEXT("[CLIENT RECV] 🚀 Forçando posição inicial para Entity %d: %s"),
+                data.EntityId, *WorldPosition.ToString()));
+        }
+
+        // Use o método de atualização quantizada
         bool IsFalling = (data.Flags & 1) != 0; // Assume bit 0 is IsFalling flag
         Entity->UpdateFromQuantizedNetwork(
             data.QuantizedX, data.QuantizedY, data.QuantizedZ,
-            data.QuadrantX, data.QuadrantY, data.Yaw,
+            QuadrantX, QuadrantY, data.Yaw,
             data.Velocity, static_cast<uint32>(data.AnimationState), IsFalling
         );
 
@@ -187,42 +364,58 @@ void ATOSPlayerController::HandleUpdateEntityQuantized(FUpdateEntityQuantizedPac
             return;
         }
 
-        // Convert quantized position back to world position for spawning
-        const float Scale = 100.0f; // Match server scale
-        const float QuadrantSize = 25600.0f * 4; // Section size * sections per component
-
-        float WorldX = (data.QuadrantX * QuadrantSize) + (data.QuantizedX * Scale);
-        float WorldY = (data.QuadrantY * QuadrantSize) + (data.QuantizedY * Scale);
-        float WorldZ = data.QuantizedZ * Scale;
-
-        FVector SpawnPosition = FVector(WorldX, WorldY, WorldZ);
-        FRotator SpawnRotation = FRotator(0.0f, data.Yaw, 0.0f);
+        // Para novas entidades, não permitir spawn em (0,0,0) a menos que seja explicitamente necessário
+        if (IsZeroPosition)
+        {
+            // Se a posição for zero, tente usar uma posição não-zero padrão para o spawn inicial
+            WorldPosition = FVector(100.0f, 100.0f, 100.0f);
+            ClientFileLog(FString::Printf(TEXT("[HANDLER] ⚠️ Evitando spawn em posição zero para Entity %d, usando: %s"),
+                data.EntityId, *WorldPosition.ToString()));
+        }
 
         if (HandlerCallCount <= 10)
         {
-            ClientFileLog(FString::Printf(TEXT("[HANDLER] Spawning at world position: %s"), *SpawnPosition.ToString()));
-            ClientFileLog(FString::Printf(TEXT("[HANDLER] Spawning with rotation: %s"), *SpawnRotation.ToString()));
+            ClientFileLog(FString::Printf(TEXT("[HANDLER] Spawning at world position: %s"), *WorldPosition.ToString()));
+            ClientFileLog(FString::Printf(TEXT("[HANDLER] Spawning with rotation: %s"), *WorldRotation.ToString()));
         }
 
         FActorSpawnParameters Params;
         Params.Owner = nullptr;
         Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-        auto NewEntity = World->SpawnActor<ASyncEntity>(EntityClass, SpawnPosition, SpawnRotation, Params);
+        auto NewEntity = World->SpawnActor<ASyncEntity>(EntityClass, WorldPosition, WorldRotation, Params);
 
         if (NewEntity)
         {
             NewEntity->EntityId = data.EntityId;
+
+            // Definir diretamente a posição e rotação para garantir que esteja correta desde o início
+            NewEntity->SetActorLocation(WorldPosition);
+            NewEntity->SetActorRotation(WorldRotation);
+
+            // Definir explicitamente os alvos de interpolação para a posição atual
+            NewEntity->TargetLocation = WorldPosition;
+            NewEntity->TargetRotation = WorldRotation;
+
+            // Atualizar a última posição válida conhecida
+            if (!IsZeroPosition)
+            {
+                LastValidPositions.Add(data.EntityId, WorldPosition);
+            }
+
+            // Agora chame UpdateFromQuantizedNetwork para configurar animações e outras propriedades
             bool IsFalling = (data.Flags & 1) != 0; // Assume bit 0 is IsFalling flag
             NewEntity->UpdateFromQuantizedNetwork(
                 data.QuantizedX, data.QuantizedY, data.QuantizedZ,
-                data.QuadrantX, data.QuadrantY, data.Yaw,
+                QuadrantX, QuadrantY, data.Yaw,
                 data.Velocity, static_cast<uint32>(data.AnimationState), IsFalling
             );
+
             SpawnedEntities.Add(data.EntityId, NewEntity);
 
             if (HandlerCallCount <= 10)
             {
-                ClientFileLog(FString::Printf(TEXT("[HANDLER] ✅ Entity %d spawned and added to SpawnedEntities"), data.EntityId));
+                ClientFileLog(FString::Printf(TEXT("[HANDLER] ✅ Entity %d spawned at %s and added to SpawnedEntities"),
+                    data.EntityId, *NewEntity->GetActorLocation().ToString()));
             }
         }
         else
@@ -322,16 +515,32 @@ void ATOSPlayerController::ApplyDeltaData(ASyncEntity* Entity, const FDeltaUpdat
 
 void ATOSPlayerController::HandleRemoveEntity(int32 EntityId)
 {
-    if (!bIsReadyToSync) return;
+    static int32 RemoveEntityCount = 0;
+    RemoveEntityCount++;
+
+    if (!bIsReadyToSync)
+    {
+        ClientFileLog(FString::Printf(TEXT("[REMOVE ENTITY] #%d ❌ Not ready to sync for EntityId: %d"),
+            RemoveEntityCount, EntityId));
+        return;
+    }
 
     if (ASyncEntity* const* Found = SpawnedEntities.Find(EntityId))
     {
         ASyncEntity* Entity = *Found;
 
         if (Entity)
+        {
+            ClientFileLog(FString::Printf(TEXT("[REMOVE ENTITY] #%d ✅ Removing Entity %d at position %s"),
+                RemoveEntityCount, EntityId, *Entity->GetActorLocation().ToString()));
             Entity->Destroy();
+        }
 
         SpawnedEntities.Remove(EntityId);
     }
+    else
+    {
+        ClientFileLog(FString::Printf(TEXT("[REMOVE ENTITY] #%d ⚠️ Entity %d not found for removal"),
+            RemoveEntityCount, EntityId));
+    }
 }
-
