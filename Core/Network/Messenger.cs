@@ -27,7 +27,7 @@ using System.Runtime.InteropServices;
 
 public unsafe struct Messenger : IDisposable
 {
-    public PacketHeader Header;
+    public PacketFlags Flags;
     public PacketType Type;
     public uint Sequence;
     public ByteBuffer Payload;
@@ -41,7 +41,7 @@ public unsafe struct Messenger : IDisposable
         get
         {
             int sequenceLength = (Type == PacketType.Reliable) ? 4 : 0;
-            return 1 + 1 + sequenceLength + Payload.Position + 4;
+            return 1 + 1 + sequenceLength + (int)Payload.Position + 4;
         }
     }
 
@@ -49,11 +49,11 @@ public unsafe struct Messenger : IDisposable
     public byte* Pack()
     {
         int sequenceLength = (Type == PacketType.Reliable) ? 4 : 0;
-        int totalSize = 1 + 1 + sequenceLength + Payload.Position + 4;
+        int totalSize = 1 + 1 + sequenceLength + (int)Payload.Position + 4;
         byte* buffer = (byte*)Marshal.AllocHGlobal(totalSize);
         int offset = 0;
 
-        buffer[offset++] = (byte)Header;
+        buffer[offset++] = (byte)Flags;
         buffer[offset++] = (byte)Type;
 
         if (Type == PacketType.Reliable)
@@ -65,7 +65,7 @@ public unsafe struct Messenger : IDisposable
         if (Payload.Position > 0)
         {
             Buffer.MemoryCopy(Payload._ptr, buffer + offset, Payload.Position, Payload.Position);
-            offset += Payload.Position;
+            offset += (int)Payload.Position;
         }
 
         uint crc = CRC32C.Compute(buffer, offset);
@@ -81,7 +81,7 @@ public unsafe struct Messenger : IDisposable
             throw new ArgumentException("Buffer too small to contain a valid Packaging.");
 
         int offset = 0;
-        var header = (PacketHeader)buffer[offset++];
+        var flags = (PacketFlags)buffer[offset++];
         var type = (PacketType)buffer[offset++];
 
         uint sequence = 0;
@@ -102,12 +102,11 @@ public unsafe struct Messenger : IDisposable
         if (expectedCrc != actualCrc)
             throw new InvalidOperationException("CRC32 validation failed.");
 
-        var payload = new ByteBuffer(payloadLength);
-        payload.Copy(buffer + offset, payloadLength);
+        var payload = ByteBuffer.From(buffer, (uint)payloadLength);
 
         return new Messenger
         {
-            Header = header,
+            Flags = flags,
             Type = type,
             Sequence = sequence,
             Payload = payload,
@@ -116,12 +115,10 @@ public unsafe struct Messenger : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ByteBuffer UnpackSecurityCompress(Connection connection)
+    public void UnpackSecurityCompress(Connection connection)
     {
-        if ((Header & PacketHeader.Compressed) != 0 || (Header & PacketHeader.Encrypted) != 0)
-            return connection.ParseSecurePacket(Header, Payload);
-        else
-            return Payload;
+        if ((Flags & PacketFlags.Compressed) != 0 || (Flags & PacketFlags.Encrypted) != 0)        
+            connection.ParseSecurePacket(Flags, ref Payload);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

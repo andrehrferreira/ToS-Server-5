@@ -34,7 +34,7 @@ public enum PacketType : byte
 }
 
 [Flags]
-public enum PacketHeader : byte
+public enum PacketFlags : byte
 {
     None = 0,
     Encrypted = 1 << 0,

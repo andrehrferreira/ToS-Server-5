@@ -41,24 +41,23 @@ public sealed class Connection
     {
         get
         {
-            Sequence++;
+            unchecked { Sequence++; }
+
             return Sequence;
         }
     }
 
-    public ByteBuffer ParseSecurePacket(PacketHeader header, ByteBuffer payload)
+    public void ParseSecurePacket(PacketFlags flags, ref ByteBuffer payload)
     {
-        //if ((Header & PacketHeader.Encrypted) != 0)
+        //if ((flags & PacketFlags.Encrypted) != 0)
         //    throw new NotImplementedException("Descript payload not implemented");
 
-        //if ((Header & PacketHeader.Compressed) != 0)
+        //if ((flags & PacketFlags.Compressed) != 0)
         //    throw new NotImplementedException("Compress payload not implemented");
-
-        return payload;
     }
 
-    public void Send(PacketType type, ByteBuffer buffer, PacketHeader header = PacketHeader.None)
+    public void Send(PacketType type, ByteBuffer buffer, PacketFlags flags = PacketFlags.None)
     {
-        UDPServer.Send(type, ref buffer, this, header);
+        Server.Send(type, ref buffer, this, flags);
     }
 }

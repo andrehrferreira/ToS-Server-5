@@ -26,6 +26,7 @@ using System.Runtime.CompilerServices;
 public interface IPacketServer
 {
     void Serialize(ref ByteBuffer buffer);
+    ByteBuffer ToBuffer();
 }
 
 public interface IPacketClient
@@ -37,7 +38,7 @@ public abstract class PacketHandler
 {
     static readonly PacketHandler[] Handlers = new PacketHandler[1024];
     public abstract PacketType Type { get; }
-    public abstract void Consume(Messenger msg, Connection connection);
+    public abstract void Consume(Messenger msg, Connection conn);
 
     static PacketHandler()
     {
@@ -51,15 +52,17 @@ public abstract class PacketHandler
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void HandlePacket(Messenger msg, Connection connection)
+    public static void HandlePacket(Messenger msg, Connection conn)
     {
         try
         {
             var handler = Handlers[(int)msg.Type];
 
             if (handler == null) return;
-            
-            handler.Consume(msg, connection);
+
+            msg.UnpackSecurityCompress(conn);
+
+            handler.Consume(msg, conn);
         }
         catch (Exception ex){}
     }

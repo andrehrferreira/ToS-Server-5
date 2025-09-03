@@ -140,6 +140,7 @@ public static class LZ4
         }
 
         int lastLit = (int)(iend - anchor);
+
         if (op + lastLit + (lastLit / 255) + 1 > oend)
             return 0;
 
@@ -202,7 +203,6 @@ public static class LZ4
             ushort offset = (ushort)(ip[0] | (ip[1] << 8));
             ip += 2;
             byte* match = op - offset;
-
             int matchLength = token & 0x0F;
 
             if (matchLength == 15)

@@ -26,22 +26,37 @@ using System.Runtime.InteropServices;
 public unsafe struct ByteBuffer : IDisposable
 {
     public byte* _ptr;
-    private int _capacity;
-    private int _offset;
-
+    private uint _capacity;
+    private uint _offset;
     private bool _disposed;
 
-    public int Position => _offset;
+    public uint Position => _offset;
     public bool IsDisposed => _disposed;
+    public uint Length => _capacity;
 
-    public ByteBuffer(int capacity = 1200)
+    public void Free() => Dispose();
+    public void Reset() => _offset = 0;
+
+    public ByteBuffer(uint capacity = 1200)
     {
         _capacity = capacity;
         _offset = 0;
-        _ptr = (byte*)Marshal.AllocHGlobal(capacity);
+        _ptr = (byte*)Marshal.AllocHGlobal((int)capacity);
     }
 
-    public void Free() => Dispose();
+    public static ByteBuffer From(byte* buffer, uint length)
+    {
+        if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+        if (length == 0) throw new ArgumentException("Length must be greater than 0", nameof(length));
+
+        return new ByteBuffer
+        {
+            _ptr = buffer,
+            _capacity = length > 1200 ? length : 1200,
+            _offset = length,
+            _disposed = false
+        };
+    }
 
     public void Dispose()
     {
@@ -57,15 +72,29 @@ public unsafe struct ByteBuffer : IDisposable
         }
     }
 
-    public void Copy(byte* buffer, int len)
+    public void Copy(byte* src, uint len)
     {
-        if (_ptr != null && !_disposed)
-            Buffer.MemoryCopy(buffer, _ptr, _capacity, len);
+        if (_disposed) throw new ObjectDisposedException(nameof(ByteBuffer));
+        if (src == null) throw new ArgumentNullException(nameof(src));
+        if (_offset + len > _capacity) throw new IndexOutOfRangeException();
+
+        Buffer.MemoryCopy(src, _ptr + _offset, (long)(_capacity - _offset), (long)len);
+        _offset += len;
+    }
+
+    public void Copy(ref ByteBuffer src)
+    {
+        if (_disposed) throw new ObjectDisposedException(nameof(ByteBuffer));
+        if (src._ptr == null) throw new ArgumentNullException(nameof(src));
+        if (_offset + src._offset > _capacity) throw new IndexOutOfRangeException();
+
+        Buffer.MemoryCopy(src._ptr, _ptr + _offset, (long)(_capacity - _offset), (long)src._offset);
+        _offset += src._offset;
     }
 
     public void Write<T>(T value) where T : unmanaged
     {
-        int size = sizeof(T);
+        uint size = (uint)sizeof(T);
 
         if (_offset + size > _capacity)
             throw new IndexOutOfRangeException();
@@ -76,7 +105,7 @@ public unsafe struct ByteBuffer : IDisposable
 
     public T Read<T>() where T : unmanaged
     {
-        int size = sizeof(T);
+        uint size = (uint)sizeof(T);
 
         if (_offset + size > _capacity)
             throw new IndexOutOfRangeException();

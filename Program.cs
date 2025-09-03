@@ -15,7 +15,7 @@ class Program
         var config = ServerConfig.LoadConfig();
         ushort port = (ushort)int.Parse(args.Length > 1 ? args[1] : config.Network.Port.ToString());
     
-        UDPServer.Start(port);
+        Server.Start(port);
 
         while (true)
         {

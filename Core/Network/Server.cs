@@ -1,5 +1,5 @@
 ﻿/*
-* UDPServer
+* Server
 *
 * Author: Andre Ferreira
 *
@@ -28,7 +28,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Channels;
 
-public sealed class UDPServer
+public struct ReceivedPacket
+{
+    public unsafe byte* Buffer;
+    public int Length;
+    public Address Address;
+}
+
+public sealed class Server
 {
     private static Socket ServerSocket;
 
@@ -39,8 +46,10 @@ public sealed class UDPServer
     private static Thread ReceiveThread;
 
     private static Channel<Messenger> GlobalSendChannel;
+    private static Channel<ReceivedPacket> GlobalReceiveChannel;
 
-    private static unsafe byte* RecivedBuffer;
+    private static unsafe byte* ReceivedBuffer;
+    private static Thread ProcessThread;
 
     public static ConcurrentDictionary<Address, Connection> Clients =
         new ConcurrentDictionary<Address, Connection>();
@@ -107,6 +116,13 @@ public sealed class UDPServer
         if (ServerSocket.IsCreated)
             UDP.Destroy(ref ServerSocket);
 
+        // Free the allocated buffer
+        unsafe
+        {
+            if (ReceivedBuffer != null)
+                Marshal.FreeHGlobal((IntPtr)ReceivedBuffer);
+        }
+
         UDP.Deinitialize();
     }
 
@@ -130,6 +146,7 @@ public sealed class UDPServer
                     {
                         byte* buffer = packet.Pack();
                         UDP.Unsafe.Send(ServerSocket, &packet.Address, buffer, packet.Length);
+                        Marshal.FreeHGlobal((IntPtr)buffer);
                         packet.Free();
                     }
                 }
@@ -145,6 +162,12 @@ public sealed class UDPServer
     {
         if (ReceiveThread != null) return;
 
+        GlobalReceiveChannel = Channel.CreateUnbounded<ReceivedPacket>(new UnboundedChannelOptions
+        {
+            SingleReader = true,
+            SingleWriter = true
+        });
+
         ReceiveThread = new Thread(() =>
         {
             ReceiveThread = Thread.CurrentThread;
@@ -153,7 +176,7 @@ public sealed class UDPServer
 
             Address address = new Address();
 
-            RecivedBuffer = (byte*)Marshal.AllocHGlobal(1024);
+            ReceivedBuffer = (byte*)Marshal.AllocHGlobal(1024);
 
             while (Running)
             {
@@ -161,9 +184,17 @@ public sealed class UDPServer
                 {
                     int dataLength = 0;
 
-                    while ((dataLength = UDP.Unsafe.Receive(ServerSocket, &address, RecivedBuffer, 1024)) > 0)
+                    while ((dataLength = UDP.Unsafe.Receive(ServerSocket, &address, ReceivedBuffer, 1024)) > 0)
                     {
-                        ProcessPacket(RecivedBuffer, dataLength, address);
+                        byte* packetBuffer = (byte*)Marshal.AllocHGlobal(dataLength);
+                        Buffer.MemoryCopy(ReceivedBuffer, packetBuffer, dataLength, dataLength);
+
+                        GlobalReceiveChannel.Writer.TryWrite(new ReceivedPacket
+                        {
+                            Buffer = packetBuffer,
+                            Length = dataLength,
+                            Address = address
+                        });
                     }
                 }
             }
@@ -172,6 +203,34 @@ public sealed class UDPServer
         ReceiveThread.IsBackground = true;
 
         ReceiveThread.Start();
+
+        CreateProcessThread();
+    }
+
+    public static void CreateProcessThread()
+    {
+        if (ProcessThread != null) return;
+
+        ProcessThread = new Thread(() =>
+        {
+            ProcessThread = Thread.CurrentThread;
+
+            while (Running)
+            {
+                if (GlobalReceiveChannel.Reader.TryRead(out var receivedPacket))
+                {
+                    unsafe
+                    {
+                        ProcessPacket(receivedPacket.Buffer, receivedPacket.Length, receivedPacket.Address);
+                        Marshal.FreeHGlobal((IntPtr)receivedPacket.Buffer);
+                    }
+                }
+            }
+        });
+
+        ProcessThread.IsBackground = true;
+
+        ProcessThread.Start();
     }
 
     public static unsafe void ProcessPacket(byte* buffer, int len, Address address)
@@ -183,7 +242,7 @@ public sealed class UDPServer
         if (packet.Type == PacketType.Connect)
             ValidateConnection(packet.Payload);
         else if (Clients.TryGetValue(address, out conn))
-            PacketHandler.HandlePacket(packet, conn);
+            Task.Run(() => PacketHandler.HandlePacket(packet, conn));
 
         packet.Free();
     }
@@ -193,7 +252,7 @@ public sealed class UDPServer
 
     }
 
-    public static unsafe bool Send(PacketType type, ref ByteBuffer buffer, Connection socket, PacketHeader header = PacketHeader.None)
+    public static unsafe bool Send(PacketType type, ref ByteBuffer buffer, Connection socket, PacketFlags flags = PacketFlags.None)
     {
         return GlobalSendChannel.Writer.TryWrite(new Messenger
         {
@@ -201,7 +260,7 @@ public sealed class UDPServer
             Payload = buffer,
             Type = type,
             Sequence = socket.NextSequence,
-            Header = header
+            Flags = flags
         });
     }
 
