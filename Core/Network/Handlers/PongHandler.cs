@@ -7,14 +7,14 @@ namespace Packets.Handler
     {
         public override PacketType Type => PacketType.Pong;
 
-        public override void Consume(TinyBuffer buffer, PacketPack packet, UDPSocket connection)
+        public override void Consume(Messenger msg, Connection conn)
         {
-            var pongPacket = PongPacket.FromBuffer(ref buffer);
+            var pongPacket = PongPacket.FromBuffer(ref msg.Payload);
             ushort nowMs = (ushort)(Stopwatch.GetTimestamp() / (Stopwatch.Frequency / 1000) % 65536);
             ushort rttMs = (ushort)((nowMs - pongPacket.SentTimestamp) & 0xFFFF);
 
-            connection.Ping = rttMs;
-            connection.TimeoutLeft = 30f;
+            conn.Ping = rttMs;
+            conn.TimeoutLeft = 30f;
         }
     }
 }

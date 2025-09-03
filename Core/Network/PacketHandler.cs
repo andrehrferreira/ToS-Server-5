@@ -25,19 +25,19 @@ using System.Runtime.CompilerServices;
 
 public interface IPacketServer
 {
-    void Serialize(ref TinyBuffer buffer);
+    void Serialize(ref ByteBuffer buffer);
 }
 
 public interface IPacketClient
 {
-    void Deserialize(ref TinyBuffer buffer);
+    void Deserialize(ref ByteBuffer buffer);
 }
 
 public abstract class PacketHandler
 {
     static readonly PacketHandler[] Handlers = new PacketHandler[1024];
     public abstract PacketType Type { get; }
-    public abstract void Consume(TinyBuffer buffer, PacketPack packet, UDPSocket connection);
+    public abstract void Consume(Messenger msg, Connection connection);
 
     static PacketHandler()
     {
@@ -51,15 +51,15 @@ public abstract class PacketHandler
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void HandlePacket(PacketPack packet, UDPSocket connection)
+    public static void HandlePacket(Messenger msg, Connection connection)
     {
         try
         {
-            var handler = Handlers[(int)packet.Type];
+            var handler = Handlers[(int)msg.Type];
 
             if (handler == null) return;
             
-            handler.Consume(packet.UnpackSecurityCompress(connection), packet, connection);
+            handler.Consume(msg, connection);
         }
         catch (Exception ex){}
     }

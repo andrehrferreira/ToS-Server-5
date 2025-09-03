@@ -5,15 +5,15 @@ public struct PingPacket : IPacketServer
     public ushort SentTimestamp;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Serialize(ref TinyBuffer buffer)
+    public void Serialize(ref ByteBuffer buffer)
     {
         buffer.Write(SentTimestamp);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public TinyBuffer ToBuffer()
+    public ByteBuffer ToBuffer()
     {
-        var buffer = new TinyBuffer();
+        var buffer = new ByteBuffer();
         Serialize(ref buffer);
         return buffer;
     }
