@@ -1,5 +1,5 @@
 /*
-* UDPSocket
+* Connection
 *
 * Author: Andre Ferreira
 *
@@ -17,6 +17,8 @@ namespace Wormhole
         public Address RemoteAddress;
 
         public ConnectionState State;
+
+        public SecureSession Session;
 
         public long ConnectingTime;
 
@@ -56,6 +58,16 @@ namespace Wormhole
             return RemoteAddress.Equals(other.RemoteAddress);
         }
 
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Connection);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(RemoteAddress, Id);
+        }
+
 #pragma warning disable CS1591 
         public static bool operator ==(Connection left, Connection right)
 #pragma warning restore CS1591
@@ -89,16 +101,30 @@ namespace Wormhole
             //    throw new NotImplementedException("Compress payload not implemented");
         }
 
-        public void Disconnect(DisconnectReason reason)
+        public void Disconnect(DisconnectReason reason, bool localDisconnect = false)
         {
             if (State == ConnectionState.Diconnected)
                 return;
 
-            State = ConnectionState.Disconnecting;
+            State = ConnectionState.Diconnected;
+
+            if(localDisconnect)
+                Send(PacketType.Disconnect);
+        }
+
+        public void Send(PacketType type, PacketFlags flags = PacketFlags.None)
+        {
+            if(State == ConnectionState.Diconnected)
+                return;
+
+            Server.Send(type, this, flags);
         }
 
         public void Send(PacketType type, ByteBuffer buffer, PacketFlags flags = PacketFlags.None)
         {
+            if (State == ConnectionState.Diconnected)
+                return;
+
             Server.Send(type, ref buffer, this, flags);
         }
     }

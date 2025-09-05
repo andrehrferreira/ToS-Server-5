@@ -1,5 +1,5 @@
 /*
-* Packaging
+* Messenger
 *
 * Author: Andre Ferreira
 *

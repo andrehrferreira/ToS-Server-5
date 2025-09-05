@@ -8,6 +8,7 @@
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Wormhole
 {
@@ -19,10 +20,14 @@ namespace Wormhole
         private bool _disposed;
 
         public bool IsDisposed => _disposed;
-        public uint Length => _capacity;
+        public uint Length => _offset;
+        public int Position => (int)_offset; //Compatibility
+        public uint Capacity => _capacity;
 
         public void Free() => Dispose();
         public void Reset() => _offset = 0;
+        public uint SavePosition() => _offset;
+        public void RestorePosition(uint position) => _offset = position;
 
         private static Dictionary<Type, int> genericSizes = new Dictionary<Type, int>()
         {
@@ -179,6 +184,192 @@ namespace Wormhole
             return new Span<byte>(_ptr, checked((int)_capacity));
         }
 
+        // Hash
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public uint GetHashFast()
+        {
+            uint hash = 0;
+
+            for (int i = 0; i < _offset; i++)
+                hash = (hash << 5) + hash + _ptr[i];
+
+            return hash;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string ToHex()
+        {
+            uint hash = 0;
+
+            for (int i = 0; i < _offset; i++)
+                hash = (hash << 5) + hash + _ptr[i];
+
+            return hash.ToString("X8");
+        }
+
+        // ZigZag
+        private static uint EncodeZigZag(int value)
+        => (uint)((value << 1) ^ (value >> 31));
+
+        private static int DecodeZigZag(uint value)
+            => (int)((value >> 1) ^ (-(int)(value & 1)));
+
+        private static ulong EncodeZigZag(long value)
+            => ((ulong)value << 1) ^ ((ulong)(value >> 63));
+
+        private static long DecodeZigZag(ulong value)
+            => (long)(value >> 1) ^ -((long)(value & 1));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void WriteByteDirect(byte value)
+        {
+            if (_offset >= _capacity)
+                throw new IndexOutOfRangeException($"Write exceeds buffer capacity ({_capacity}) at {_offset} with size 1");
+
+            *(_ptr + _offset) = value;
+            _offset++;
+        }
+
+        public void WriteVarInt(int value)
+        {
+            uint v = EncodeZigZag(value);
+
+            while (v >= 0x80)
+            {
+                WriteByteDirect((byte)(v | 0x80));
+                v >>= 7;
+            }
+
+            WriteByteDirect((byte)v);
+        }
+
+        private void WriteVarUInt(uint value)
+        {
+            uint v = value;
+
+            while (v >= 0x80)
+            {
+                WriteByteDirect((byte)(v | 0x80));
+                v >>= 7;
+            }
+
+            WriteByteDirect((byte)v);
+        }
+
+        public void WriteVarLong(long value)
+        {
+            ulong v = EncodeZigZag(value);
+
+            while (v >= 0x80)
+            {
+                Write<byte>((byte)(v | 0x80));
+                v >>= 7;
+            }
+
+            Write<byte>((byte)v);
+        }
+
+        private void WriteVarULong(ulong value)
+        {
+            ulong v = value;
+
+            while (v >= 0x80)
+            {
+                WriteByteDirect((byte)(v | 0x80));
+                v >>= 7;
+            }
+
+            WriteByteDirect((byte)v);
+        }
+
+        public int ReadVarInt()
+        {
+            int shift = 0;
+            uint result = 0;
+
+            while (true)
+            {
+                byte b = Read<byte>();
+                result |= (uint)(b & 0x7F) << shift;
+
+                if ((b & 0x80) == 0)
+                    break;
+
+                shift += 7;
+
+                if (shift > 35)
+                    throw new OverflowException("VarInt too long");
+            }
+
+            return DecodeZigZag(result);
+        }
+
+        private uint ReadVarUInt()
+        {
+            int shift = 0;
+            uint result = 0;
+
+            while (true)
+            {
+                byte b = Read<byte>();
+                result |= (uint)(b & 0x7F) << shift;
+
+                if ((b & 0x80) == 0)
+                    break;
+
+                shift += 7;
+
+                if (shift > 35)
+                    throw new OverflowException("VarUInt too long");
+            }
+
+            return result;
+        }
+
+        public long ReadVarLong()
+        {
+            int shift = 0;
+            ulong result = 0;
+
+            while (true)
+            {
+                byte b = Read<byte>();
+                result |= (ulong)(b & 0x7F) << shift;
+
+                if ((b & 0x80) == 0)
+                    break;
+
+                shift += 7;
+
+                if (shift > 70)
+                    throw new OverflowException("VarLong too long");
+            }
+
+            return DecodeZigZag(result);
+        }
+
+        private ulong ReadVarULong()
+        {
+            int shift = 0;
+            ulong result = 0;
+
+            while (true)
+            {
+                byte b = Read<byte>();
+                result |= (ulong)(b & 0x7F) << shift;
+
+                if ((b & 0x80) == 0)
+                    break;
+
+                shift += 7;
+
+                if (shift > 70)
+                    throw new OverflowException("VarULong too long");
+            }
+
+            return result;
+        }
+
         // Custom Write/Read 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -210,6 +401,70 @@ namespace Wormhole
             Marshal.Copy((IntPtr)(_ptr + _offset), value, 0, length);
             _offset += (uint)length;
             return value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteAsciiString(string value)
+        {
+            var bytes = Encoding.ASCII.GetBytes(value);
+            Write(bytes.Length);
+
+            if (_offset + bytes.Length > _capacity)
+                throw new IndexOutOfRangeException($"Write exceeds buffer capacity ({_capacity}) at {_offset} with size {bytes.Length}");
+
+            fixed (byte* ptr = bytes)
+                Buffer.MemoryCopy(ptr, _ptr + _offset, _capacity - _offset, bytes.Length);
+
+            _offset += (uint)bytes.Length;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string ReadAsciiString()
+        {
+            int length = Read<int>();
+
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), "Length cannot be negative");
+
+            if (_offset + length > _capacity)
+                throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {length}");
+
+            string result = Encoding.ASCII.GetString(new ReadOnlySpan<byte>(_ptr + _offset, length));
+            _offset += (uint)length;
+
+            return result;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteUtf8String(string value)
+        {
+            var bytes = Encoding.UTF8.GetBytes(value);
+            Write(bytes.Length);
+
+            if (_offset + bytes.Length > _capacity)
+                throw new IndexOutOfRangeException($"Write exceeds buffer capacity ({_capacity}) at {_offset} with size {bytes.Length}");
+
+            fixed (byte* ptr = bytes)
+                Buffer.MemoryCopy(ptr, _ptr + _offset, _capacity - _offset, bytes.Length);
+
+            _offset += (uint)bytes.Length;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string ReadUtf8String()
+        {
+            int length = Read<int>();
+
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), "Length cannot be negative");
+
+            if (_offset + length > _capacity)
+                throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {length}");
+
+            string result = Encoding.UTF8.GetString(new ReadOnlySpan<byte>(_ptr + _offset, length));
+            _offset += (uint)length;
+
+            return result;
         }
     }
 }

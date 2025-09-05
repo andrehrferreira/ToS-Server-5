@@ -7,13 +7,13 @@
 */
 
 using NanoSockets;
+using Org.BouncyCastle.Tls;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Channels;
 using Wormhole.Packets;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Wormhole
 {
@@ -231,16 +231,19 @@ namespace Wormhole
                         int dataLength = 0;
 
                         while ((dataLength = UDP.Unsafe.Receive(ServerSocket, &address, ReceivedBuffer, 1024)) > 0)
-                        {
-                            byte* packetBuffer = (byte*)Marshal.AllocHGlobal(dataLength);
-                            Buffer.MemoryCopy(ReceivedBuffer, packetBuffer, dataLength, dataLength);
-
-                            GlobalReceiveChannel.Writer.TryWrite(new ReceivedPacket
+                        {                            
+                            if (!AddressBlacklist.IsBanned(address))
                             {
-                                Buffer = packetBuffer,
-                                Length = dataLength,
-                                Address = address
-                            });
+                                byte* packetBuffer = (byte*)Marshal.AllocHGlobal(dataLength);
+                                Buffer.MemoryCopy(ReceivedBuffer, packetBuffer, dataLength, dataLength);
+
+                                GlobalReceiveChannel.Writer.TryWrite(new ReceivedPacket
+                                {
+                                    Buffer = packetBuffer,
+                                    Length = dataLength,
+                                    Address = address
+                                });
+                            }
                         }
                     }
                 }
@@ -306,11 +309,21 @@ namespace Wormhole
                     if (Clients.TryGetValue(address, out conn))
                         Task.Run(() => PacketHandler.HandlePacket(msg, conn));
                     break;
-
-
             }
 
             msg.Free();
+        }
+
+        public static bool Send(PacketType type, Connection socket, PacketFlags flags = PacketFlags.None)
+        {
+            return GlobalSendChannel.Writer.TryWrite(new Messenger
+            {
+                Address = socket.RemoteAddress,
+                Payload = new ByteBuffer(),
+                Type = type,
+                Sequence = socket.NextSequence,
+                Flags = flags
+            });
         }
 
         public static unsafe bool Send(PacketType type, ref ByteBuffer buffer, Connection socket, PacketFlags flags = PacketFlags.None)
@@ -433,11 +446,15 @@ namespace Wormhole
             if(conn.State != ConnectionState.Connecting)
                 return;
 
+            byte[] clientPub = msg.Payload.ReadBytes(32);
+
             byte[] token = msg.Payload.ReadBytes(48);
 
             if (!conn.ValidateToken(token, conn.RemoteAddress))
             {
                 AddressBlacklist.Ban(conn.RemoteAddress);
+
+                conn.Send(PacketType.ConnectionDenied);
 
                 conn.Disconnect(DisconnectReason.InvalidToken);
 
@@ -445,7 +462,11 @@ namespace Wormhole
             }            
                 
             conn.Id = GetRandomId();
-            
+
+            var (serverPub, salt, session) = SecureSession.CreateAsServer(clientPub, conn.Id);
+
+            conn.Session = session;
+
             PendingConnections.TryRemove(conn.RemoteAddress, out _);
             
             if(Clients.TryAdd(conn.RemoteAddress, conn))
@@ -453,8 +474,8 @@ namespace Wormhole
                 conn.Send(PacketType.ConnectionAccepted, (new ConnectionAcceptedPacket
                 {
                     Id = conn.Id,
-                    //ServerPublicKey = conn.ServerPublicKey,
-                    //Salt = conn.Salt
+                    ServerPublicKey = serverPub,
+                    Salt = salt
                 }).ToBuffer());
 
                 conn.State = ConnectionState.Connected;

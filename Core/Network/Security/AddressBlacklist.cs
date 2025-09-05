@@ -1,4 +1,12 @@
-﻿using System.Collections.Concurrent;
+/*
+* AddressBlacklist
+*
+* Author: Andre Ferreira
+*
+* Copyright (c) Uzmi Games. Licensed under the MIT License.
+*/
+
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using NanoSockets;
 
@@ -9,7 +17,7 @@ namespace Wormhole
         private static readonly ConcurrentDictionary<Address, long> _map =
             new ConcurrentDictionary<Address, long>(Environment.ProcessorCount, 4096);
 
-        private static readonly TimeSpan DefaultTtl = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan DefaultTtl = TimeSpan.FromSeconds(30);
         public static int Count => _map.Count;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -20,9 +28,9 @@ namespace Wormhole
 
             _map.AddOrUpdate(
                 addr,
-                static (_, state) => state,               
-                static (_, __, state) => state,            
-                exp                                    
+                static (_, state) => state,
+                static (_, __, state) => state,
+                exp
             );
         }
 

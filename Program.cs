@@ -15,8 +15,26 @@ class Program
         
         var config = ServerConfig.LoadConfig();
         ushort port = (ushort)int.Parse(args.Length > 1 ? args[1] : config.Network.Port.ToString());
-    
-        Server.Start(port);
+
+        var testRunner = new TestTool();
+        var testPassed = testRunner.RunAllTests();
+
+        if (!testPassed)
+        {
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("TESTS FAILED: The application did not pass the tests.");
+            Console.WriteLine("SERVER STARTUP ABORTED: Fix the failing tests before running the server.");
+            Console.ResetColor();
+            Console.WriteLine();
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
+            Environment.Exit(1);
+        }
+        else
+        {
+            Server.Start(port);
+        }
 
         while (true)
         {
