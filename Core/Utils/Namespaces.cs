@@ -21,12 +21,15 @@
  * SOFTWARE.
  */
 
-public static class Namespaces
+namespace Wormhole
 {
-    public static IEnumerable<Type> GetTypesInNamespace(string namespaceName)
+    public static class Namespaces
     {
-        return AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(assembly => assembly.GetTypes())
-            .Where(type => type.IsClass && type.Namespace == namespaceName);
+        public static IEnumerable<Type> GetTypesInNamespace(string namespaceName)
+        {
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .Where(type => type.IsClass && type.Namespace == namespaceName);
+        }
     }
 }

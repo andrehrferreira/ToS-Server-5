@@ -23,31 +23,34 @@
 
 using System.Runtime.InteropServices;
 
-[StructLayout(LayoutKind.Sequential, Size = 32)]
-public unsafe struct FixedString32
+namespace Wormhole
 {
-    public fixed byte Buffer[32];
-
-    public void Set(string str)
+    [StructLayout(LayoutKind.Sequential, Size = 32)]
+    public unsafe struct FixedString32
     {
-        var bytes = System.Text.Encoding.UTF8.GetBytes(str);
-        int len = Math.Min(bytes.Length, 31);
-        fixed (byte* b = Buffer)
-        {
-            for (int i = 0; i < len; i++)
-                b[i] = bytes[i];
+        public fixed byte Buffer[32];
 
-            b[len] = 0;
+        public void Set(string str)
+        {
+            var bytes = System.Text.Encoding.UTF8.GetBytes(str);
+            int len = Math.Min(bytes.Length, 31);
+            fixed (byte* b = Buffer)
+            {
+                for (int i = 0; i < len; i++)
+                    b[i] = bytes[i];
+
+                b[len] = 0;
+            }
         }
-    }
 
-    public override string ToString()
-    {
-        fixed (byte* b = Buffer)
+        public override string ToString()
         {
-            int len = 0;
-            while (len < 32 && b[len] != 0) len++;
-            return System.Text.Encoding.UTF8.GetString(b, len);
+            fixed (byte* b = Buffer)
+            {
+                int len = 0;
+                while (len < 32 && b[len] != 0) len++;
+                return System.Text.Encoding.UTF8.GetString(b, len);
+            }
         }
     }
 }

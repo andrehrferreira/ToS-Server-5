@@ -1,7 +1,8 @@
 ﻿
 using System.Diagnostics;
+using Wormhole.Packets;
 
-namespace Packets.Handler
+namespace Wormhole.Handlers
 {
     public class PongHandler : PacketHandler
     {

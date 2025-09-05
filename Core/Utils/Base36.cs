@@ -21,43 +21,46 @@
  * SOFTWARE.
  */
 
-public struct Base36
+namespace Wormhole
 {
-    private const string Digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-    public static int ToInt(string id)
+    public struct Base36
     {
-        if (string.IsNullOrEmpty(id))
-            throw new ArgumentException("The input string cannot be null or empty.");
+        private const string Digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-        int result = 0;
-
-        foreach (char c in id.ToUpper())
+        public static int ToInt(string id)
         {
-            int digitValue = Digits.IndexOf(c);
+            if (string.IsNullOrEmpty(id))
+                throw new ArgumentException("The input string cannot be null or empty.");
 
-            if (digitValue == -1)            
-                throw new ArgumentException("Invalid Base36 value.");
-            
-            result = result * 36 + digitValue;
+            int result = 0;
+
+            foreach (char c in id.ToUpper())
+            {
+                int digitValue = Digits.IndexOf(c);
+
+                if (digitValue == -1)
+                    throw new ArgumentException("Invalid Base36 value.");
+
+                result = result * 36 + digitValue;
+            }
+
+            return result;
         }
 
-        return result;
-    }
-
-    public static string ToString(int value)
-    {
-        if (value < 0)
-            throw new ArgumentException("Value cannot be negative.");
-
-        string result = string.Empty;
-
-        do
+        public static string ToString(int value)
         {
-            result = Digits[value % 36] + result;
-            value /= 36;
-        } while (value > 0);
+            if (value < 0)
+                throw new ArgumentException("Value cannot be negative.");
 
-        return result;
+            string result = string.Empty;
+
+            do
+            {
+                result = Digits[value % 36] + result;
+                value /= 36;
+            } while (value > 0);
+
+            return result;
+        }
     }
 }

@@ -1,20 +1,23 @@
 ﻿using System.Runtime.CompilerServices;
 
-public struct PongPacket : IPacketClient
+namespace Wormhole.Packets
 {
-    public ushort SentTimestamp;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Deserialize(ref ByteBuffer buffer)
+    public struct PongPacket : IPacketClient
     {
-        SentTimestamp = buffer.Read<ushort>();
-    }
+        public ushort SentTimestamp;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PongPacket FromBuffer(ref ByteBuffer buffer)
-    {
-        var packet = new PongPacket();
-        packet.Deserialize(ref buffer);
-        return packet;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Deserialize(ref ByteBuffer buffer)
+        {
+            SentTimestamp = buffer.Read<ushort>();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static PongPacket FromBuffer(ref ByteBuffer buffer)
+        {
+            var packet = new PongPacket();
+            packet.Deserialize(ref buffer);
+            return packet;
+        }
     }
 }

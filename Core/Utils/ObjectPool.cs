@@ -23,23 +23,26 @@
 
 using System.Collections.Concurrent;
 
-public interface IPoolable
+namespace Wormhole
 {
-    void Reset();
-}
-
-public class ObjectPool<T> where T : class, IPoolable, new()
-{
-    private readonly ConcurrentBag<T> _pool = new();
-
-    public T Rent()
+    public interface IPoolable
     {
-        return _pool.TryTake(out var obj) ? obj : new T();
+        void Reset();
     }
 
-    public void Return(T obj)
+    public class ObjectPool<T> where T : class, IPoolable, new()
     {
-        obj.Reset();
-        _pool.Add(obj);
+        private readonly ConcurrentBag<T> _pool = new();
+
+        public T Rent()
+        {
+            return _pool.TryTake(out var obj) ? obj : new T();
+        }
+
+        public void Return(T obj)
+        {
+            obj.Reset();
+            _pool.Add(obj);
+        }
     }
 }

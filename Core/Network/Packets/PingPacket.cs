@@ -1,20 +1,23 @@
 ﻿using System.Runtime.CompilerServices;
 
-public struct PingPacket : IPacketServer
+namespace Wormhole.Packets
 {
-    public ushort SentTimestamp;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Serialize(ref ByteBuffer buffer)
+    public struct PingPacket : IPacketServer
     {
-        buffer.Write(SentTimestamp);
-    }
+        public ushort SentTimestamp;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ByteBuffer ToBuffer()
-    {
-        var buffer = new ByteBuffer();
-        Serialize(ref buffer);
-        return buffer;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Serialize(ref ByteBuffer buffer)
+        {
+            buffer.Write(SentTimestamp);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ByteBuffer ToBuffer()
+        {
+            var buffer = new ByteBuffer();
+            Serialize(ref buffer);
+            return buffer;
+        }
     }
 }

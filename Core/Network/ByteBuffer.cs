@@ -1,117 +1,215 @@
-﻿/*
+/*
 * ByteBuffer
 *
 * Author: Andre Ferreira
 *
 * Copyright (c) Uzmi Games. Licensed under the MIT License.
-*
-* Permission is hereby granted, free of charge, to any person obtaining a copy
-* of this software and associated documentation files (the "Software"), to deal
-* in the Software without restriction, including without limitation the rights
-* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-* copies of the Software, and to permit persons to whom the Software is
-* furnished to do so, subject to the following conditions:
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-* SOFTWARE.
 */
 
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-public unsafe struct ByteBuffer : IDisposable
+namespace Wormhole
 {
-    public byte* _ptr;
-    private uint _capacity;
-    private uint _offset;
-    private bool _disposed;
-
-    public uint Position => _offset;
-    public bool IsDisposed => _disposed;
-    public uint Length => _capacity;
-
-    public void Free() => Dispose();
-    public void Reset() => _offset = 0;
-
-    public ByteBuffer(uint capacity = 1200)
+    public unsafe struct ByteBuffer : IDisposable
     {
-        _capacity = capacity;
-        _offset = 0;
-        _ptr = (byte*)Marshal.AllocHGlobal((int)capacity);
-    }
+        public byte* _ptr;
+        private uint _capacity;
+        private uint _offset;
+        private bool _disposed;
 
-    public static ByteBuffer From(byte* buffer, uint length)
-    {
-        if (buffer == null) throw new ArgumentNullException(nameof(buffer));
-        if (length == 0) throw new ArgumentException("Length must be greater than 0", nameof(length));
+        public bool IsDisposed => _disposed;
+        public uint Length => _capacity;
 
-        return new ByteBuffer
+        public void Free() => Dispose();
+        public void Reset() => _offset = 0;
+
+        private static Dictionary<Type, int> genericSizes = new Dictionary<Type, int>()
         {
-            _ptr = buffer,
-            _capacity = length > 1200 ? length : 1200,
-            _offset = length,
-            _disposed = false
+            { typeof(bool),     sizeof(bool) },
+            { typeof(float),    sizeof(float) },
+            { typeof(double),   sizeof(double) },
+            { typeof(sbyte),    sizeof(sbyte) },
+            { typeof(byte),     sizeof(byte) },
+            { typeof(short),    sizeof(short) },
+            { typeof(ushort),   sizeof(ushort) },
+            { typeof(int),      sizeof(int) },
+            { typeof(uint),     sizeof(uint) },
+            { typeof(ulong),    sizeof(ulong) },
+            { typeof(long),     sizeof(long) },
         };
-    }
 
-    public void Dispose()
-    {
-        if (!_disposed)
+        public ByteBuffer(uint capacity = 1024)
         {
-            if (_ptr != null)
+            _capacity = capacity;
+            _offset = 0;
+            _ptr = (byte*)Marshal.AllocHGlobal((int)capacity);
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
             {
-                Marshal.FreeHGlobal((IntPtr)_ptr);
-                _ptr = null;
+                if (_ptr != null)
+                {
+                    Marshal.FreeHGlobal((IntPtr)_ptr);
+                    _ptr = null;
+                }
+
+                _disposed = true;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ByteBuffer From(byte* buffer, uint length)
+        {
+            if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+            if (length == 0) throw new ArgumentException("Length must be greater than 0", nameof(length));
+
+            return new ByteBuffer
+            {
+                _ptr = buffer,
+                _capacity = length > 1024 ? length : 1024,
+                _offset = length,
+                _disposed = false
+            };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Copy(byte* src, uint len)
+        {
+            if (_disposed) throw new ObjectDisposedException(nameof(ByteBuffer));
+            if (src == null) throw new ArgumentNullException(nameof(src));
+            if (_offset + len > _capacity) throw new IndexOutOfRangeException();
+
+            Buffer.MemoryCopy(src, _ptr + _offset, (long)(_capacity - _offset), (long)len);
+            _offset += len;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Copy(ref ByteBuffer src)
+        {
+            if (_disposed) throw new ObjectDisposedException(nameof(ByteBuffer));
+            if (src._ptr == null) throw new ArgumentNullException(nameof(src));
+            if (_offset + src._offset > _capacity) throw new IndexOutOfRangeException();
+
+            Buffer.MemoryCopy(src._ptr, _ptr + _offset, (long)(_capacity - _offset), (long)src._offset);
+            _offset += src._offset;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int SizeOf<T>()
+        {
+            return genericSizes[typeof(T)];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsSupportedType<T>()
+        {
+            return genericSizes.ContainsKey(typeof(T));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write<T>(T value) where T : unmanaged
+        {
+            if (!IsSupportedType<T>())
+            {
+                throw new ArgumentException("Cannot write type "
+                    + typeof(T) + " into this buffer");
             }
 
-            _disposed = true;
+            uint size = (uint)SizeOf<T>();
+
+            if (_offset + size > _capacity)
+                throw new IndexOutOfRangeException();
+
+            *(T*)(_ptr + _offset) = value;
+            _offset += size;
         }
-    }
 
-    public void Copy(byte* src, uint len)
-    {
-        if (_disposed) throw new ObjectDisposedException(nameof(ByteBuffer));
-        if (src == null) throw new ArgumentNullException(nameof(src));
-        if (_offset + len > _capacity) throw new IndexOutOfRangeException();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Read<T>() where T : unmanaged
+        {
+            if (!IsSupportedType<T>())
+            {
+                throw new ArgumentException("Cannot read type "
+                    + typeof(T) + " into this buffer");
+            }
 
-        Buffer.MemoryCopy(src, _ptr + _offset, (long)(_capacity - _offset), (long)len);
-        _offset += len;
-    }
+            uint size = (uint)SizeOf<T>();
 
-    public void Copy(ref ByteBuffer src)
-    {
-        if (_disposed) throw new ObjectDisposedException(nameof(ByteBuffer));
-        if (src._ptr == null) throw new ArgumentNullException(nameof(src));
-        if (_offset + src._offset > _capacity) throw new IndexOutOfRangeException();
+            if (_offset + size > _capacity)
+                throw new IndexOutOfRangeException();
 
-        Buffer.MemoryCopy(src._ptr, _ptr + _offset, (long)(_capacity - _offset), (long)src._offset);
-        _offset += src._offset;
-    }
+            T val = *(T*)(_ptr + _offset);
+            _offset += size;
+            return val;
+        }
 
-    public void Write<T>(T value) where T : unmanaged
-    {
-        uint size = (uint)sizeof(T);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Peek<T>() where T : unmanaged
+        {
+            if (!IsSupportedType<T>())
+            {
+                throw new ArgumentException("Cannot read type "
+                    + typeof(T) + " into this buffer");
+            }
 
-        if (_offset + size > _capacity)
-            throw new IndexOutOfRangeException();
+            uint size = (uint)SizeOf<T>();
 
-        *(T*)(_ptr + _offset) = value;
-        _offset += size;
-    }
+            if (_offset + size > _capacity)
+                throw new IndexOutOfRangeException($"Peek exceeds buffer size ({_capacity}) at {_offset} with size {size}");
 
-    public T Read<T>() where T : unmanaged
-    {
-        uint size = (uint)sizeof(T);
+            return *(T*)(_ptr + _offset);
+        }
 
-        if (_offset + size > _capacity)
-            throw new IndexOutOfRangeException();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<byte> AsReadOnlySpan()
+        {
+            if (_disposed || _ptr == null) throw new ObjectDisposedException(nameof(ByteBuffer));
 
-        T val = *(T*)(_ptr + _offset);
-        _offset += size;
-        return val;
+            return new ReadOnlySpan<byte>(_ptr, checked((int)_offset));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<byte> AsSpan()
+        {
+            if (_disposed || _ptr == null) throw new ObjectDisposedException(nameof(ByteBuffer));
+
+            return new Span<byte>(_ptr, checked((int)_capacity));
+        }
+
+        // Custom Write/Read 
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteBytes(byte[] value)
+        {
+            int len = value.Length;
+
+            if (_offset + len > _capacity)
+                throw new IndexOutOfRangeException($"Write exceeds buffer capacity ({_capacity}) at {_offset} with size {len}");
+
+            fixed (byte* src = value)
+            {
+                Buffer.MemoryCopy(src, _ptr + _offset, _capacity - _offset, len);
+            }
+
+            _offset += (uint)len;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public byte[] ReadBytes(int length)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), "Length cannot be negative");
+
+            if (_offset + length > _capacity)
+                throw new IndexOutOfRangeException($"Read exceeds buffer size ({_capacity}) at {_offset} with size {length}");
+
+            byte[] value = new byte[length];
+            Marshal.Copy((IntPtr)(_ptr + _offset), value, 0, length);
+            _offset += (uint)length;
+            return value;
+        }
     }
 }

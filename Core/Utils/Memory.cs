@@ -22,46 +22,49 @@
 
 using System.Runtime.CompilerServices;
 
-public static class Memory
+namespace Wormhole
 {
-    [MethodImpl(256)]
-    public static unsafe void Copy(IntPtr source, int sourceOffset, byte[] destination, int destinationOffset, int length)
+    public static class Memory
     {
-        if (length > 0)
+        [MethodImpl(256)]
+        public static unsafe void Copy(IntPtr source, int sourceOffset, byte[] destination, int destinationOffset, int length)
         {
-            fixed (byte* destinationPointer = &destination[destinationOffset])
-            {
-                byte* sourcePointer = (byte*)source + sourceOffset;
-
-                Buffer.MemoryCopy(sourcePointer, destinationPointer, length, length);
-            }
-        }
-    }
-
-    [MethodImpl(256)]
-    public static unsafe void Copy(byte[] source, int sourceOffset, IntPtr destination, int destinationOffset, int length)
-    {
-        if (length > 0)
-        {
-            fixed (byte* sourcePointer = &source[sourceOffset])
-            {
-                byte* destinationPointer = (byte*)destination + destinationOffset;
-
-                Buffer.MemoryCopy(sourcePointer, destinationPointer, length, length);
-            }
-        }
-    }
-
-    [MethodImpl(256)]
-    public static unsafe void Copy(byte[] source, int sourceOffset, byte[] destination, int destinationOffset, int length)
-    {
-        if (length > 0)
-        {
-            fixed (byte* sourcePointer = &source[sourceOffset])
+            if (length > 0)
             {
                 fixed (byte* destinationPointer = &destination[destinationOffset])
                 {
+                    byte* sourcePointer = (byte*)source + sourceOffset;
+
                     Buffer.MemoryCopy(sourcePointer, destinationPointer, length, length);
+                }
+            }
+        }
+
+        [MethodImpl(256)]
+        public static unsafe void Copy(byte[] source, int sourceOffset, IntPtr destination, int destinationOffset, int length)
+        {
+            if (length > 0)
+            {
+                fixed (byte* sourcePointer = &source[sourceOffset])
+                {
+                    byte* destinationPointer = (byte*)destination + destinationOffset;
+
+                    Buffer.MemoryCopy(sourcePointer, destinationPointer, length, length);
+                }
+            }
+        }
+
+        [MethodImpl(256)]
+        public static unsafe void Copy(byte[] source, int sourceOffset, byte[] destination, int destinationOffset, int length)
+        {
+            if (length > 0)
+            {
+                fixed (byte* sourcePointer = &source[sourceOffset])
+                {
+                    fixed (byte* destinationPointer = &destination[destinationOffset])
+                    {
+                        Buffer.MemoryCopy(sourcePointer, destinationPointer, length, length);
+                    }
                 }
             }
         }
